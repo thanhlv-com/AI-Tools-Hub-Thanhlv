@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
+import { AnalysisHistory } from "@/components/AnalysisHistory";
+import { DDLAnalysisHistory } from "@/types/history";
 import { 
   GitCompare, 
   Database, 
@@ -21,7 +23,9 @@ import {
   Code2,
   Settings as SettingsIcon,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  History,
+  X
 } from "lucide-react";
 
 const databases = [
@@ -41,7 +45,8 @@ export default function DDLCompare() {
   const [migrationScript, setMigrationScript] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string>("");
-  const { config, getPageModel } = useConfig();
+  const [showHistory, setShowHistory] = useState(false);
+  const { config, getPageModel, addToHistory } = useConfig();
   const { toast } = useToast();
 
   const handleAnalyze = async () => {
@@ -81,6 +86,17 @@ export default function DDLCompare() {
       
       setMigrationScript(script);
       
+      // Save to history
+      const historyTitle = `${databaseType.toUpperCase()} Migration - ${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`;
+      addToHistory({
+        title: historyTitle,
+        currentDDL,
+        newDDL,
+        databaseType,
+        model: modelToUse,
+        migrationScript: script
+      });
+      
       toast({
         title: "Phân tích hoàn thành",
         description: `Migration script đã được tạo bằng ${modelToUse}`,
@@ -107,20 +123,45 @@ export default function DDLCompare() {
     });
   };
 
+  const handleLoadFromHistory = (historyItem: DDLAnalysisHistory) => {
+    setCurrentDDL(historyItem.currentDDL);
+    setNewDDL(historyItem.newDDL);
+    setDatabaseType(historyItem.databaseType);
+    setMigrationScript(historyItem.migrationScript);
+    setError("");
+    setShowHistory(false);
+    
+    toast({
+      title: "Đã tải từ lịch sử",
+      description: `Đã tải dữ liệu từ: ${historyItem.title}`,
+    });
+  };
+
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
-            <GitCompare className="w-5 h-5 text-primary-foreground" />
+    <div className="relative">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-foreground flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
+                <GitCompare className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span>DDL Compare & Migration</span>
+            </h1>
+            <p className="text-muted-foreground">
+              Phân tích sự khác biệt giữa cấu trúc database hiện tại và mới nhất, tạo ra script migration tự động
+            </p>
           </div>
-          <span>DDL Compare & Migration</span>
-        </h1>
-        <p className="text-muted-foreground">
-          Phân tích sự khác biệt giữa cấu trúc database hiện tại và mới nhất, tạo ra script migration tự động
-        </p>
-      </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center space-x-2"
+          >
+            <History className="w-4 h-4" />
+            <span>Lịch sử</span>
+          </Button>
+        </div>
 
       {/* Configuration Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -358,6 +399,34 @@ export default function DDLCompare() {
             </div>
           </CardContent>
         </Card>
+      )}
+      </div>
+
+      {/* History Sidebar */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+          <div className="fixed right-0 top-0 h-full w-96 bg-background border-l border-border shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="text-lg font-semibold flex items-center space-x-2">
+                <History className="w-5 h-5" />
+                <span>Lịch sử phân tích</span>
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="p-4 h-[calc(100vh-5rem)] overflow-hidden">
+              <AnalysisHistory 
+                onLoadFromHistory={handleLoadFromHistory}
+                className="h-full"
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

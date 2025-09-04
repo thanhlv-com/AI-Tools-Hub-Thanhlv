@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService, ModelInfo } from "@/lib/chatgpt";
 import { Brain, Zap, RefreshCw, AlertTriangle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const getModelColor = (modelId: string): string => {
@@ -60,7 +60,7 @@ export function ModelSelector({
   const isUsingPageSpecific = pageId && getPageModel(pageId) !== null;
 
   // Load available models from server
-  const loadModels = async () => {
+  const loadModels = useCallback(async () => {
     if (!config.apiKey) {
       setError("Chưa cấu hình API Key");
       return;
@@ -91,7 +91,7 @@ export function ModelSelector({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [config.apiKey, config.serverUrl, setAvailableModels, toast]);
 
   // Handle model change
   const handleModelChange = (newModel: string) => {
@@ -118,7 +118,7 @@ export function ModelSelector({
     if (config.apiKey && availableModels.length === 0) {
       loadModels();
     }
-  }, [config.apiKey, availableModels.length]);
+  }, [config.apiKey, availableModels.length, loadModels]);
 
   return (
     <div className={className}>

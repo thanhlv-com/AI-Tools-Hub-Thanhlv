@@ -56,14 +56,24 @@ This is a React-based DDL (Database Definition Language) comparison and migratio
 - API key validation before analysis
 - Auto-save configuration changes
 
+**Analysis History** (`src/types/history.ts`, `src/components/AnalysisHistory.tsx`):
+- Automatically saves all successful DDL analyses to localStorage (`ddl-tool-history`)
+- History includes: title, DDL inputs, database type, model used, migration script, and metadata
+- History sidebar accessible from DDLCompare page with search and filter capabilities
+- Users can load previous analyses to reuse or create new requests
+- Export functionality to backup history as JSON
+- Maximum 100 items stored (oldest automatically removed)
+
 ### File Organization
 
 - `/src/pages/`: Main application pages (DDLCompare, Settings, NotFound)
 - `/src/components/ui/`: shadcn/ui component library
 - `/src/components/layout/`: Layout components (AppLayout, Sidebar)
+- `/src/components/`: Core components (ModelSelector, AnalysisHistory)
 - `/src/contexts/`: React context providers
 - `/src/lib/`: Utility functions and service classes
 - `/src/hooks/`: Custom React hooks
+- `/src/types/`: TypeScript type definitions
 
 ### Important Implementation Notes
 

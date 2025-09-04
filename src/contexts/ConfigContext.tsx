@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { ModelInfo } from "@/lib/chatgpt";
+import { DDLAnalysisHistory } from "@/types/history";
 
 export interface ChatGPTConfig {
   serverUrl: string;
@@ -19,6 +20,12 @@ interface ConfigContextType {
   getPageModel: (pageId: string) => string | null;
   setPageModel: (pageId: string, model: string) => void;
   removePageModel: (pageId: string) => void;
+  // History management
+  history: DDLAnalysisHistory[];
+  addToHistory: (item: Omit<DDLAnalysisHistory, 'id' | 'timestamp'>) => void;
+  removeFromHistory: (id: string) => void;
+  clearHistory: () => void;
+  getHistoryById: (id: string) => DDLAnalysisHistory | undefined;
 }
 
 const defaultConfig: ChatGPTConfig = {
@@ -38,6 +45,7 @@ interface ConfigProviderProps {
 export function ConfigProvider({ children }: ConfigProviderProps) {
   const [config, setConfig] = useState<ChatGPTConfig>(defaultConfig);
   const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
+  const [history, setHistory] = useState<DDLAnalysisHistory[]>([]);
 
   const loadConfig = () => {
     try {
@@ -101,9 +109,67 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     }
   };
 
-  // Load config on mount
+  // History management functions
+  const loadHistory = () => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-history');
+      if (saved) {
+        const parsedHistory = JSON.parse(saved);
+        setHistory(parsedHistory);
+      }
+    } catch (error) {
+      console.error('Error loading history:', error);
+    }
+  };
+
+  const saveHistory = (historyData: DDLAnalysisHistory[]) => {
+    try {
+      localStorage.setItem('ddl-tool-history', JSON.stringify(historyData));
+    } catch (error) {
+      console.error('Error saving history:', error);
+    }
+  };
+
+  const addToHistory = (item: Omit<DDLAnalysisHistory, 'id' | 'timestamp'>) => {
+    const newItem: DDLAnalysisHistory = {
+      ...item,
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      metadata: {
+        currentDDLLength: item.currentDDL.length,
+        newDDLLength: item.newDDL.length,
+        scriptLength: item.migrationScript.length,
+      }
+    };
+    
+    const updatedHistory = [newItem, ...history].slice(0, 100); // Keep max 100 items
+    setHistory(updatedHistory);
+    saveHistory(updatedHistory);
+  };
+
+  const removeFromHistory = (id: string) => {
+    const updatedHistory = history.filter(item => item.id !== id);
+    setHistory(updatedHistory);
+    saveHistory(updatedHistory);
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    try {
+      localStorage.removeItem('ddl-tool-history');
+    } catch (error) {
+      console.error('Error clearing history:', error);
+    }
+  };
+
+  const getHistoryById = (id: string): DDLAnalysisHistory | undefined => {
+    return history.find(item => item.id === id);
+  };
+
+  // Load config and history on mount
   useEffect(() => {
     loadConfig();
+    loadHistory();
   }, []);
 
   // Auto-save when config changes
@@ -121,7 +187,12 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       setAvailableModels,
       getPageModel,
       setPageModel,
-      removePageModel
+      removePageModel,
+      history,
+      addToHistory,
+      removeFromHistory,
+      clearHistory,
+      getHistoryById
     }}>
       {children}
     </ConfigContext.Provider>
