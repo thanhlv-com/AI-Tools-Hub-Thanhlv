@@ -188,21 +188,46 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
 
     try {
       const chatGPT = new ChatGPTService(config);
-      const currentModels = await chatGPT.getAvailableModels();
       const cachedModels = availableModels;
       
-      // Find invalid models (cached but not available anymore)
-      const currentModelIds = new Set(currentModels.map(m => m.id));
-      const invalidModels = cachedModels
-        .filter(model => !currentModelIds.has(model.id))
-        .map(model => model.id);
+      if (cachedModels.length === 0) {
+        throw new Error("Không có models để xác minh. Vui lòng tải models trước.");
+      }
       
-      // Update cached models with current valid ones
-      saveModelsToStorage(currentModels);
-      setAvailableModels(currentModels);
+      // Test each cached model with actual API calls
+      const validModels: ModelInfo[] = [];
+      const invalidModels: string[] = [];
+      
+      console.log(`Testing ${cachedModels.length} models...`);
+      
+      // Test models in batches to avoid overwhelming the API
+      for (const model of cachedModels) {
+        try {
+          console.log(`Testing model: ${model.id}`);
+          const isValid = await chatGPT.testModel(model.id);
+          
+          if (isValid) {
+            validModels.push(model);
+            console.log(`✓ Model ${model.id} is valid`);
+          } else {
+            invalidModels.push(model.id);
+            console.log(`✗ Model ${model.id} failed API test`);
+          }
+          
+          // Add a small delay between tests to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`Error testing model ${model.id}:`, error);
+          invalidModels.push(model.id);
+        }
+      }
+      
+      // Update cached models with only valid ones
+      saveModelsToStorage(validModels);
+      setAvailableModels(validModels);
       
       return {
-        validModels: currentModels,
+        validModels,
         invalidModels
       };
     } catch (error) {

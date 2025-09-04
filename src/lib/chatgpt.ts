@@ -155,6 +155,58 @@ export class ChatGPTService {
     }
   }
 
+  async testModel(modelId: string): Promise<boolean> {
+    if (!this.config.apiKey) {
+      throw new Error("API Key chưa được cấu hình. Vui lòng vào Settings để nhập API Key.");
+    }
+
+    try {
+      // Use a simple test message to verify the model works
+      const testMessage: ChatGPTMessage = {
+        role: "user",
+        content: "Hello"
+      };
+
+      const requestBody: ChatGPTRequest = {
+        model: modelId,
+        messages: [testMessage],
+        max_tokens: 10, // Keep it minimal to save costs
+        temperature: 0
+      };
+
+      const response = await fetch(`${this.config.serverUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${this.config.apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error(`Model ${modelId} failed API test:`, {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        return false; // Model failed the test
+      }
+
+      const data: ChatGPTResponse = await response.json();
+      const isValid = !!(data.choices && data.choices.length > 0);
+      
+      if (!isValid) {
+        console.error(`Model ${modelId} returned invalid response:`, data);
+      }
+      
+      return isValid;
+    } catch (error) {
+      console.error(`Model ${modelId} test failed with exception:`, error);
+      return false; // Model failed the test
+    }
+  }
+
   async callAPI(messages: ChatGPTMessage[], customModel?: string): Promise<string> {
     // Wrap the actual API call in a function and add it to the queue
     return globalRequestQueue.enqueue(async () => {

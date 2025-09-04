@@ -19,6 +19,7 @@ export default function Settings() {
   const [loadingModels, setLoadingModels] = useState(false);
   const [verifyingModels, setVerifyingModels] = useState(false);
   const [modelVerificationResult, setModelVerificationResult] = useState<{ validModels: any[], invalidModels: string[] } | null>(null);
+  const [verificationProgress, setVerificationProgress] = useState<{ current: number, total: number } | null>(null);
   const { toast } = useToast();
 
   const handleSave = () => {
@@ -113,21 +114,28 @@ export default function Settings() {
     }
 
     setVerifyingModels(true);
+    setVerificationProgress({ current: 0, total: availableModels.length });
+    setModelVerificationResult(null);
 
     try {
+      toast({
+        title: "Bắt đầu xác minh models",
+        description: `Đang thực hiện API test cho ${availableModels.length} models. Quá trình này có thể mất vài phút.`,
+      });
+
       const result = await verifyModels();
       setModelVerificationResult(result);
       
       if (result.invalidModels.length > 0) {
         toast({
           title: "Tìm thấy models không hợp lệ",
-          description: `${result.invalidModels.length} models đã bị xóa khỏi cache. ${result.validModels.length} models hợp lệ.`,
+          description: `${result.invalidModels.length} models không thể sử dụng và đã bị xóa. ${result.validModels.length} models hợp lệ.`,
           variant: "destructive"
         });
       } else {
         toast({
           title: "Tất cả models hợp lệ",
-          description: `${result.validModels.length} models đều có thể sử dụng.`,
+          description: `Tất cả ${result.validModels.length} models đều đã được test thành công và có thể sử dụng.`,
         });
       }
     } catch (err) {
@@ -139,6 +147,7 @@ export default function Settings() {
       });
     } finally {
       setVerifyingModels(false);
+      setVerificationProgress(null);
     }
   };
 
@@ -297,7 +306,12 @@ export default function Settings() {
                   className="justify-start"
                 >
                   <Shield className={`w-4 h-4 mr-2 ${verifyingModels ? 'animate-spin' : ''}`} />
-                  {verifyingModels ? "Đang xác minh..." : "Xác minh Models"}
+                  {verifyingModels 
+                    ? verificationProgress 
+                      ? `Testing ${verificationProgress.current}/${verificationProgress.total}...`
+                      : "Đang xác minh..."
+                    : "Xác minh Models (API Test)"
+                  }
                 </Button>
               </div>
             </div>
@@ -313,7 +327,7 @@ export default function Settings() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-2">
-                      <p><strong>Models không khả dụng đã bị xóa:</strong></p>
+                      <p><strong>Models thất bại API test và đã bị xóa:</strong></p>
                       <div className="flex flex-wrap gap-1">
                         {modelVerificationResult.invalidModels.map((modelId, index) => (
                           <Badge key={index} variant="destructive" className="text-xs">
@@ -322,6 +336,9 @@ export default function Settings() {
                           </Badge>
                         ))}
                       </div>
+                      <p className="text-xs mt-2">
+                        Các models này không thể thực hiện API calls và có thể không được hỗ trợ hoặc bị hạn chế quyền truy cập.
+                      </p>
                     </div>
                   </AlertDescription>
                 </Alert>
@@ -329,7 +346,8 @@ export default function Settings() {
                 <Alert>
                   <CheckCircle2 className="h-4 w-4" />
                   <AlertDescription>
-                    Tất cả {modelVerificationResult.validModels.length} models đều khả dụng và đã được cập nhật.
+                    <p>Tất cả {modelVerificationResult.validModels.length} models đều đã pass API test thành công!</p>
+                    <p className="text-xs mt-1">Các models này có thể sử dụng bình thường cho dịch thuật và phân tích DDL.</p>
                   </AlertDescription>
                 </Alert>
               )}
@@ -343,9 +361,10 @@ export default function Settings() {
                 <p className="font-medium mb-1">Hướng dẫn:</p>
                 <ul className="space-y-1 text-xs">
                   <li>• <strong>Tải lại Models:</strong> Lấy danh sách models mới từ server và lưu vào localStorage</li>
-                  <li>• <strong>Xác minh Models:</strong> Kiểm tra models đã lưu có còn khả dụng không</li>
-                  <li>• Models không khả dụng sẽ tự động bị xóa khỏi cache</li>
-                  <li>• Nên xác minh models định kỳ để đảm bảo tính chính xác</li>
+                  <li>• <strong>Xác minh Models (API Test):</strong> Thực hiện API calls thực tế để test từng model</li>
+                  <li>• Models không pass API test sẽ tự động bị xóa khỏi cache</li>
+                  <li>• Quá trình xác minh có thể mất vài phút và sử dụng một ít API tokens</li>
+                  <li>• Nên xác minh models định kỳ để đảm bảo chúng hoạt động chính xác</li>
                 </ul>
               </div>
             </div>
