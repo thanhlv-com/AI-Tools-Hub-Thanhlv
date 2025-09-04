@@ -8,6 +8,7 @@ import {
   Menu, 
   X,
   GitCompare,
+  Languages,
   Zap
 } from "lucide-react";
 
@@ -17,6 +18,12 @@ const navigation = [
     href: "/",
     icon: GitCompare,
     description: "So sánh và tạo migration DDL"
+  },
+  {
+    name: "Translation",
+    href: "/translation",
+    icon: Languages,
+    description: "Dịch thuật đa ngôn ngữ với AI"
   },
   {
     name: "Settings",
@@ -42,7 +49,7 @@ export function Sidebar() {
             <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary to-primary-glow rounded-lg">
               <Database className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-foreground">DDL Tools</span>
+            <span className="font-semibold text-foreground">AI Tools Hub</span>
           </div>
         )}
         <Button

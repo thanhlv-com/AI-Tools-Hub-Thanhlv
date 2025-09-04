@@ -91,7 +91,7 @@ export function ModelSelector({
     } finally {
       setIsLoading(false);
     }
-  }, [config.apiKey, config.serverUrl, setAvailableModels, toast]);
+  }, [config, setAvailableModels, toast]);
 
   // Handle model change
   const handleModelChange = (newModel: string) => {

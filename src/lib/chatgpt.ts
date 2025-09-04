@@ -1,4 +1,6 @@
 import { ChatGPTConfig } from "@/contexts/ConfigContext";
+import { TranslationRequest } from "@/types/translation";
+import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
 
 export interface ChatGPTMessage {
   role: "system" | "user" | "assistant";
@@ -156,5 +158,46 @@ Hãy tạo migration script để chuyển đổi từ DDL hiện tại sang DDL
     ];
 
     return await this.callAPI(messages, customModel);
+  }
+
+  async translateText(request: TranslationRequest): Promise<string> {
+    const { text, sourceLanguage, targetLanguage, style, model } = request;
+    
+    const sourceLang = LANGUAGES.find(lang => lang.code === sourceLanguage);
+    const targetLang = LANGUAGES.find(lang => lang.code === targetLanguage);
+    const translationStyle = TRANSLATION_STYLES.find(s => s.id === style);
+    
+    if (!sourceLang || !targetLang || !translationStyle) {
+      throw new Error("Invalid language or style selection");
+    }
+
+    const systemPrompt = `Bạn là một chuyên gia dịch thuật đa ngôn ngữ chuyên nghiệp. Nhiệm vụ của bạn là dịch văn bản với chất lượng cao nhất.
+
+Yêu cầu dịch thuật:
+- Ngôn ngữ nguồn: ${sourceLang.name} (${sourceLang.nativeName})
+- Ngôn ngữ đích: ${targetLang.name} (${targetLang.nativeName})
+- Phong cách dịch: ${translationStyle.name}
+- Mô tả phong cách: ${translationStyle.description}
+
+Hướng dẫn chi tiết:
+${translationStyle.prompt}
+
+Lưu ý quan trọng:
+- Chỉ trả về bản dịch cuối cùng, không thêm giải thích
+- Giữ nguyên định dạng của văn bản gốc (xuống dòng, dấu câu, etc.)
+- Nếu có từ khóa chuyên ngành, hãy dịch phù hợp với ngữ cảnh
+- Đảm bảo bản dịch phù hợp với văn hóa của ngôn ngữ đích
+- Nếu ngôn ngữ nguồn là "auto", hãy tự động phát hiện ngôn ngữ`;
+
+    const userPrompt = `Hãy dịch văn bản sau:
+
+${text}`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    return await this.callAPI(messages, model);
   }
 }

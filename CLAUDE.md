@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Architecture
 
-This is a React-based DDL (Database Definition Language) comparison and migration tool that uses ChatGPT/OpenAI API to generate database migration scripts.
+This is a React-based AI-powered tool hub that includes DDL (Database Definition Language) comparison and multi-language translation capabilities using ChatGPT/OpenAI API.
 
 ### Tech Stack
 - **Frontend**: React 18 + TypeScript + Vite
@@ -27,7 +27,7 @@ This is a React-based DDL (Database Definition Language) comparison and migratio
 **Main App Entry** (`src/App.tsx`):
 - Wrapped with QueryClientProvider (TanStack Query)
 - ConfigProvider for global ChatGPT configuration
-- BrowserRouter with routes: `/` (DDLCompare), `/settings` (Settings)
+- BrowserRouter with routes: `/` (DDLCompare), `/translation` (Translation), `/settings` (Settings)
 
 **Configuration System** (`src/contexts/ConfigContext.tsx`):
 - Manages ChatGPT API configuration (API key, model, server URL, etc.)
@@ -38,6 +38,7 @@ This is a React-based DDL (Database Definition Language) comparison and migratio
 **ChatGPT Integration** (`src/lib/chatgpt.ts`):
 - `ChatGPTService` class handles OpenAI API communication
 - `analyzeDDL()` method generates migration scripts by comparing two DDL schemas
+- `translateText()` method provides multi-language translation with style options
 - Supports custom model selection per request
 - Vietnamese language prompts and error messages
 
@@ -56,6 +57,14 @@ This is a React-based DDL (Database Definition Language) comparison and migratio
 - API key validation before analysis
 - Auto-save configuration changes
 
+**Multi-Language Translation** (`src/pages/Translation.tsx`, `src/types/translation.ts`):
+- AI-powered translation supporting 25+ languages including Vietnamese, English, Chinese, Japanese, Korean, etc.
+- 10 specialized translation styles: Natural, Formal, Casual, Literal, Creative, Technical, Poetic, Commercial, Academic, News
+- Each style includes detailed description and specific AI prompts for optimal results
+- Language swap functionality and auto-detection for source language
+- Per-page model selection with fallback to global settings
+- Real-time character count and copy-to-clipboard functionality
+
 **Analysis History** (`src/types/history.ts`, `src/components/AnalysisHistory.tsx`):
 - Automatically saves all successful DDL analyses to localStorage (`ddl-tool-history`)
 - History includes: title, DDL inputs, database type, model used, migration script, and metadata
@@ -66,14 +75,15 @@ This is a React-based DDL (Database Definition Language) comparison and migratio
 
 ### File Organization
 
-- `/src/pages/`: Main application pages (DDLCompare, Settings, NotFound)
+- `/src/pages/`: Main application pages (DDLCompare, Translation, Settings, NotFound)
 - `/src/components/ui/`: shadcn/ui component library
 - `/src/components/layout/`: Layout components (AppLayout, Sidebar)
 - `/src/components/`: Core components (ModelSelector, AnalysisHistory)
 - `/src/contexts/`: React context providers
 - `/src/lib/`: Utility functions and service classes
 - `/src/hooks/`: Custom React hooks
-- `/src/types/`: TypeScript type definitions
+- `/src/types/`: TypeScript type definitions (history, translation)
+- `/src/data/`: Static data and configuration (translation languages and styles)
 
 ### Important Implementation Notes
 
@@ -82,3 +92,6 @@ This is a React-based DDL (Database Definition Language) comparison and migratio
 - Configuration is persisted automatically using localStorage
 - The app supports both global model configuration and per-page model selection
 - Database type selection affects the generated migration script format
+- Translation feature supports 25+ languages with 10 specialized translation styles
+- Each translation style has detailed descriptions and optimized AI prompts
+- Language detection and swap functionality for efficient translation workflow
