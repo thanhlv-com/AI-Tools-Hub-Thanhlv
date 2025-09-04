@@ -40,6 +40,55 @@ export interface ModelsResponse {
   data: ModelInfo[];
 }
 
+interface QueueItem {
+  requestFn: () => Promise<string>;
+  resolve: (value: string) => void;
+  reject: (error: Error) => void;
+}
+
+// Global request queue to ensure sequential processing
+class RequestQueue {
+  private queue: QueueItem[] = [];
+  private isProcessing: boolean = false;
+
+  async enqueue(requestFn: () => Promise<string>): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      this.queue.push({ requestFn, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.isProcessing || this.queue.length === 0) {
+      return;
+    }
+
+    this.isProcessing = true;
+
+    while (this.queue.length > 0) {
+      const item = this.queue.shift();
+      if (!item) continue;
+
+      try {
+        const result = await item.requestFn();
+        item.resolve(result);
+      } catch (error) {
+        item.reject(error);
+      }
+
+      // Wait 100ms before processing next request
+      if (this.queue.length > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    this.isProcessing = false;
+  }
+}
+
+// Global instance of the request queue
+const globalRequestQueue = new RequestQueue();
+
 export class ChatGPTService {
   private config: ChatGPTConfig;
 
@@ -82,49 +131,52 @@ export class ChatGPTService {
   }
 
   async callAPI(messages: ChatGPTMessage[], customModel?: string): Promise<string> {
-    if (!this.config.apiKey) {
-      throw new Error("API Key chưa được cấu hình. Vui lòng vào Settings để nhập API Key.");
-    }
-
-    const model = customModel || this.config.model;
-    
-    const requestBody: ChatGPTRequest = {
-      model,
-      messages,
-      max_tokens: parseInt(this.config.maxTokens),
-      temperature: parseFloat(this.config.temperature),
-    };
-
-    try {
-      const response = await fetch(`${this.config.serverUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.config.apiKey}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `API Error (${response.status}): ${errorData.error?.message || response.statusText}`
-        );
+    // Wrap the actual API call in a function and add it to the queue
+    return globalRequestQueue.enqueue(async () => {
+      if (!this.config.apiKey) {
+        throw new Error("API Key chưa được cấu hình. Vui lòng vào Settings để nhập API Key.");
       }
 
-      const data: ChatGPTResponse = await response.json();
+      const model = customModel || this.config.model;
       
-      if (!data.choices || data.choices.length === 0) {
-        throw new Error("Không nhận được response từ ChatGPT");
-      }
+      const requestBody: ChatGPTRequest = {
+        model,
+        messages,
+        max_tokens: parseInt(this.config.maxTokens),
+        temperature: parseFloat(this.config.temperature),
+      };
 
-      return data.choices[0].message.content;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+      try {
+        const response = await fetch(`${this.config.serverUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${this.config.apiKey}`,
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            `API Error (${response.status}): ${errorData.error?.message || response.statusText}`
+          );
+        }
+
+        const data: ChatGPTResponse = await response.json();
+        
+        if (!data.choices || data.choices.length === 0) {
+          throw new Error("Không nhận được response từ ChatGPT");
+        }
+
+        return data.choices[0].message.content;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error("Lỗi không xác định khi gọi ChatGPT API");
       }
-      throw new Error("Lỗi không xác định khi gọi ChatGPT API");
-    }
+    });
   }
 
   async analyzeDDL(currentDDL: string, newDDL: string, databaseType: string, customModel?: string): Promise<string> {
