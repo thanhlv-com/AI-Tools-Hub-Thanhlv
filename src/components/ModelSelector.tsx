@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useConfig } from "@/contexts/ConfigContext";
 import { Brain, Zap, RefreshCw, AlertTriangle } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const getModelColor = (modelId: string): string => {
@@ -45,18 +45,24 @@ export function ModelSelector({
   const [error, setError] = useState<string>("");
   
   // Get the current value from props, page-specific storage, or global config
-  const getEffectiveValue = (): string => {
+  const currentValue = useMemo(() => {
     if (value) return value;
     if (pageId) {
       const pageModel = getPageModel(pageId);
       if (pageModel) return pageModel;
     }
     return config.model;
-  };
+  }, [value, pageId, getPageModel, config.model]);
   
-  const currentValue = getEffectiveValue();
-  const isUsingDefault = !value && (!pageId || !getPageModel(pageId));
-  const isUsingPageSpecific = pageId && getPageModel(pageId) !== null;
+  const isUsingDefault = useMemo(() => 
+    !value && (!pageId || !getPageModel(pageId)), 
+    [value, pageId, getPageModel]
+  );
+  
+  const isUsingPageSpecific = useMemo(() => 
+    pageId && getPageModel(pageId) !== null, 
+    [pageId, getPageModel]
+  );
 
   // Load available models from server using the context function
   const loadModels = useCallback(async () => {

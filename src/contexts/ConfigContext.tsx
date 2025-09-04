@@ -69,6 +69,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
   const [history, setHistory] = useState<DDLAnalysisHistory[]>([]);
   const [translationHistory, setTranslationHistory] = useState<TranslationHistory[]>([]);
+  const [pageModels, setPageModels] = useState<{ [pageId: string]: string }>({});
 
   const loadConfig = () => {
     try {
@@ -102,25 +103,26 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   };
 
   // Per-page model storage functions
-  const getPageModel = (pageId: string): string | null => {
+  const loadPageModels = () => {
     try {
-      const pageModels = localStorage.getItem('ddl-tool-page-models');
-      if (pageModels) {
-        const parsed = JSON.parse(pageModels);
-        return parsed[pageId] || null;
+      const saved = localStorage.getItem('ddl-tool-page-models');
+      if (saved) {
+        const parsedModels = JSON.parse(saved);
+        setPageModels(parsedModels);
       }
     } catch (error) {
-      console.error('Error loading page model:', error);
+      console.error('Error loading page models:', error);
     }
-    return null;
+  };
+  const getPageModel = (pageId: string): string | null => {
+    return pageModels[pageId] || null;
   };
 
   const setPageModel = (pageId: string, model: string) => {
     try {
-      const pageModels = localStorage.getItem('ddl-tool-page-models');
-      const parsed = pageModels ? JSON.parse(pageModels) : {};
-      parsed[pageId] = model;
-      localStorage.setItem('ddl-tool-page-models', JSON.stringify(parsed));
+      const newPageModels = { ...pageModels, [pageId]: model };
+      setPageModels(newPageModels);
+      localStorage.setItem('ddl-tool-page-models', JSON.stringify(newPageModels));
     } catch (error) {
       console.error('Error saving page model:', error);
     }
@@ -128,12 +130,10 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
 
   const removePageModel = (pageId: string) => {
     try {
-      const pageModels = localStorage.getItem('ddl-tool-page-models');
-      if (pageModels) {
-        const parsed = JSON.parse(pageModels);
-        delete parsed[pageId];
-        localStorage.setItem('ddl-tool-page-models', JSON.stringify(parsed));
-      }
+      const newPageModels = { ...pageModels };
+      delete newPageModels[pageId];
+      setPageModels(newPageModels);
+      localStorage.setItem('ddl-tool-page-models', JSON.stringify(newPageModels));
     } catch (error) {
       console.error('Error removing page model:', error);
     }
@@ -356,6 +356,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     loadConfig();
     loadHistory();
     loadTranslationHistory();
+    loadPageModels();
     
     // Load cached models from localStorage
     const cachedModels = loadModelsFromStorage();
