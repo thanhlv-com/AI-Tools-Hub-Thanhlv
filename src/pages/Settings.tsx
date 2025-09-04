@@ -3,31 +3,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Save, TestTube, Server, Key, Zap } from "lucide-react";
-
-const models = [
-  { id: "gpt-4", name: "GPT-4", description: "Mạnh nhất, chậm hơn" },
-  { id: "gpt-4-turbo", name: "GPT-4 Turbo", description: "Cân bằng tốc độ và chất lượng" },
-  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", description: "Nhanh, tiết kiệm" }
-];
+import { useConfig } from "@/contexts/ConfigContext";
+import { ModelSelector } from "@/components/ModelSelector";
+import { Save, TestTube, Server, Key, Zap, CheckCircle2 } from "lucide-react";
 
 export default function Settings() {
-  const [config, setConfig] = useState({
-    serverUrl: "https://api.openai.com/v1",
-    apiKey: "",
-    model: "gpt-4-turbo",
-    maxTokens: "4000",
-    temperature: "0.1"
-  });
+  const { config, updateConfig } = useConfig();
   const [testing, setTesting] = useState(false);
   const { toast } = useToast();
 
   const handleSave = () => {
-    localStorage.setItem('ddl-tool-config', JSON.stringify(config));
     toast({
       title: "Đã lưu cấu hình",
       description: "Cấu hình ChatGPT đã được lưu thành công.",
@@ -74,27 +62,16 @@ export default function Settings() {
               <Input
                 id="serverUrl"
                 value={config.serverUrl}
-                onChange={(e) => setConfig({...config, serverUrl: e.target.value})}
+                onChange={(e) => updateConfig({ serverUrl: e.target.value })}
                 placeholder="https://api.openai.com/v1"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="model">Model</Label>
-              <Select value={config.model} onValueChange={(value) => setConfig({...config, model: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {models.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{model.name}</span>
-                        <span className="text-xs text-muted-foreground">{model.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ModelSelector 
+                value={config.model}
+                onChange={(value) => updateConfig({ model: value })}
+                label="Model mặc định"
+              />
             </div>
           </div>
 
@@ -107,7 +84,7 @@ export default function Settings() {
               id="apiKey"
               type="password"
               value={config.apiKey}
-              onChange={(e) => setConfig({...config, apiKey: e.target.value})}
+              onChange={(e) => updateConfig({ apiKey: e.target.value })}
               placeholder="sk-..."
             />
           </div>
@@ -133,7 +110,7 @@ export default function Settings() {
                 id="maxTokens"
                 type="number"
                 value={config.maxTokens}
-                onChange={(e) => setConfig({...config, maxTokens: e.target.value})}
+                onChange={(e) => updateConfig({ maxTokens: e.target.value })}
                 min="100"
                 max="8000"
               />
@@ -148,7 +125,7 @@ export default function Settings() {
                 min="0"
                 max="2"
                 value={config.temperature}
-                onChange={(e) => setConfig({...config, temperature: e.target.value})}
+                onChange={(e) => updateConfig({ temperature: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">Mức độ sáng tạo (0.0 - 2.0)</p>
             </div>
@@ -159,9 +136,9 @@ export default function Settings() {
       {/* Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-gradient-to-r from-primary/10 to-primary-glow/10">
-            <Server className="w-3 h-3 mr-1" />
-            Ready to use
+          <Badge variant="secondary" className="bg-gradient-to-r from-primary/10 to-primary-glow/10 flex items-center">
+            <CheckCircle2 className="w-3 h-3 mr-1 text-primary" />
+            Tự động lưu vào LocalStorage
           </Badge>
         </div>
         <div className="flex space-x-2">
@@ -175,8 +152,8 @@ export default function Settings() {
             {testing ? "Đang kiểm tra..." : "Test Connection"}
           </Button>
           <Button onClick={handleSave} className="bg-gradient-to-r from-primary to-primary-glow">
-            <Save className="w-4 h-4 mr-2" />
-            Lưu cấu hình
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Đã lưu tự động
           </Button>
         </div>
       </div>

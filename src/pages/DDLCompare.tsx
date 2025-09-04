@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { ModelSelector } from "@/components/ModelSelector";
 import { 
   GitCompare, 
   Database, 
@@ -15,7 +16,8 @@ import {
   FileText,
   ArrowRight,
   Zap,
-  Code2
+  Code2,
+  Settings as SettingsIcon
 } from "lucide-react";
 
 const databases = [
@@ -30,6 +32,7 @@ export default function DDLCompare() {
   const [currentDDL, setCurrentDDL] = useState("");
   const [newDDL, setNewDDL] = useState("");
   const [databaseType, setDatabaseType] = useState("mysql");
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const [migrationScript, setMigrationScript] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
@@ -46,10 +49,14 @@ export default function DDLCompare() {
 
     setIsAnalyzing(true);
     
+    // Get the model to use (selected model or default from config)
+    const modelToUse = selectedModel || "default-from-config";
+    
     // Simulate ChatGPT API call
     setTimeout(() => {
       const mockScript = `-- Migration script generated for ${databases.find(db => db.id === databaseType)?.name}
 -- Generated at: ${new Date().toLocaleString()}
+-- Using model: ${modelToUse}
 
 -- Add new columns
 ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
@@ -99,32 +106,56 @@ ALTER TABLE orders ADD CONSTRAINT fk_orders_user_id
         </p>
       </div>
 
-      {/* Database Type Selection */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Database className="w-5 h-5 text-primary" />
-            <span>Loại Database</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Select value={databaseType} onValueChange={setDatabaseType}>
-            <SelectTrigger className="w-64">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {databases.map((db) => (
-                <SelectItem key={db.id} value={db.id}>
-                  <div className="flex items-center space-x-2">
-                    <span>{db.icon}</span>
-                    <span>{db.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      {/* Configuration Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Database Type Selection */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Database className="w-5 h-5 text-primary" />
+              <span>Loại Database</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={databaseType} onValueChange={setDatabaseType}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {databases.map((db) => (
+                  <SelectItem key={db.id} value={db.id}>
+                    <div className="flex items-center space-x-2">
+                      <span>{db.icon}</span>
+                      <span>{db.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Model Selection */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <SettingsIcon className="w-5 h-5 text-primary" />
+              <span>Model Configuration</span>
+            </CardTitle>
+            <CardDescription>
+              Chọn model riêng cho trang này hoặc dùng mặc định
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ModelSelector 
+              value={selectedModel}
+              onChange={setSelectedModel}
+              label="Model cho DDL Analysis"
+              showDefault={true}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* DDL Input Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
