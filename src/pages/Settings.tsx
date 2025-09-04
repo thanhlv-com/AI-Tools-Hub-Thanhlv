@@ -9,10 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
-import { Save, TestTube, Server, Key, Zap, CheckCircle2 } from "lucide-react";
+import { Save, TestTube, Server, Key, Zap, CheckCircle2, Clock, Settings as SettingsIcon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export default function Settings() {
-  const { config, updateConfig } = useConfig();
+  const { config, updateConfig, updateQueueConfig } = useConfig();
   const [testing, setTesting] = useState(false);
   const { toast } = useToast();
 
@@ -151,6 +152,84 @@ export default function Settings() {
                 onChange={(e) => updateConfig({ temperature: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">Mức độ sáng tạo (0.0 - 2.0)</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Request Queue Configuration */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Clock className="w-5 h-5 text-primary" />
+            <span>Cấu hình Request Queue</span>
+          </CardTitle>
+          <CardDescription>
+            Điều khiển hàng đợi yêu cầu API để tránh rate limiting và quản lý tài nguyên
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="queue-enabled" className="text-base">
+                Bật Queue System
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Kích hoạt hàng đợi tuần tự cho các yêu cầu API
+              </p>
+            </div>
+            <Switch
+              id="queue-enabled"
+              checked={config.queue.enabled}
+              onCheckedChange={(enabled) => updateQueueConfig({ enabled })}
+            />
+          </div>
+          
+          {config.queue.enabled && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="delayMs">Độ trễ giữa các request (ms)</Label>
+                <Input
+                  id="delayMs"
+                  type="number"
+                  value={config.queue.delayMs}
+                  onChange={(e) => updateQueueConfig({ delayMs: parseInt(e.target.value) || 0 })}
+                  min="0"
+                  max="5000"
+                  step="100"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Thời gian chờ giữa các request API (0-5000ms)
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="maxConcurrent">Số request đồng thời tối đa</Label>
+                <Input
+                  id="maxConcurrent"
+                  type="number"
+                  value={config.queue.maxConcurrent}
+                  onChange={(e) => updateQueueConfig({ maxConcurrent: parseInt(e.target.value) || 1 })}
+                  min="1"
+                  max="10"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Số lượng request có thể chạy song song (1-10)
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <div className="p-3 bg-muted/30 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <SettingsIcon className="w-4 h-4 text-muted-foreground mt-0.5" />
+              <div className="text-sm text-muted-foreground">
+                <p className="font-medium mb-1">Khuyến nghị cấu hình:</p>
+                <ul className="space-y-1 text-xs">
+                  <li>• <strong>OpenAI API:</strong> Delay 500ms, Max 1 concurrent</li>
+                  <li>• <strong>Local/Self-hosted:</strong> Delay 100ms, Max 3-5 concurrent</li>
+                  <li>• <strong>Rate-limited APIs:</strong> Delay 1000ms+, Max 1 concurrent</li>
+                </ul>
+              </div>
             </div>
           </div>
         </CardContent>

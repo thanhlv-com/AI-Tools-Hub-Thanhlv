@@ -3,17 +3,25 @@ import { ModelInfo } from "@/lib/chatgpt";
 import { DDLAnalysisHistory } from "@/types/history";
 import { TranslationHistory } from "@/types/translation";
 
+export interface QueueConfig {
+  enabled: boolean;
+  delayMs: number;
+  maxConcurrent: number;
+}
+
 export interface ChatGPTConfig {
   serverUrl: string;
   apiKey: string;
   model: string;
   maxTokens: string;
   temperature: string;
+  queue: QueueConfig;
 }
 
 interface ConfigContextType {
   config: ChatGPTConfig;
   updateConfig: (newConfig: Partial<ChatGPTConfig>) => void;
+  updateQueueConfig: (queueConfig: Partial<QueueConfig>) => void;
   saveConfig: () => void;
   loadConfig: () => void;
   availableModels: ModelInfo[];
@@ -40,7 +48,12 @@ const defaultConfig: ChatGPTConfig = {
   apiKey: "",
   model: "gpt-4-turbo",
   maxTokens: "4000",
-  temperature: "0.1"
+  temperature: "0.1",
+  queue: {
+    enabled: true,
+    delayMs: 500,
+    maxConcurrent: 1
+  }
 };
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -77,6 +90,13 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
 
   const updateConfig = (newConfig: Partial<ChatGPTConfig>) => {
     setConfig(prev => ({ ...prev, ...newConfig }));
+  };
+
+  const updateQueueConfig = (queueConfig: Partial<QueueConfig>) => {
+    setConfig(prev => ({ 
+      ...prev, 
+      queue: { ...prev.queue, ...queueConfig }
+    }));
   };
 
   // Per-page model storage functions
@@ -247,7 +267,8 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   return (
     <ConfigContext.Provider value={{ 
       config, 
-      updateConfig, 
+      updateConfig,
+      updateQueueConfig, 
       saveConfig, 
       loadConfig,
       availableModels,

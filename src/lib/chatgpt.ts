@@ -1,4 +1,4 @@
-import { ChatGPTConfig } from "@/contexts/ConfigContext";
+import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
 import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
 
@@ -50,8 +50,22 @@ interface QueueItem {
 class RequestQueue {
   private queue: QueueItem[] = [];
   private isProcessing: boolean = false;
+  private queueConfig: QueueConfig;
+
+  constructor(queueConfig: QueueConfig) {
+    this.queueConfig = queueConfig;
+  }
+
+  updateConfig(queueConfig: QueueConfig) {
+    this.queueConfig = queueConfig;
+  }
 
   async enqueue(requestFn: () => Promise<string>): Promise<string> {
+    if (!this.queueConfig.enabled) {
+      // If queue is disabled, execute immediately
+      return requestFn();
+    }
+
     return new Promise<string>((resolve, reject) => {
       this.queue.push({ requestFn, resolve, reject });
       this.processQueue();
@@ -76,9 +90,9 @@ class RequestQueue {
         item.reject(error);
       }
 
-      // Wait 100ms before processing next request
+      // Wait configured delay before processing next request
       if (this.queue.length > 0) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, this.queueConfig.delayMs));
       }
     }
 
@@ -86,14 +100,25 @@ class RequestQueue {
   }
 }
 
-// Global instance of the request queue
-const globalRequestQueue = new RequestQueue();
+// Global instance of the request queue with default config
+let globalRequestQueue = new RequestQueue({
+  enabled: true,
+  delayMs: 500,
+  maxConcurrent: 1
+});
+
+// Function to update global queue configuration
+export function updateGlobalQueueConfig(queueConfig: QueueConfig) {
+  globalRequestQueue.updateConfig(queueConfig);
+}
 
 export class ChatGPTService {
   private config: ChatGPTConfig;
 
   constructor(config: ChatGPTConfig) {
     this.config = config;
+    // Update global queue configuration when service is created
+    globalRequestQueue.updateConfig(config.queue);
   }
 
   async getAvailableModels(): Promise<ModelInfo[]> {
