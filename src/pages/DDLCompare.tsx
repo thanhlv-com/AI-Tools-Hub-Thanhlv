@@ -402,24 +402,25 @@ export default function DDLCompare() {
       )}
       </div>
 
-      {/* History Sidebar */}
+      {/* History Modal */}
       {showHistory && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-          <div className="fixed right-0 top-0 h-full w-96 bg-background border-l border-border shadow-lg">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="text-lg font-semibold flex items-center space-x-2">
-                <History className="w-5 h-5" />
-                <span>Lịch sử phân tích</span>
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl h-full max-h-[90vh] bg-background border border-border rounded-lg shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/30">
+              <h3 className="text-xl font-semibold flex items-center space-x-2">
+                <History className="w-6 h-6" />
+                <span>Lịch sử phân tích DDL</span>
               </h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowHistory(false)}
+                className="hover:bg-destructive/10"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </Button>
             </div>
-            <div className="p-4 h-[calc(100vh-5rem)] overflow-hidden">
+            <div className="p-6 h-[calc(100%-5rem)] overflow-hidden">
               <AnalysisHistory 
                 onLoadFromHistory={handleLoadFromHistory}
                 className="h-full"

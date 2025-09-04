@@ -83,22 +83,25 @@ export function AnalysisHistory({ onLoadFromHistory, className = "" }: AnalysisH
   };
 
   return (
-    <Card className={`shadow-card ${className}`}>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <History className="w-5 h-5 text-primary" />
-          <span>Lịch sử phân tích</span>
-          <Badge variant="secondary" className="ml-auto">
+    <div className={`h-full flex flex-col ${className}`}>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-3">
+            <History className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-semibold">Lịch sử phân tích</h2>
+          </div>
+          <Badge variant="secondary" className="px-3 py-1">
             {history.length} mục
           </Badge>
-        </CardTitle>
-        <CardDescription>
+        </div>
+        <p className="text-muted-foreground">
           Xem lại và tái sử dụng các phân tích DDL trước đây
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+      
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Search and Filter */}
-        <div className="space-y-4 mb-4">
+        <div className="space-y-4 mb-6">
           <div className="flex space-x-2">
             <div className="flex-1 relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -167,7 +170,8 @@ export function AnalysisHistory({ onLoadFromHistory, className = "" }: AnalysisH
         <Separator className="mb-4" />
 
         {/* History List */}
-        <ScrollArea className="h-[400px]">
+        <div className="flex-1 min-h-0">
+          <ScrollArea className="h-full">
           {filteredHistory.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {history.length === 0 ? (
@@ -189,14 +193,14 @@ export function AnalysisHistory({ onLoadFromHistory, className = "" }: AnalysisH
               {filteredHistory.map((item) => {
                 const dbInfo = getDatabaseInfo(item.databaseType);
                 return (
-                  <Card key={item.id} className="border border-border hover:border-primary/50 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
+                  <Card key={item.id} className="border border-border hover:border-primary/50 transition-all hover:shadow-md bg-card">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
-                          <h4 className="font-medium text-sm mb-1 line-clamp-2">
+                          <h4 className="font-semibold text-base mb-2 line-clamp-2 text-foreground">
                             {item.title}
                           </h4>
-                          <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                          <div className="flex items-center flex-wrap gap-3 text-sm text-muted-foreground">
                             <div className="flex items-center space-x-1">
                               <Calendar className="w-3 h-3" />
                               <span>{formatDate(item.timestamp)}</span>
@@ -211,23 +215,23 @@ export function AnalysisHistory({ onLoadFromHistory, className = "" }: AnalysisH
                             </div>
                           </div>
                         </div>
-                        <div className="flex space-x-1 ml-2">
+                        <div className="flex space-x-2 ml-3">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => handleLoadFromHistory(item)}
-                            className="h-8 px-2"
+                            className="h-9 px-3 text-sm"
                           >
-                            <RefreshCw className="w-3 h-3 mr-1" />
+                            <RefreshCw className="w-4 h-4 mr-2" />
                             Tải lại
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFromHistory(item.id)}
-                            className="h-8 px-2 text-destructive hover:text-destructive"
+                            className="h-9 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -267,8 +271,9 @@ export function AnalysisHistory({ onLoadFromHistory, className = "" }: AnalysisH
               })}
             </div>
           )}
-        </ScrollArea>
-      </CardContent>
-    </Card>
+          </ScrollArea>
+        </div>
+      </div>
+    </div>
   );
 }
