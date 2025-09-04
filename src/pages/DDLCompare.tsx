@@ -235,7 +235,7 @@ export default function DDLCompare() {
   name VARCHAR(100) NOT NULL,
   email VARCHAR(100)
 );"
-              className="min-h-[300px] font-mono text-sm bg-editor-bg text-code-text border-border"
+              className="min-h-[300px] font-mono text-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
             />
             <div className="mt-2 flex items-center justify-between">
               <Badge variant="secondary" className="text-xs">
@@ -276,7 +276,7 @@ export default function DDLCompare() {
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );"
-              className="min-h-[300px] font-mono text-sm bg-editor-bg text-code-text border-border"
+              className="min-h-[300px] font-mono text-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
             />
             <div className="mt-2 flex items-center justify-between">
               <Badge variant="secondary" className="text-xs">
@@ -377,7 +377,7 @@ export default function DDLCompare() {
               <Textarea
                 value={migrationScript}
                 readOnly
-                className="min-h-[300px] font-mono text-sm bg-code-bg text-code-text border-border"
+                className="min-h-[300px] font-mono text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-2 border-slate-200 dark:border-slate-700"
               />
               <Button
                 variant="secondary"

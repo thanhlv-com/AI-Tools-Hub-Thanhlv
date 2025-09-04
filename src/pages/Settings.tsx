@@ -181,6 +181,7 @@ export default function Settings() {
                 value={config.serverUrl}
                 onChange={(e) => updateConfig({ serverUrl: e.target.value })}
                 placeholder="https://api.openai.com/v1"
+                className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
             </div>
             <div className="space-y-2">
@@ -203,6 +204,7 @@ export default function Settings() {
               value={config.apiKey}
               onChange={(e) => updateConfig({ apiKey: e.target.value })}
               placeholder="sk-..."
+              className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
             />
           </div>
         </CardContent>
@@ -230,6 +232,7 @@ export default function Settings() {
                 onChange={(e) => updateConfig({ maxTokens: e.target.value })}
                 min="100"
                 max="8000"
+                className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
               <p className="text-xs text-muted-foreground">Số token tối đa cho response</p>
             </div>
@@ -243,6 +246,7 @@ export default function Settings() {
                 max="2"
                 value={config.temperature}
                 onChange={(e) => updateConfig({ temperature: e.target.value })}
+                className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
               <p className="text-xs text-muted-foreground">Mức độ sáng tạo (0.0 - 2.0)</p>
             </div>
@@ -412,6 +416,7 @@ export default function Settings() {
                   min="0"
                   max="5000"
                   step="100"
+                  className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
                 />
                 <p className="text-xs text-muted-foreground">
                   Thời gian chờ giữa các request API (0-5000ms)
@@ -426,6 +431,7 @@ export default function Settings() {
                   onChange={(e) => updateQueueConfig({ maxConcurrent: parseInt(e.target.value) || 1 })}
                   min="1"
                   max="10"
+                  className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
                 />
                 <p className="text-xs text-muted-foreground">
                   Số lượng request có thể chạy song song (1-10)

@@ -516,7 +516,7 @@ Ví dụ:
 - 这是一个测试文本
 - Bonjour, comment allez-vous?
 - こんにちは、元気ですか？"
-                className="min-h-[300px] text-sm bg-editor-bg text-foreground border-border"
+                className="min-h-[300px] text-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
               <div className="mt-2 flex items-center justify-between">
                 <Badge variant="secondary" className="text-xs">
@@ -608,7 +608,7 @@ Ví dụ:
                             {result.error}
                           </p>
                         ) : (
-                          <p className="text-sm bg-muted/30 p-2 rounded font-mono">
+                          <p className="text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-3 rounded border border-slate-200 dark:border-slate-700 font-mono">
                             {result.translatedText}
                           </p>
                         )}
