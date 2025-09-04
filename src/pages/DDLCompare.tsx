@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useConfig } from "@/contexts/ConfigContext";
+import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { 
   GitCompare, 
@@ -17,7 +19,9 @@ import {
   ArrowRight,
   Zap,
   Code2,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  AlertTriangle,
+  CheckCircle2
 } from "lucide-react";
 
 const databases = [
@@ -35,6 +39,8 @@ export default function DDLCompare() {
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [migrationScript, setMigrationScript] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string>("");
+  const { config } = useConfig();
   const { toast } = useToast();
 
   const handleAnalyze = async () => {
@@ -47,40 +53,48 @@ export default function DDLCompare() {
       return;
     }
 
+    if (!config.apiKey) {
+      toast({
+        title: "Chưa cấu hình API Key",
+        description: "Vui lòng vào Settings để nhập ChatGPT API Key.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
+    setError("");
+    setMigrationScript("");
     
-    // Get the model to use (selected model or default from config)
-    const modelToUse = selectedModel || "default-from-config";
-    
-    // Simulate ChatGPT API call
-    setTimeout(() => {
-      const mockScript = `-- Migration script generated for ${databases.find(db => db.id === databaseType)?.name}
--- Generated at: ${new Date().toLocaleString()}
--- Using model: ${modelToUse}
-
--- Add new columns
-ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Modify existing columns
-ALTER TABLE users MODIFY COLUMN email VARCHAR(255) NOT NULL UNIQUE;
-
--- Add indexes
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_created_at ON users(created_at);
-
--- Add foreign key constraints
-ALTER TABLE orders ADD CONSTRAINT fk_orders_user_id 
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;`;
-
-      setMigrationScript(mockScript);
-      setIsAnalyzing(false);
+    try {
+      const chatGPT = new ChatGPTService(config);
+      const modelToUse = selectedModel || config.model;
+      
+      const script = await chatGPT.analyzeDDL(
+        currentDDL, 
+        newDDL, 
+        databaseType, 
+        selectedModel || undefined
+      );
+      
+      setMigrationScript(script);
       
       toast({
         title: "Phân tích hoàn thành",
-        description: "Migration script đã được tạo thành công.",
+        description: `Migration script đã được tạo bằng ${modelToUse}`,
       });
-    }, 3000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Lỗi không xác định";
+      setError(errorMessage);
+      
+      toast({
+        title: "Lỗi phân tích DDL",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -241,10 +255,24 @@ ALTER TABLE orders ADD CONSTRAINT fk_orders_user_id
       </div>
 
       {/* Analyze Button */}
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center space-y-4">
+        {!config.apiKey && (
+          <Card className="w-full max-w-2xl border-destructive/20 bg-destructive/5">
+            <CardContent className="pt-4">
+              <div className="flex items-center space-x-2 text-destructive">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-medium">Chưa cấu hình API Key</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Vui lòng vào trang Settings để nhập ChatGPT API Key trước khi sử dụng.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+        
         <Button 
           onClick={handleAnalyze}
-          disabled={isAnalyzing || !currentDDL.trim() || !newDDL.trim()}
+          disabled={isAnalyzing || !currentDDL.trim() || !newDDL.trim() || !config.apiKey}
           size="lg"
           className="bg-gradient-to-r from-primary to-primary-glow shadow-elegant hover:shadow-glow transition-all"
         >
@@ -263,6 +291,29 @@ ALTER TABLE orders ADD CONSTRAINT fk_orders_user_id
         </Button>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <Card className="shadow-card border-destructive/20 bg-destructive/5">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              <span>Lỗi phân tích</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-destructive">{error}</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-3"
+              onClick={() => setError("")}
+            >
+              Đóng
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Migration Script Result */}
       {migrationScript && (
         <Card className="shadow-card bg-gradient-card">
@@ -271,7 +322,8 @@ ALTER TABLE orders ADD CONSTRAINT fk_orders_user_id
               <Code2 className="w-5 h-5 text-primary" />
               <span>Migration Script</span>
               <Badge className="bg-gradient-to-r from-primary to-primary-glow">
-                Generated
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Generated by ChatGPT
               </Badge>
             </CardTitle>
             <CardDescription>
@@ -298,7 +350,10 @@ ALTER TABLE orders ADD CONSTRAINT fk_orders_user_id
             <Separator className="my-4" />
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Generated for {databases.find(db => db.id === databaseType)?.name}</span>
-              <span>{new Date().toLocaleString()}</span>
+              <div className="flex items-center space-x-4">
+                <span>Model: {selectedModel || config.model}</span>
+                <span>{new Date().toLocaleString()}</span>
+              </div>
             </div>
           </CardContent>
         </Card>

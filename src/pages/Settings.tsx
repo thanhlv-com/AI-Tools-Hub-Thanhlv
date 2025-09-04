@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
+import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { Save, TestTube, Server, Key, Zap, CheckCircle2 } from "lucide-react";
 
@@ -23,15 +24,37 @@ export default function Settings() {
   };
 
   const handleTest = async () => {
+    if (!config.apiKey) {
+      toast({
+        title: "Chưa có API Key",
+        description: "Vui lòng nhập API Key trước khi test.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setTesting(true);
-    // Simulate API test
-    setTimeout(() => {
-      setTesting(false);
+    
+    try {
+      const chatGPT = new ChatGPTService(config);
+      await chatGPT.callAPI([
+        { role: "user", content: "Say 'Hello, I am working correctly!' in Vietnamese" }
+      ]);
+      
       toast({
         title: "Kết nối thành công",
         description: "ChatGPT API đang hoạt động bình thường.",
       });
-    }, 2000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Lỗi không xác định";
+      toast({
+        title: "Kết nối thất bại",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setTesting(false);
+    }
   };
 
   return (
