@@ -32,15 +32,16 @@ const databases = [
   { id: "sqlite", name: "SQLite", icon: "💎" }
 ];
 
+const PAGE_ID = "ddl-compare";
+
 export default function DDLCompare() {
   const [currentDDL, setCurrentDDL] = useState("");
   const [newDDL, setNewDDL] = useState("");
   const [databaseType, setDatabaseType] = useState("mysql");
-  const [selectedModel, setSelectedModel] = useState<string>("");
   const [migrationScript, setMigrationScript] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string>("");
-  const { config } = useConfig();
+  const { config, getPageModel } = useConfig();
   const { toast } = useToast();
 
   const handleAnalyze = async () => {
@@ -68,13 +69,14 @@ export default function DDLCompare() {
     
     try {
       const chatGPT = new ChatGPTService(config);
-      const modelToUse = selectedModel || config.model;
+      const pageModel = getPageModel(PAGE_ID);
+      const modelToUse = pageModel || config.model;
       
       const script = await chatGPT.analyzeDDL(
         currentDDL, 
         newDDL, 
         databaseType, 
-        selectedModel || undefined
+        pageModel || undefined
       );
       
       setMigrationScript(script);
@@ -162,8 +164,7 @@ export default function DDLCompare() {
           </CardHeader>
           <CardContent>
             <ModelSelector 
-              value={selectedModel}
-              onChange={setSelectedModel}
+              pageId={PAGE_ID}
               label="Model cho DDL Analysis"
               showDefault={true}
             />
@@ -351,7 +352,7 @@ export default function DDLCompare() {
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Generated for {databases.find(db => db.id === databaseType)?.name}</span>
               <div className="flex items-center space-x-4">
-                <span>Model: {selectedModel || config.model}</span>
+                <span>Model: {getPageModel(PAGE_ID) || config.model}</span>
                 <span>{new Date().toLocaleString()}</span>
               </div>
             </div>

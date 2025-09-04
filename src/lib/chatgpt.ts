@@ -26,11 +26,57 @@ export interface ChatGPTResponse {
   };
 }
 
+export interface ModelInfo {
+  id: string;
+  object: string;
+  created: number;
+  owned_by: string;
+}
+
+export interface ModelsResponse {
+  object: string;
+  data: ModelInfo[];
+}
+
 export class ChatGPTService {
   private config: ChatGPTConfig;
 
   constructor(config: ChatGPTConfig) {
     this.config = config;
+  }
+
+  async getAvailableModels(): Promise<ModelInfo[]> {
+    if (!this.config.apiKey) {
+      throw new Error("API Key chưa được cấu hình. Vui lòng vào Settings để nhập API Key.");
+    }
+
+    try {
+      const response = await fetch(`${this.config.serverUrl}/models`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${this.config.apiKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `API Error (${response.status}): ${errorData.error?.message || response.statusText}`
+        );
+      }
+
+      const data: ModelsResponse = await response.json();
+      
+      // Filter only chat completion models and sort by ID
+      return data.data
+        .filter(model => model.id.includes('gpt') || model.id.includes('claude') || model.id.includes('chat'))
+        .sort((a, b) => a.id.localeCompare(b.id));
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Lỗi không xác định khi tải danh sách model");
+    }
   }
 
   async callAPI(messages: ChatGPTMessage[], customModel?: string): Promise<string> {
