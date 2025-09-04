@@ -73,3 +73,18 @@ export interface TranslationHistory {
     failedTranslations: number;
   };
 }
+
+export interface TranslationPreference {
+  id: string;
+  name: string;
+  description?: string;
+  sourceLanguage: string;
+  targetLanguages: string[];
+  style: string;
+  model?: string;
+  timestamp: number;
+}
+
+export interface TranslationPreferences {
+  [id: string]: TranslationPreference;
+}

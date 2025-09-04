@@ -11,8 +11,9 @@ import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { TranslationHistory } from "@/components/TranslationHistory";
+import { TranslationPreferences } from "@/components/TranslationPreferences";
 import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
-import { MultiTranslationRequest, MultiTranslationResult, TranslationHistory as TranslationHistoryType } from "@/types/translation";
+import { MultiTranslationRequest, MultiTranslationResult, TranslationHistory as TranslationHistoryType, TranslationPreference } from "@/types/translation";
 import { 
   Languages, 
   ArrowRightLeft, 
@@ -21,6 +22,7 @@ import {
   FileText,
   Zap,
   Settings as SettingsIcon,
+  Settings,
   AlertTriangle,
   CheckCircle2,
   ArrowUpDown,
@@ -45,6 +47,7 @@ export default function Translation() {
   const [error, setError] = useState<string>("");
   const [translationResults, setTranslationResults] = useState<MultiTranslationResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
   const [retryingLanguages, setRetryingLanguages] = useState<Set<string>>(new Set());
   const { config, getPageModel, addToTranslationHistory } = useConfig();
   const { toast } = useToast();
@@ -290,6 +293,17 @@ export default function Translation() {
     });
   };
 
+  const handleApplyPreference = (preference: TranslationPreference) => {
+    setSourceLanguage(preference.sourceLanguage);
+    setTargetLanguages(preference.targetLanguages);
+    setTranslationStyle(preference.style);
+    
+    // Clear current results since we're changing settings
+    setTranslationResults([]);
+    setError("");
+    setShowPreferences(false);
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
@@ -324,14 +338,24 @@ export default function Translation() {
               Dịch thuật đa ngôn ngữ với AI, hỗ trợ nhiều phong cách dịch thuật chuyên nghiệp
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowHistory(!showHistory)}
-            className="flex items-center space-x-2"
-          >
-            <History className="w-4 h-4" />
-            <span>Lịch sử</span>
-          </Button>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowPreferences(!showPreferences)}
+              className="flex items-center space-x-2"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Cấu hình</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowHistory(!showHistory)}
+              className="flex items-center space-x-2"
+            >
+              <History className="w-4 h-4" />
+              <span>Lịch sử</span>
+            </Button>
+          </div>
         </div>
 
         {/* Configuration Section */}
@@ -753,6 +777,40 @@ Ví dụ:
             <div className="p-6 h-[calc(100%-5rem)] overflow-hidden">
               <TranslationHistory 
                 onLoadFromHistory={handleLoadFromHistory}
+                className="h-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preferences Modal */}
+      {showPreferences && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl h-full max-h-[90vh] bg-background border border-border rounded-lg shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/30">
+              <h3 className="text-xl font-semibold flex items-center space-x-2">
+                <Settings className="w-6 h-6" />
+                <span>Cấu hình ưa thích</span>
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreferences(false)}
+                className="hover:bg-destructive/10"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="p-6 h-[calc(100%-5rem)] overflow-hidden">
+              <TranslationPreferences 
+                onApplyPreference={handleApplyPreference}
+                currentSettings={{
+                  sourceLanguage,
+                  targetLanguages,
+                  style: translationStyle,
+                  model: getPageModel(PAGE_ID) || undefined
+                }}
                 className="h-full"
               />
             </div>

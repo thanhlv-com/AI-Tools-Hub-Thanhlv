@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { ModelInfo, ChatGPTService } from "@/lib/chatgpt";
 import { DDLAnalysisHistory } from "@/types/history";
-import { TranslationHistory } from "@/types/translation";
+import { TranslationHistory, TranslationPreference, TranslationPreferences } from "@/types/translation";
 
 export interface QueueConfig {
   enabled: boolean;
@@ -43,6 +43,13 @@ interface ConfigContextType {
   removeFromTranslationHistory: (id: string) => void;
   clearTranslationHistory: () => void;
   getTranslationHistoryById: (id: string) => TranslationHistory | undefined;
+  // Translation Preferences management
+  translationPreferences: TranslationPreferences;
+  addTranslationPreference: (preference: Omit<TranslationPreference, 'id' | 'timestamp'>) => string;
+  updateTranslationPreference: (id: string, preference: Partial<Omit<TranslationPreference, 'id' | 'timestamp'>>) => void;
+  removeTranslationPreference: (id: string) => void;
+  clearTranslationPreferences: () => void;
+  getTranslationPreferenceById: (id: string) => TranslationPreference | undefined;
 }
 
 const defaultConfig: ChatGPTConfig = {
@@ -69,6 +76,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
   const [history, setHistory] = useState<DDLAnalysisHistory[]>([]);
   const [translationHistory, setTranslationHistory] = useState<TranslationHistory[]>([]);
+  const [translationPreferences, setTranslationPreferences] = useState<TranslationPreferences>({});
   const [pageModels, setPageModels] = useState<{ [pageId: string]: string }>({});
 
   const loadConfig = () => {
@@ -351,11 +359,86 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     return translationHistory.find(item => item.id === id);
   };
 
+  // Translation preferences management functions
+  const loadTranslationPreferences = () => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-translation-preferences');
+      if (saved) {
+        const parsedPreferences = JSON.parse(saved);
+        setTranslationPreferences(parsedPreferences);
+      }
+    } catch (error) {
+      console.error('Error loading translation preferences:', error);
+    }
+  };
+
+  const saveTranslationPreferences = (preferences: TranslationPreferences) => {
+    try {
+      localStorage.setItem('ddl-tool-translation-preferences', JSON.stringify(preferences));
+    } catch (error) {
+      console.error('Error saving translation preferences:', error);
+    }
+  };
+
+  const addTranslationPreference = (preference: Omit<TranslationPreference, 'id' | 'timestamp'>): string => {
+    const newPreference: TranslationPreference = {
+      ...preference,
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+    };
+    
+    const updatedPreferences = {
+      ...translationPreferences,
+      [newPreference.id]: newPreference
+    };
+    setTranslationPreferences(updatedPreferences);
+    saveTranslationPreferences(updatedPreferences);
+    return newPreference.id;
+  };
+
+  const updateTranslationPreference = (id: string, updates: Partial<Omit<TranslationPreference, 'id' | 'timestamp'>>) => {
+    const existing = translationPreferences[id];
+    if (existing) {
+      const updatedPreference = {
+        ...existing,
+        ...updates,
+        timestamp: Date.now() // Update timestamp on modification
+      };
+      const updatedPreferences = {
+        ...translationPreferences,
+        [id]: updatedPreference
+      };
+      setTranslationPreferences(updatedPreferences);
+      saveTranslationPreferences(updatedPreferences);
+    }
+  };
+
+  const removeTranslationPreference = (id: string) => {
+    const updatedPreferences = { ...translationPreferences };
+    delete updatedPreferences[id];
+    setTranslationPreferences(updatedPreferences);
+    saveTranslationPreferences(updatedPreferences);
+  };
+
+  const clearTranslationPreferences = () => {
+    setTranslationPreferences({});
+    try {
+      localStorage.removeItem('ddl-tool-translation-preferences');
+    } catch (error) {
+      console.error('Error clearing translation preferences:', error);
+    }
+  };
+
+  const getTranslationPreferenceById = (id: string): TranslationPreference | undefined => {
+    return translationPreferences[id];
+  };
+
   // Load config and history on mount
   useEffect(() => {
     loadConfig();
     loadHistory();
     loadTranslationHistory();
+    loadTranslationPreferences();
     loadPageModels();
     
     // Load cached models from localStorage
@@ -393,7 +476,13 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       addToTranslationHistory,
       removeFromTranslationHistory,
       clearTranslationHistory,
-      getTranslationHistoryById
+      getTranslationHistoryById,
+      translationPreferences,
+      addTranslationPreference,
+      updateTranslationPreference,
+      removeTranslationPreference,
+      clearTranslationPreferences,
+      getTranslationPreferenceById
     }}>
       {children}
     </ConfigContext.Provider>
