@@ -3,9 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useConfig } from "@/contexts/ConfigContext";
-import { ChatGPTService, ModelInfo } from "@/lib/chatgpt";
 import { Brain, Zap, RefreshCw, AlertTriangle } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const getModelColor = (modelId: string): string => {
@@ -40,7 +39,7 @@ export function ModelSelector({
   className = "",
   pageId
 }: ModelSelectorProps) {
-  const { config, availableModels, setAvailableModels, getPageModel, setPageModel, removePageModel } = useConfig();
+  const { config, availableModels, setAvailableModels, loadAvailableModels, getPageModel, setPageModel, removePageModel } = useConfig();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -59,7 +58,7 @@ export function ModelSelector({
   const isUsingDefault = !value && (!pageId || !getPageModel(pageId));
   const isUsingPageSpecific = pageId && getPageModel(pageId) !== null;
 
-  // Load available models from server
+  // Load available models from server using the context function
   const loadModels = useCallback(async () => {
     if (!config.apiKey) {
       setError("Chưa cấu hình API Key");
@@ -70,14 +69,12 @@ export function ModelSelector({
     setError("");
     
     try {
-      const chatGPT = new ChatGPTService(config);
-      const models = await chatGPT.getAvailableModels();
-      setAvailableModels(models);
+      const models = await loadAvailableModels();
       
       if (models.length > 0) {
         toast({
           title: "Đã tải models",
-          description: `Tải thành công ${models.length} models từ server`,
+          description: `Tải thành công ${models.length} models và lưu vào localStorage`,
         });
       }
     } catch (err) {
@@ -91,7 +88,7 @@ export function ModelSelector({
     } finally {
       setIsLoading(false);
     }
-  }, [config, setAvailableModels, toast]);
+  }, [config.apiKey, loadAvailableModels, toast]);
 
   // Handle model change
   const handleModelChange = (newModel: string) => {
@@ -113,12 +110,8 @@ export function ModelSelector({
     }
   };
 
-  // Load models on mount if API key is available
-  useEffect(() => {
-    if (config.apiKey && availableModels.length === 0) {
-      loadModels();
-    }
-  }, [config.apiKey, availableModels.length, loadModels]);
+  // Models are now loaded from localStorage on mount via ConfigContext
+  // Manual loading can be triggered by the refresh button
 
   return (
     <div className={className}>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { ModelInfo } from "@/lib/chatgpt";
+import { ModelInfo, ChatGPTService } from "@/lib/chatgpt";
 import { DDLAnalysisHistory } from "@/types/history";
 import { TranslationHistory } from "@/types/translation";
 
@@ -26,6 +26,8 @@ interface ConfigContextType {
   loadConfig: () => void;
   availableModels: ModelInfo[];
   setAvailableModels: (models: ModelInfo[]) => void;
+  loadAvailableModels: () => Promise<ModelInfo[]>;
+  verifyModels: () => Promise<{ validModels: ModelInfo[], invalidModels: string[] }>;
   getPageModel: (pageId: string) => string | null;
   setPageModel: (pageId: string, model: string) => void;
   removePageModel: (pageId: string) => void;
@@ -134,6 +136,78 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       }
     } catch (error) {
       console.error('Error removing page model:', error);
+    }
+  };
+
+  // Model management functions
+  const loadModelsFromStorage = (): ModelInfo[] => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-available-models');
+      if (saved) {
+        const parsedModels = JSON.parse(saved);
+        return parsedModels;
+      }
+    } catch (error) {
+      console.error('Error loading models from storage:', error);
+    }
+    return [];
+  };
+
+  const saveModelsToStorage = (models: ModelInfo[]) => {
+    try {
+      localStorage.setItem('ddl-tool-available-models', JSON.stringify(models));
+    } catch (error) {
+      console.error('Error saving models to storage:', error);
+    }
+  };
+
+  const loadAvailableModels = async (): Promise<ModelInfo[]> => {
+    if (!config.apiKey) {
+      throw new Error("API Key chưa được cấu hình. Vui lòng vào Settings để nhập API Key.");
+    }
+
+    try {
+      const chatGPT = new ChatGPTService(config);
+      const models = await chatGPT.getAvailableModels();
+      
+      // Save to localStorage and update state
+      saveModelsToStorage(models);
+      setAvailableModels(models);
+      
+      return models;
+    } catch (error) {
+      console.error('Error loading available models:', error);
+      throw error;
+    }
+  };
+
+  const verifyModels = async (): Promise<{ validModels: ModelInfo[], invalidModels: string[] }> => {
+    if (!config.apiKey) {
+      throw new Error("API Key chưa được cấu hình. Vui lòng vào Settings để nhập API Key.");
+    }
+
+    try {
+      const chatGPT = new ChatGPTService(config);
+      const currentModels = await chatGPT.getAvailableModels();
+      const cachedModels = availableModels;
+      
+      // Find invalid models (cached but not available anymore)
+      const currentModelIds = new Set(currentModels.map(m => m.id));
+      const invalidModels = cachedModels
+        .filter(model => !currentModelIds.has(model.id))
+        .map(model => model.id);
+      
+      // Update cached models with current valid ones
+      saveModelsToStorage(currentModels);
+      setAvailableModels(currentModels);
+      
+      return {
+        validModels: currentModels,
+        invalidModels
+      };
+    } catch (error) {
+      console.error('Error verifying models:', error);
+      throw error;
     }
   };
 
@@ -257,6 +331,12 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     loadConfig();
     loadHistory();
     loadTranslationHistory();
+    
+    // Load cached models from localStorage
+    const cachedModels = loadModelsFromStorage();
+    if (cachedModels.length > 0) {
+      setAvailableModels(cachedModels);
+    }
   }, []);
 
   // Auto-save when config changes
@@ -273,6 +353,8 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       loadConfig,
       availableModels,
       setAvailableModels,
+      loadAvailableModels,
+      verifyModels,
       getPageModel,
       setPageModel,
       removePageModel,
