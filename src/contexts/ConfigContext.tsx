@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { ModelInfo } from "@/lib/chatgpt";
 import { DDLAnalysisHistory } from "@/types/history";
+import { TranslationHistory } from "@/types/translation";
 
 export interface ChatGPTConfig {
   serverUrl: string;
@@ -20,12 +21,18 @@ interface ConfigContextType {
   getPageModel: (pageId: string) => string | null;
   setPageModel: (pageId: string, model: string) => void;
   removePageModel: (pageId: string) => void;
-  // History management
+  // DDL History management
   history: DDLAnalysisHistory[];
   addToHistory: (item: Omit<DDLAnalysisHistory, 'id' | 'timestamp'>) => void;
   removeFromHistory: (id: string) => void;
   clearHistory: () => void;
   getHistoryById: (id: string) => DDLAnalysisHistory | undefined;
+  // Translation History management
+  translationHistory: TranslationHistory[];
+  addToTranslationHistory: (item: Omit<TranslationHistory, 'id' | 'timestamp'>) => void;
+  removeFromTranslationHistory: (id: string) => void;
+  clearTranslationHistory: () => void;
+  getTranslationHistoryById: (id: string) => TranslationHistory | undefined;
 }
 
 const defaultConfig: ChatGPTConfig = {
@@ -46,6 +53,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [config, setConfig] = useState<ChatGPTConfig>(defaultConfig);
   const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
   const [history, setHistory] = useState<DDLAnalysisHistory[]>([]);
+  const [translationHistory, setTranslationHistory] = useState<TranslationHistory[]>([]);
 
   const loadConfig = () => {
     try {
@@ -166,10 +174,69 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     return history.find(item => item.id === id);
   };
 
+  // Translation history management functions
+  const loadTranslationHistory = () => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-translation-history');
+      if (saved) {
+        const parsedHistory = JSON.parse(saved);
+        setTranslationHistory(parsedHistory);
+      }
+    } catch (error) {
+      console.error('Error loading translation history:', error);
+    }
+  };
+
+  const saveTranslationHistory = (historyData: TranslationHistory[]) => {
+    try {
+      localStorage.setItem('ddl-tool-translation-history', JSON.stringify(historyData));
+    } catch (error) {
+      console.error('Error saving translation history:', error);
+    }
+  };
+
+  const addToTranslationHistory = (item: Omit<TranslationHistory, 'id' | 'timestamp'>) => {
+    const newItem: TranslationHistory = {
+      ...item,
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      metadata: {
+        sourceLength: item.sourceText.length,
+        totalTranslations: item.targetLanguages.length,
+        successfulTranslations: Object.values(item.translations).filter(t => !t.error).length,
+        failedTranslations: Object.values(item.translations).filter(t => t.error).length,
+      }
+    };
+    
+    const updatedHistory = [newItem, ...translationHistory].slice(0, 100); // Keep max 100 items
+    setTranslationHistory(updatedHistory);
+    saveTranslationHistory(updatedHistory);
+  };
+
+  const removeFromTranslationHistory = (id: string) => {
+    const updatedHistory = translationHistory.filter(item => item.id !== id);
+    setTranslationHistory(updatedHistory);
+    saveTranslationHistory(updatedHistory);
+  };
+
+  const clearTranslationHistory = () => {
+    setTranslationHistory([]);
+    try {
+      localStorage.removeItem('ddl-tool-translation-history');
+    } catch (error) {
+      console.error('Error clearing translation history:', error);
+    }
+  };
+
+  const getTranslationHistoryById = (id: string): TranslationHistory | undefined => {
+    return translationHistory.find(item => item.id === id);
+  };
+
   // Load config and history on mount
   useEffect(() => {
     loadConfig();
     loadHistory();
+    loadTranslationHistory();
   }, []);
 
   // Auto-save when config changes
@@ -192,7 +259,12 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       addToHistory,
       removeFromHistory,
       clearHistory,
-      getHistoryById
+      getHistoryById,
+      translationHistory,
+      addToTranslationHistory,
+      removeFromTranslationHistory,
+      clearTranslationHistory,
+      getTranslationHistoryById
     }}>
       {children}
     </ConfigContext.Provider>

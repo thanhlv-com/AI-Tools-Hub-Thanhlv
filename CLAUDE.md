@@ -59,11 +59,25 @@ This is a React-based AI-powered tool hub that includes DDL (Database Definition
 
 **Multi-Language Translation** (`src/pages/Translation.tsx`, `src/types/translation.ts`):
 - AI-powered translation supporting 25+ languages including Vietnamese, English, Chinese, Japanese, Korean, etc.
+- **Multi-target translation**: Translate to multiple languages simultaneously (up to 10 languages per request)
 - 10 specialized translation styles: Natural, Formal, Casual, Literal, Creative, Technical, Poetic, Commercial, Academic, News
 - Each style includes detailed description and specific AI prompts for optimal results
 - Language swap functionality and auto-detection for source language
 - Per-page model selection with fallback to global settings
 - Real-time character count and copy-to-clipboard functionality
+- Parallel processing with individual error handling per language
+- Visual status indicators (success/error) for each translation result
+
+**Translation History** (`src/types/translation.ts`, `src/components/TranslationHistory.tsx`):
+- Automatically saves all translation sessions to localStorage (`ddl-tool-translation-history`)
+- History includes: source text, all target translations, language codes, style, model, and metadata
+- History sidebar accessible from Translation page with search and filter capabilities
+- Search across source text and translation results
+- Filter by translation style and sort by date
+- Users can load previous translations to reuse or modify
+- Export functionality to backup translation history as JSON
+- Maximum 100 items stored (oldest automatically removed)
+- Success/failure statistics tracking for each translation session
 
 **Analysis History** (`src/types/history.ts`, `src/components/AnalysisHistory.tsx`):
 - Automatically saves all successful DDL analyses to localStorage (`ddl-tool-history`)

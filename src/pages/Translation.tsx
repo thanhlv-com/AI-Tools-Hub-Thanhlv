@@ -10,8 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
+import { TranslationHistory } from "@/components/TranslationHistory";
 import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
-import { TranslationRequest } from "@/types/translation";
+import { MultiTranslationRequest, MultiTranslationResult, TranslationHistory as TranslationHistoryType } from "@/types/translation";
 import { 
   Languages, 
   ArrowRightLeft, 
@@ -24,21 +25,51 @@ import {
   CheckCircle2,
   ArrowUpDown,
   Wand2,
-  Globe
+  Globe,
+  History,
+  X,
+  Plus,
+  Minus,
+  XCircle
 } from "lucide-react";
 
 const PAGE_ID = "translation";
 
 export default function Translation() {
   const [sourceText, setSourceText] = useState("");
-  const [translatedText, setTranslatedText] = useState("");
   const [sourceLanguage, setSourceLanguage] = useState("auto");
-  const [targetLanguage, setTargetLanguage] = useState("vi");
+  const [targetLanguages, setTargetLanguages] = useState<string[]>(["vi"]);
   const [translationStyle, setTranslationStyle] = useState("natural");
   const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState<string>("");
-  const { config, getPageModel } = useConfig();
+  const [translationResults, setTranslationResults] = useState<MultiTranslationResult[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const { config, getPageModel, addToTranslationHistory } = useConfig();
   const { toast } = useToast();
+
+  const addTargetLanguage = () => {
+    const availableLanguages = LANGUAGES.filter(lang => 
+      lang.code !== "auto" && 
+      lang.code !== sourceLanguage && 
+      !targetLanguages.includes(lang.code)
+    );
+    
+    if (availableLanguages.length > 0) {
+      setTargetLanguages([...targetLanguages, availableLanguages[0].code]);
+    }
+  };
+
+  const removeTargetLanguage = (index: number) => {
+    if (targetLanguages.length > 1) {
+      setTargetLanguages(targetLanguages.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateTargetLanguage = (index: number, newLanguage: string) => {
+    const updated = [...targetLanguages];
+    updated[index] = newLanguage;
+    setTargetLanguages(updated);
+  };
 
   const handleTranslate = async () => {
     if (!sourceText.trim()) {
@@ -50,7 +81,7 @@ export default function Translation() {
       return;
     }
 
-    if (sourceLanguage === targetLanguage && sourceLanguage !== "auto") {
+    if (targetLanguages.some(lang => lang === sourceLanguage) && sourceLanguage !== "auto") {
       toast({
         title: "Ngôn ngữ trùng lặp",
         description: "Ngôn ngữ nguồn và đích không được giống nhau.",
@@ -70,27 +101,50 @@ export default function Translation() {
 
     setIsTranslating(true);
     setError("");
-    setTranslatedText("");
+    setTranslationResults([]);
     
     try {
       const chatGPT = new ChatGPTService(config);
       const pageModel = getPageModel(PAGE_ID);
       const modelToUse = pageModel || config.model;
 
-      const request: TranslationRequest = {
+      const request: MultiTranslationRequest = {
         text: sourceText,
         sourceLanguage,
-        targetLanguage,
+        targetLanguages,
         style: translationStyle,
         model: pageModel || undefined
       };
       
-      const result = await chatGPT.translateText(request);
-      setTranslatedText(result);
+      const results = await chatGPT.translateToMultipleLanguages(request);
+      setTranslationResults(results);
+      
+      // Save to history
+      const historyTitle = `${LANGUAGES.find(l => l.code === sourceLanguage)?.name || sourceLanguage} → ${targetLanguages.length} ngôn ngữ - ${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`;
+      const translations: { [key: string]: { text: string; error?: string } } = {};
+      
+      results.forEach(result => {
+        translations[result.language] = {
+          text: result.translatedText,
+          error: result.error
+        };
+      });
+      
+      addToTranslationHistory({
+        title: historyTitle,
+        sourceText,
+        translations,
+        sourceLanguage,
+        targetLanguages,
+        style: translationStyle,
+        model: modelToUse
+      });
+      
+      const successCount = results.filter(r => !r.error).length;
       
       toast({
         title: "Dịch thuật hoàn thành",
-        description: `Văn bản đã được dịch bằng ${modelToUse}`,
+        description: `Đã dịch thành công ${successCount}/${targetLanguages.length} ngôn ngữ bằng ${modelToUse}`,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Lỗi không xác định";
@@ -107,19 +161,48 @@ export default function Translation() {
   };
 
   const handleSwapLanguages = () => {
-    if (sourceLanguage === "auto") {
+    if (sourceLanguage === "auto" || targetLanguages.length !== 1) {
       toast({
         title: "Không thể đổi chỗ",
-        description: "Không thể đổi chỗ khi ngôn ngữ nguồn là 'Tự động phát hiện'.",
+        description: "Chỉ có thể đổi chỗ khi có 1 ngôn ngữ đích và nguồn không phải 'Tự động phát hiện'.",
         variant: "destructive"
       });
       return;
     }
     
-    setSourceLanguage(targetLanguage);
-    setTargetLanguage(sourceLanguage);
-    setSourceText(translatedText);
-    setTranslatedText("");
+    const currentTarget = targetLanguages[0];
+    setSourceLanguage(currentTarget);
+    setTargetLanguages([sourceLanguage]);
+    
+    // Try to use the translated text if available
+    const existingTranslation = translationResults.find(r => r.language === currentTarget);
+    if (existingTranslation && !existingTranslation.error) {
+      setSourceText(existingTranslation.translatedText);
+    }
+    setTranslationResults([]);
+  };
+
+  const handleLoadFromHistory = (historyItem: TranslationHistoryType) => {
+    setSourceText(historyItem.sourceText);
+    setSourceLanguage(historyItem.sourceLanguage);
+    setTargetLanguages(historyItem.targetLanguages);
+    setTranslationStyle(historyItem.style);
+    
+    // Recreate translation results from history
+    const results: MultiTranslationResult[] = historyItem.targetLanguages.map(langCode => ({
+      language: langCode,
+      translatedText: historyItem.translations[langCode]?.text || "",
+      error: historyItem.translations[langCode]?.error
+    }));
+    
+    setTranslationResults(results);
+    setError("");
+    setShowHistory(false);
+    
+    toast({
+      title: "Đã tải từ lịch sử",
+      description: `Đã tải dữ liệu từ: ${historyItem.title}`,
+    });
   };
 
   const copyToClipboard = (text: string) => {
@@ -141,321 +224,428 @@ export default function Translation() {
   const currentStyle = getStyleInfo(translationStyle);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
-            <Languages className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span>AI Translation Hub</span>
-        </h1>
-        <p className="text-muted-foreground">
-          Dịch thuật đa ngôn ngữ với AI, hỗ trợ nhiều phong cách dịch thuật chuyên nghiệp
-        </p>
-      </div>
-
-      {/* Configuration Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Language Selection */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Globe className="w-5 h-5 text-primary" />
-              <span>Ngôn ngữ</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Ngôn ngữ nguồn</Label>
-              <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {LANGUAGES.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      <div className="flex items-center space-x-2">
-                        <span>{lang.flag}</span>
-                        <span>{lang.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSwapLanguages}
-                disabled={sourceLanguage === "auto"}
-                className="w-10 h-10 p-0"
-              >
-                <ArrowUpDown className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Ngôn ngữ đích</Label>
-              <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {LANGUAGES.filter(lang => lang.code !== "auto").map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      <div className="flex items-center space-x-2">
-                        <span>{lang.flag}</span>
-                        <span>{lang.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Translation Style */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Wand2 className="w-5 h-5 text-primary" />
-              <span>Phong cách dịch</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Select value={translationStyle} onValueChange={setTranslationStyle}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TRANSLATION_STYLES.map((style) => (
-                    <SelectItem key={style.id} value={style.id}>
-                      <div className="flex items-center space-x-2">
-                        <span>{style.icon}</span>
-                        <span>{style.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-lg">{currentStyle.icon}</span>
-                  <span className="font-medium text-sm">{currentStyle.name}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {currentStyle.description}
-                </p>
+    <div className="relative">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-foreground flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
+                <Languages className="w-5 h-5 text-primary-foreground" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <span>AI Translation Hub</span>
+            </h1>
+            <p className="text-muted-foreground">
+              Dịch thuật đa ngôn ngữ với AI, hỗ trợ nhiều phong cách dịch thuật chuyên nghiệp
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center space-x-2"
+          >
+            <History className="w-4 h-4" />
+            <span>Lịch sử</span>
+          </Button>
+        </div>
 
-        {/* Model Selection */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <SettingsIcon className="w-5 h-5 text-primary" />
-              <span>Model Configuration</span>
-            </CardTitle>
-            <CardDescription>
-              Chọn model riêng cho trang này hoặc dùng mặc định
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ModelSelector 
-              pageId={PAGE_ID}
-              label="Model cho Translation"
-              showDefault={true}
-            />
-          </CardContent>
-        </Card>
-      </div>
+        {/* Configuration Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Language Selection */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Globe className="w-5 h-5 text-primary" />
+                <span>Ngôn ngữ</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Source Language */}
+              <div className="space-y-2">
+                <Label>Ngôn ngữ nguồn</Label>
+                <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        <div className="flex items-center space-x-2">
+                          <span>{lang.flag}</span>
+                          <span>{lang.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* Translation Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Source Text */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-blue-500" />
-              <span>Văn bản nguồn</span>
-              <span className="text-sm font-normal text-muted-foreground">
-                ({getLanguageInfo(sourceLanguage).flag} {getLanguageInfo(sourceLanguage).name})
-              </span>
-            </CardTitle>
-            <CardDescription>
-              Nhập văn bản cần dịch
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={sourceText}
-              onChange={(e) => setSourceText(e.target.value)}
-              placeholder="Nhập văn bản cần dịch tại đây...
+              {/* Swap Button */}
+              <div className="flex items-center justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSwapLanguages}
+                  disabled={sourceLanguage === "auto" || targetLanguages.length !== 1}
+                  className="w-10 h-10 p-0"
+                >
+                  <ArrowUpDown className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Target Languages */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Ngôn ngữ đích ({targetLanguages.length})</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={addTargetLanguage}
+                    disabled={targetLanguages.length >= 10}
+                    className="h-7 px-2"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {targetLanguages.map((langCode, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <Select 
+                        value={langCode} 
+                        onValueChange={(value) => updateTargetLanguage(index, value)}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-40">
+                          {LANGUAGES.filter(lang => lang.code !== "auto").map((lang) => (
+                            <SelectItem key={lang.code} value={lang.code}>
+                              <div className="flex items-center space-x-2">
+                                <span>{lang.flag}</span>
+                                <span>{lang.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeTargetLanguage(index)}
+                        disabled={targetLanguages.length <= 1}
+                        className="h-9 w-9 p-0"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Translation Style */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Wand2 className="w-5 h-5 text-primary" />
+                <span>Phong cách dịch</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Select value={translationStyle} onValueChange={setTranslationStyle}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRANSLATION_STYLES.map((style) => (
+                      <SelectItem key={style.id} value={style.id}>
+                        <div className="flex items-center space-x-2">
+                          <span>{style.icon}</span>
+                          <span>{style.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-lg">{currentStyle.icon}</span>
+                    <span className="font-medium text-sm">{currentStyle.name}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {currentStyle.description}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Model Selection */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <SettingsIcon className="w-5 h-5 text-primary" />
+                <span>Model Configuration</span>
+              </CardTitle>
+              <CardDescription>
+                Chọn model riêng cho trang này hoặc dùng mặc định
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ModelSelector 
+                pageId={PAGE_ID}
+                label="Model cho Translation"
+                showDefault={true}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Translation Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Source Text */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-blue-500" />
+                <span>Văn bản nguồn</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({getLanguageInfo(sourceLanguage).flag} {getLanguageInfo(sourceLanguage).name})
+                </span>
+              </CardTitle>
+              <CardDescription>
+                Nhập văn bản cần dịch
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={sourceText}
+                onChange={(e) => setSourceText(e.target.value)}
+                placeholder="Nhập văn bản cần dịch tại đây...
 
 Ví dụ:
 - Hello, how are you today?
 - 这是一个测试文本
 - Bonjour, comment allez-vous?
 - こんにちは、元気ですか？"
-              className="min-h-[300px] text-sm bg-editor-bg text-foreground border-border"
-            />
-            <div className="mt-2 flex items-center justify-between">
-              <Badge variant="secondary" className="text-xs">
-                {sourceText.length} ký tự
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(sourceText)}
-                disabled={!sourceText}
-              >
-                <Copy className="w-4 h-4 mr-1" />
-                Copy
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Translated Text */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-green-500" />
-              <span>Bản dịch</span>
-              <span className="text-sm font-normal text-muted-foreground">
-                ({getLanguageInfo(targetLanguage).flag} {getLanguageInfo(targetLanguage).name})
-              </span>
-            </CardTitle>
-            <CardDescription>
-              Kết quả dịch thuật
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={translatedText}
-              readOnly
-              placeholder="Bản dịch sẽ xuất hiện ở đây..."
-              className="min-h-[300px] text-sm bg-code-bg text-foreground border-border"
-            />
-            <div className="mt-2 flex items-center justify-between">
-              <Badge variant="secondary" className="text-xs">
-                {translatedText.length} ký tự
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(translatedText)}
-                disabled={!translatedText}
-              >
-                <Copy className="w-4 h-4 mr-1" />
-                Copy
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Translate Button */}
-      <div className="flex flex-col items-center space-y-4">
-        {!config.apiKey && (
-          <Card className="w-full max-w-2xl border-destructive/20 bg-destructive/5">
-            <CardContent className="pt-4">
-              <div className="flex items-center space-x-2 text-destructive">
-                <AlertTriangle className="w-5 h-5" />
-                <span className="font-medium">Chưa cấu hình API Key</span>
+                className="min-h-[300px] text-sm bg-editor-bg text-foreground border-border"
+              />
+              <div className="mt-2 flex items-center justify-between">
+                <Badge variant="secondary" className="text-xs">
+                  {sourceText.length} ký tự
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(sourceText)}
+                  disabled={!sourceText}
+                >
+                  <Copy className="w-4 h-4 mr-1" />
+                  Copy
+                </Button>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Vui lòng vào trang Settings để nhập ChatGPT API Key trước khi sử dụng.
-              </p>
+            </CardContent>
+          </Card>
+
+          {/* Translation Results */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Languages className="w-5 h-5 text-green-500" />
+                <span>Bản dịch</span>
+                <Badge variant="outline" className="text-xs">
+                  {targetLanguages.length} ngôn ngữ
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                Kết quả dịch thuật đa ngôn ngữ
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {translationResults.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Languages className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>Bản dịch sẽ xuất hiện ở đây...</p>
+                    <p className="text-sm">Chọn ngôn ngữ đích và nhấn "Dịch văn bản"</p>
+                  </div>
+                ) : (
+                  translationResults.map((result, index) => {
+                    const langInfo = getLanguageInfo(result.language);
+                    return (
+                      <div key={result.language} className="border border-border rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <span>{langInfo.flag}</span>
+                            <span className="font-medium text-sm">{langInfo.name}</span>
+                            {result.error ? (
+                              <XCircle className="w-4 h-4 text-red-500" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4 text-green-500" />
+                            )}
+                          </div>
+                          {!result.error && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(result.translatedText)}
+                              className="h-6 px-2"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                        {result.error ? (
+                          <p className="text-xs text-red-500 bg-red-50 dark:bg-red-950/20 p-2 rounded">
+                            {result.error}
+                          </p>
+                        ) : (
+                          <p className="text-sm bg-muted/30 p-2 rounded font-mono">
+                            {result.translatedText}
+                          </p>
+                        )}
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {result.translatedText.length} ký tự
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Translate Button */}
+        <div className="flex flex-col items-center space-y-4">
+          {!config.apiKey && (
+            <Card className="w-full max-w-2xl border-destructive/20 bg-destructive/5">
+              <CardContent className="pt-4">
+                <div className="flex items-center space-x-2 text-destructive">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="font-medium">Chưa cấu hình API Key</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Vui lòng vào trang Settings để nhập ChatGPT API Key trước khi sử dụng.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+          
+          <Button 
+            onClick={handleTranslate}
+            disabled={isTranslating || !sourceText.trim() || !config.apiKey}
+            size="lg"
+            className="bg-gradient-to-r from-primary to-primary-glow shadow-elegant hover:shadow-glow transition-all"
+          >
+            {isTranslating ? (
+              <>
+                <Zap className="w-5 h-5 mr-2 animate-spin" />
+                Đang dịch sang {targetLanguages.length} ngôn ngữ...
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 mr-2" />
+                Dịch sang {targetLanguages.length} ngôn ngữ
+                <ArrowRightLeft className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <Card className="shadow-card border-destructive/20 bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-destructive">
+                <AlertTriangle className="w-5 h-5" />
+                <span>Lỗi dịch thuật</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-destructive">{error}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3"
+                onClick={() => setError("")}
+              >
+                Đóng
+              </Button>
             </CardContent>
           </Card>
         )}
-        
-        <Button 
-          onClick={handleTranslate}
-          disabled={isTranslating || !sourceText.trim() || !config.apiKey}
-          size="lg"
-          className="bg-gradient-to-r from-primary to-primary-glow shadow-elegant hover:shadow-glow transition-all"
-        >
-          {isTranslating ? (
-            <>
-              <Zap className="w-5 h-5 mr-2 animate-spin" />
-              Đang dịch với ChatGPT...
-            </>
-          ) : (
-            <>
-              <Play className="w-5 h-5 mr-2" />
-              Dịch văn bản
-              <ArrowRightLeft className="w-5 h-5 ml-2" />
-            </>
-          )}
-        </Button>
-      </div>
 
-      {/* Error Display */}
-      {error && (
-        <Card className="shadow-card border-destructive/20 bg-destructive/5">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              <span>Lỗi dịch thuật</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-destructive">{error}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-3"
-              onClick={() => setError("")}
-            >
-              Đóng
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Translation Info */}
-      {translatedText && (
-        <Card className="shadow-card bg-gradient-card">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span>Thông tin dịch thuật</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Phong cách:</span>
-                <div className="flex items-center space-x-1 mt-1">
-                  <span>{currentStyle.icon}</span>
-                  <span className="font-medium">{currentStyle.name}</span>
+        {/* Translation Summary */}
+        {translationResults.length > 0 && (
+          <Card className="shadow-card bg-gradient-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span>Tóm tắt dịch thuật</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Phong cách:</span>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <span>{currentStyle.icon}</span>
+                    <span className="font-medium">{currentStyle.name}</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Model:</span>
+                  <p className="font-medium mt-1">{getPageModel(PAGE_ID) || config.model}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Nguồn:</span>
+                  <p className="font-medium mt-1">{sourceText.length} ký tự</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Thành công:</span>
+                  <p className="font-medium mt-1 text-green-600">
+                    {translationResults.filter(r => !r.error).length}/{translationResults.length}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Thời gian:</span>
+                  <p className="font-medium mt-1">{new Date().toLocaleTimeString("vi-VN")}</p>
                 </div>
               </div>
-              <div>
-                <span className="text-muted-foreground">Model:</span>
-                <p className="font-medium mt-1">{getPageModel(PAGE_ID) || config.model}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Độ dài nguồn:</span>
-                <p className="font-medium mt-1">{sourceText.length} ký tự</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Thời gian:</span>
-                <p className="font-medium mt-1">{new Date().toLocaleTimeString("vi-VN")}</p>
-              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* History Sidebar */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+          <div className="fixed right-0 top-0 h-full w-96 bg-background border-l border-border shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="text-lg font-semibold flex items-center space-x-2">
+                <History className="w-5 h-5" />
+                <span>Lịch sử dịch thuật</span>
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-4 h-[calc(100vh-5rem)] overflow-hidden">
+              <TranslationHistory 
+                onLoadFromHistory={handleLoadFromHistory}
+                className="h-full"
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

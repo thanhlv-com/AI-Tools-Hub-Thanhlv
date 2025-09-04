@@ -21,6 +21,20 @@ export interface TranslationRequest {
   model?: string;
 }
 
+export interface MultiTranslationRequest {
+  text: string;
+  sourceLanguage: string;
+  targetLanguages: string[];
+  style: string;
+  model?: string;
+}
+
+export interface MultiTranslationResult {
+  language: string;
+  translatedText: string;
+  error?: string;
+}
+
 export interface TranslationResult {
   id: string;
   timestamp: number;
@@ -42,13 +56,20 @@ export interface TranslationHistory {
   title: string;
   timestamp: number;
   sourceText: string;
-  translatedText: string;
+  translations: {
+    [languageCode: string]: {
+      text: string;
+      error?: string;
+    };
+  };
   sourceLanguage: string;
-  targetLanguage: string;
+  targetLanguages: string[];
   style: string;
   model: string;
   metadata?: {
     sourceLength: number;
-    translatedLength: number;
+    totalTranslations: number;
+    successfulTranslations: number;
+    failedTranslations: number;
   };
 }

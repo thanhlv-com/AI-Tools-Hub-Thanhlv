@@ -1,5 +1,5 @@
 import { ChatGPTConfig } from "@/contexts/ConfigContext";
-import { TranslationRequest } from "@/types/translation";
+import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
 import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
 
 export interface ChatGPTMessage {
@@ -199,5 +199,55 @@ ${text}`;
     ];
 
     return await this.callAPI(messages, model);
+  }
+
+  async translateToMultipleLanguages(request: MultiTranslationRequest): Promise<MultiTranslationResult[]> {
+    const { text, sourceLanguage, targetLanguages, style, model } = request;
+    
+    const sourceLang = LANGUAGES.find(lang => lang.code === sourceLanguage);
+    const translationStyle = TRANSLATION_STYLES.find(s => s.id === style);
+    
+    if (!sourceLang || !translationStyle) {
+      throw new Error("Invalid source language or style selection");
+    }
+
+    // Process translations in parallel with error handling for each language
+    const translationPromises = targetLanguages.map(async (targetLangCode): Promise<MultiTranslationResult> => {
+      try {
+        const targetLang = LANGUAGES.find(lang => lang.code === targetLangCode);
+        if (!targetLang) {
+          return {
+            language: targetLangCode,
+            translatedText: "",
+            error: "Ngôn ngữ không được hỗ trợ"
+          };
+        }
+
+        const singleRequest: TranslationRequest = {
+          text,
+          sourceLanguage,
+          targetLanguage: targetLangCode,
+          style,
+          model
+        };
+
+        const translatedText = await this.translateText(singleRequest);
+        
+        return {
+          language: targetLangCode,
+          translatedText
+        };
+      } catch (error) {
+        return {
+          language: targetLangCode,
+          translatedText: "",
+          error: error instanceof Error ? error.message : "Lỗi không xác định"
+        };
+      }
+    });
+
+    // Wait for all translations to complete (some may fail)
+    const results = await Promise.all(translationPromises);
+    return results;
   }
 }
