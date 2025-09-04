@@ -30,7 +30,8 @@ import {
   X,
   Plus,
   Minus,
-  XCircle
+  XCircle,
+  RefreshCw
 } from "lucide-react";
 
 const PAGE_ID = "translation";
@@ -44,6 +45,7 @@ export default function Translation() {
   const [error, setError] = useState<string>("");
   const [translationResults, setTranslationResults] = useState<MultiTranslationResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [retryingLanguages, setRetryingLanguages] = useState<Set<string>>(new Set());
   const { config, getPageModel, addToTranslationHistory } = useConfig();
   const { toast } = useToast();
 
@@ -180,6 +182,89 @@ export default function Translation() {
       setSourceText(existingTranslation.translatedText);
     }
     setTranslationResults([]);
+  };
+
+  const handleRetryTranslation = async (targetLanguage: string) => {
+    if (!sourceText.trim()) {
+      toast({
+        title: "Thiếu văn bản",
+        description: "Vui lòng nhập văn bản cần dịch.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!config.apiKey) {
+      toast({
+        title: "Chưa cấu hình API Key",
+        description: "Vui lòng vào Settings để nhập ChatGPT API Key.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Add language to retrying set
+    setRetryingLanguages(prev => new Set(prev).add(targetLanguage));
+
+    try {
+      const chatGPT = new ChatGPTService(config);
+      const pageModel = getPageModel(PAGE_ID);
+
+      const request: MultiTranslationRequest = {
+        text: sourceText,
+        sourceLanguage,
+        targetLanguages: [targetLanguage], // Only retry this specific language
+        style: translationStyle,
+        model: pageModel || undefined
+      };
+
+      const results = await chatGPT.translateToMultipleLanguages(request);
+      const newResult = results[0]; // Should only be one result
+
+      // Update the translation results array
+      setTranslationResults(prev => 
+        prev.map(result => 
+          result.language === targetLanguage ? newResult : result
+        )
+      );
+
+      if (newResult.error) {
+        toast({
+          title: "Dịch lại thất bại",
+          description: `Lỗi khi dịch sang ${getLanguageInfo(targetLanguage).name}: ${newResult.error}`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Dịch lại thành công",
+          description: `Đã dịch lại thành công sang ${getLanguageInfo(targetLanguage).name}`,
+        });
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Lỗi không xác định";
+      
+      // Update result with error
+      setTranslationResults(prev => 
+        prev.map(result => 
+          result.language === targetLanguage 
+            ? { ...result, error: errorMessage, translatedText: "" }
+            : result
+        )
+      );
+
+      toast({
+        title: "Lỗi dịch lại",
+        description: `Không thể dịch lại sang ${getLanguageInfo(targetLanguage).name}: ${errorMessage}`,
+        variant: "destructive"
+      });
+    } finally {
+      // Remove language from retrying set
+      setRetryingLanguages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(targetLanguage);
+        return newSet;
+      });
+    }
   };
 
   const handleLoadFromHistory = (historyItem: TranslationHistoryType) => {
@@ -481,24 +566,44 @@ Ví dụ:
                           <div className="flex items-center space-x-2">
                             <span>{langInfo.flag}</span>
                             <span className="font-medium text-sm">{langInfo.name}</span>
-                            {result.error ? (
+                            {retryingLanguages.has(result.language) ? (
+                              <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
+                            ) : result.error ? (
                               <XCircle className="w-4 h-4 text-red-500" />
                             ) : (
                               <CheckCircle2 className="w-4 h-4 text-green-500" />
                             )}
                           </div>
-                          {!result.error && (
+                          <div className="flex items-center space-x-1">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => copyToClipboard(result.translatedText)}
+                              onClick={() => handleRetryTranslation(result.language)}
+                              disabled={retryingLanguages.has(result.language) || isTranslating}
                               className="h-6 px-2"
+                              title={result.error ? "Dịch lại" : "Dịch lại để cải thiện kết quả"}
                             >
-                              <Copy className="w-3 h-3" />
+                              <RefreshCw className={`w-3 h-3 ${retryingLanguages.has(result.language) ? 'animate-spin' : ''}`} />
                             </Button>
-                          )}
+                            {!result.error && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(result.translatedText)}
+                                className="h-6 px-2"
+                                title="Sao chép"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        {result.error ? (
+                        {retryingLanguages.has(result.language) ? (
+                          <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-950/20 p-2 rounded flex items-center space-x-2">
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            <span>Đang dịch lại...</span>
+                          </div>
+                        ) : result.error ? (
                           <p className="text-xs text-red-500 bg-red-50 dark:bg-red-950/20 p-2 rounded">
                             {result.error}
                           </p>
@@ -508,7 +613,13 @@ Ví dụ:
                           </p>
                         )}
                         <div className="mt-1 text-xs text-muted-foreground">
-                          {result.translatedText.length} ký tự
+                          {retryingLanguages.has(result.language) ? (
+                            "Đang xử lý..."
+                          ) : result.error ? (
+                            "Lỗi dịch thuật"
+                          ) : (
+                            `${result.translatedText.length} ký tự`
+                          )}
                         </div>
                       </div>
                     );

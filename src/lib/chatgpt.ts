@@ -101,7 +101,7 @@ class RequestQueue {
 }
 
 // Global instance of the request queue with default config
-let globalRequestQueue = new RequestQueue({
+const globalRequestQueue = new RequestQueue({
   enabled: true,
   delayMs: 500,
   maxConcurrent: 1
