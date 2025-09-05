@@ -114,11 +114,16 @@ export default function CapacityAnalysis() {
           setProgress(progress);
           
           // Detect retry attempts from progress messages
-          if (step.includes('retrying') || step.includes('thử lại')) {
+          if (step.includes('retrying') || step.includes('thử lại') || step.includes('Đang thử lại')) {
             setIsRetrying(true);
-            const currentRetries = retryCount + 1;
-            setRetryCount(currentRetries);
-          } else {
+            // Extract retry count from step message if available
+            const retryMatch = step.match(/attempt (\d+)/i) || step.match(/lần (\d+)/i);
+            if (retryMatch) {
+              setRetryCount(parseInt(retryMatch[1]));
+            } else {
+              setRetryCount(retryCount + 1);
+            }
+          } else if (!step.includes('API call failed') && !step.includes('timeout') && !step.includes('error')) {
             setIsRetrying(false);
           }
         });
@@ -155,21 +160,21 @@ export default function CapacityAnalysis() {
         
         // Provide more user-friendly error messages and retry suggestions
         if (errorMessage.includes('JSON') || errorMessage.includes('định dạng')) {
-          errorMessage = "AI trả về kết quả không đúng định dạng. Hệ thống đã tự động thử lại nhiều lần.";
+          errorMessage = "AI trả về kết quả không đúng định dạng. Hệ thống đã tự động retry mỗi 5 giây nhưng vẫn thất bại.";
           canRetry = true;
         } else if (errorMessage.includes('API Error') || errorMessage.includes('401') || errorMessage.includes('403')) {
           errorMessage = "Lỗi xác thực API. Vui lòng kiểm tra API Key trong Settings.";
         } else if (errorMessage.includes('429')) {
-          errorMessage = "Đã vượt quá giới hạn API. Vui lòng đợi một chút và thử lại.";
+          errorMessage = "Đã vượt quá giới hạn API. Hệ thống sẽ tự động retry mỗi 5 giây cho đến khi thành công.";
           canRetry = true;
         } else if (errorMessage.includes('timeout') || errorMessage.includes('AbortError')) {
-          errorMessage = "Kết nối bị timeout. Hệ thống đã thử lại nhiều lần nhưng vẫn thất bại.";
+          errorMessage = "Kết nối bị timeout. Hệ thống tự động retry mỗi 5 giây cho đến khi thành công.";
           canRetry = true;
         } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-          errorMessage = "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.";
+          errorMessage = "Lỗi kết nối mạng. Hệ thống sẽ tự động retry mỗi 5 giây cho đến khi thành công.";
           canRetry = true;
         } else if (errorMessage.includes('500') || errorMessage.includes('502') || errorMessage.includes('503')) {
-          errorMessage = "Server đang gặp sự cố. Vui lòng thử lại sau ít phút.";
+          errorMessage = "Server đang gặp sự cố. Hệ thống tự động retry mỗi 5 giây cho đến khi thành công.";
           canRetry = true;
         }
       }
@@ -331,9 +336,9 @@ export default function CapacityAnalysis() {
                           }
                         </div>
                         {useMultiCall && (
-                          <div className="text-yellow-600 bg-yellow-50 p-2 rounded border border-yellow-200">
-                            💡 Chế độ nhiều lời gọi có thể gặp lỗi thường xuyên hơn do phải gọi API nhiều lần. 
-                            Nếu gặp lỗi, hãy thử chuyển sang "Một lời gọi AI".
+                          <div className="text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
+                            🔄 Chế độ nhiều lời gọi sẽ tự động retry mỗi 5 giây cho đến khi thành công. 
+                            Hệ thống sẽ không dừng lại cho đến khi hoàn thành phân tích.
                           </div>
                         )}
                       </div>
@@ -368,8 +373,8 @@ export default function CapacityAnalysis() {
                           )}
                         </div>
                         {isRetrying && (
-                          <div className="text-xs text-yellow-700 bg-yellow-50 p-2 rounded border border-yellow-200">
-                            💡 Hệ thống đang tự động thử lại kết nối. Vui lòng kiên nhẫn...
+                          <div className="text-xs text-blue-700 bg-blue-50 p-2 rounded border border-blue-200">
+                            🔄 Hệ thống đang tự động retry (mỗi 5 giây) cho đến khi thành công. Vui lòng kiên nhẫn...
                           </div>
                         )}
                       </div>

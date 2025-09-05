@@ -216,8 +216,7 @@ export class ChatGPTService {
       }
 
       const model = customModel || this.config.model;
-      const maxRetries = 3;
-      const baseDelay = 1000; // 1 second
+      const retryDelay = 5000; // 5 seconds fixed delay
       
       const requestBody: ChatGPTRequest = {
         model,
@@ -247,14 +246,11 @@ export class ChatGPTService {
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             
-            // Check if it's a rate limiting error (429) or server error (5xx)
-            if (response.status === 429 || response.status >= 500) {
-              if (attempt < maxRetries) {
-                const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
-                console.warn(`API call failed (${response.status}), retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries + 1})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                return makeRequest(attempt + 1);
-              }
+            // Always retry on any error (except authentication errors) with 5 second delay
+            if (response.status !== 401 && response.status !== 403) {
+              console.warn(`API call failed (${response.status}), retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+              return makeRequest(attempt + 1);
             }
             
             throw new Error(
@@ -265,7 +261,10 @@ export class ChatGPTService {
           const data: ChatGPTResponse = await response.json();
           
           if (!data.choices || data.choices.length === 0) {
-            throw new Error("Không nhận được response từ ChatGPT");
+            // Retry on invalid response
+            console.warn(`Invalid response received, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            return makeRequest(attempt + 1);
           }
 
           return data.choices[0].message.content;
@@ -273,28 +272,32 @@ export class ChatGPTService {
           // Handle specific error types
           if (error instanceof Error) {
             if (error.name === 'AbortError') {
-              if (attempt < maxRetries) {
-                console.warn(`Request timeout, retrying... (attempt ${attempt + 1}/${maxRetries + 1})`);
-                const delay = baseDelay * Math.pow(2, attempt);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                return makeRequest(attempt + 1);
-              }
-              throw new Error("Kết nối bị timeout. Vui lòng thử lại sau.");
+              console.warn(`Request timeout, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+              return makeRequest(attempt + 1);
             }
             
-            if (error.message.includes('fetch')) {
-              if (attempt < maxRetries) {
-                console.warn(`Network error, retrying... (attempt ${attempt + 1}/${maxRetries + 1})`);
-                const delay = baseDelay * Math.pow(2, attempt);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                return makeRequest(attempt + 1);
-              }
-              throw new Error("Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.");
+            if (error.message.includes('fetch') || error.message.includes('network')) {
+              console.warn(`Network error, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+              return makeRequest(attempt + 1);
             }
             
-            throw error;
+            // For API authentication errors, don't retry
+            if (error.message.includes('401') || error.message.includes('403') || error.message.includes('API Key')) {
+              throw error;
+            }
+            
+            // For all other errors, retry
+            console.warn(`Error occurred, retrying in ${retryDelay}ms... (attempt ${attempt + 1}): ${error.message}`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            return makeRequest(attempt + 1);
           }
-          throw new Error("Lỗi không xác định khi gọi ChatGPT API");
+          
+          // Unknown error, retry
+          console.warn(`Unknown error, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return makeRequest(attempt + 1);
         }
       };
 
@@ -687,11 +690,12 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
       // Step 1: Parse DDL structure and identify tables with retry
       let schemaAnalysis;
       try {
+        onProgress?.("Đang phân tích cấu trúc DDL với retry logic...", 10);
         schemaAnalysis = await this.analyzeSchemaStructure(ddl, databaseType, customModel);
         onProgress?.("Đã hoàn thành phân tích cấu trúc", 25);
       } catch (error) {
         console.error('Schema analysis failed:', error);
-        onProgress?.("Lỗi phân tích cấu trúc, chuyển sang phương pháp đơn giản...", 25);
+        onProgress?.("Lỗi phân tích cấu trúc sau nhiều lần thử, chuyển sang phương pháp đơn giản...", 25);
         // Fallback to single call method
         return await this.analyzeCapacity(request);
       }
@@ -705,11 +709,12 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
       for (let i = 0; i < schemaAnalysis.tables.length; i++) {
         const table = schemaAnalysis.tables[i];
         try {
+          onProgress?.(`Đang phân tích bảng ${table.name} (sẽ retry nếu cần)...`, 40 + i * 20 / schemaAnalysis.tables.length);
           const result = await this.analyzeTableCapacity(table, recordCount, databaseType, customModel);
           tableResults.push(result);
-          onProgress?.(`Đã phân tích bảng ${table.name}`, 40 + (i + 1) * 20 / schemaAnalysis.tables.length);
+          onProgress?.(`Đã phân tích xong bảng ${table.name}`, 40 + (i + 1) * 20 / schemaAnalysis.tables.length);
         } catch (error) {
-          console.error(`Failed to analyze table ${table.name}:`, error);
+          console.error(`Failed to analyze table ${table.name} after retries:`, error);
           failedTables.push(table.name);
           
           // Create a basic fallback result for failed tables
@@ -726,7 +731,7 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
               mb: (recordCount * 500) / (1024 * 1024)
             },
             recordCount: recordCount,
-            recommendations: [`Không thể phân tích chi tiết bảng ${table.name}. Sử dụng ước tính cơ bản.`]
+            recommendations: [`Không thể phân tích chi tiết bảng ${table.name} sau nhiều lần retry. Sử dụng ước tính cơ bản.`]
           });
         }
       }
@@ -736,10 +741,11 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
       // Step 3: Analyze indexes and constraints with fallback
       let indexAnalysis;
       try {
+        onProgress?.("Đang phân tích indexes (sẽ retry nếu cần)...", 75);
         indexAnalysis = await this.analyzeIndexes(schemaAnalysis.indexes || [], tableResults, databaseType, customModel);
         onProgress?.("Đã phân tích xong indexes", 85);
       } catch (error) {
-        console.error('Index analysis failed:', error);
+        console.error('Index analysis failed after retries:', error);
         // Provide basic index analysis fallback
         const totalRecords = tableResults.reduce((sum, table) => sum + (table.recordCount || recordCount), 0);
         indexAnalysis = {
@@ -749,9 +755,9 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
             gb: (totalRecords * 50) / (1024 * 1024 * 1024)
           },
           indexBreakdown: [],
-          generalRecommendations: ["Không thể phân tích chi tiết indexes. Sử dụng ước tính cơ bản."]
+          generalRecommendations: ["Không thể phân tích chi tiết indexes sau nhiều lần retry. Sử dụng ước tính cơ bản."]
         };
-        onProgress?.("Sử dụng ước tính cơ bản cho indexes", 85);
+        onProgress?.("Sử dụng ước tính cơ bản cho indexes sau retry", 85);
       }
       
       // Step 4: Aggregate results and generate recommendations with error handling
