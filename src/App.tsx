@@ -8,6 +8,7 @@ import { ConfigProvider } from "@/contexts/ConfigContext";
 import DDLCompare from "./pages/DDLCompare";
 import Translation from "./pages/Translation";
 import PromptPlanning from "./pages/PromptPlanning";
+import CapacityAnalysis from "./pages/CapacityAnalysis";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
               <Route path="/" element={<DDLCompare />} />
               <Route path="/translation" element={<Translation />} />
               <Route path="/prompt-planning" element={<PromptPlanning />} />
+              <Route path="/capacity-analysis" element={<CapacityAnalysis />} />
               <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

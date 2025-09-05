@@ -1,5 +1,6 @@
 import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
+import { DDLCapacityRequest, CapacityResult } from "@/types/capacity";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES } from "@/data/translation";
 
 export interface ChatGPTMessage {
@@ -451,5 +452,153 @@ Hãy phân tích và tạo ra JSON prompt hoàn chỉnh, tối ưu nhất có th
     ];
 
     return await this.callAPI(messages, customModel);
+  }
+
+  async analyzeCapacity(request: DDLCapacityRequest): Promise<CapacityResult> {
+    const { ddl, databaseType, recordCount, customModel } = request;
+    
+    const systemPrompt = `Bạn là chuyên gia về database và data storage optimization. Nhiệm vụ của bạn là phân tích DDL schema và tính toán dung lượng cơ sở dữ liệu một cách chính xác.
+
+Yêu cầu phân tích:
+- Database type: ${databaseType.toUpperCase()}
+- Số lượng bản ghi: ${recordCount.toLocaleString()}
+
+Nhiệm vụ chính:
+1. Phân tích DDL schema để hiểu cấu trúc bảng, kiểu dữ liệu, constraints
+2. TỰ ĐỘNG TÍNH TOÁN kích thước trung bình (average) và kích thước tối đa (maximum) của một bản ghi
+3. Tính toán tổng dung lượng cho cả trường hợp trung bình và tối đa
+4. Ước tính dung lượng index (primary key, foreign key, unique constraints)
+5. Đưa ra khuyến nghị tối ưu hóa storage và performance
+6. Phân tích chi tiết theo từng bảng
+
+Cách tính toán kích thước bản ghi:
+- AVERAGE: Sử dụng giá trị trung bình cho VARCHAR/TEXT (50% max length), số liệu điển hình
+- MAXIMUM: Sử dụng giá trị tối đa có thể cho tất cả field (VARCHAR max length, số lớn nhất, etc.)
+- Bao gồm overhead của ${databaseType.toUpperCase()} (null bitmap, row header, alignment, etc.)
+
+Định dạng output (JSON):
+{
+  "averageRecordSize": number,
+  "maximumRecordSize": number,
+  "totalSizeAverage": {
+    "bytes": number,
+    "mb": number,
+    "gb": number
+  },
+  "totalSizeMaximum": {
+    "bytes": number,
+    "mb": number,
+    "gb": number
+  },
+  "indexSize": {
+    "bytes": number,
+    "mb": number,
+    "gb": number
+  },
+  "totalWithIndexAverage": {
+    "bytes": number,
+    "mb": number,
+    "gb": number
+  },
+  "totalWithIndexMaximum": {
+    "bytes": number,
+    "mb": number,
+    "gb": number
+  },
+  "recommendations": ["khuyến nghị 1", "khuyến nghị 2", ...],
+  "breakdown": [
+    {
+      "tableName": "tên bảng",
+      "averageRecordSize": number,
+      "maximumRecordSize": number,
+      "totalSizeAverage": {
+        "bytes": number,
+        "mb": number
+      },
+      "totalSizeMaximum": {
+        "bytes": number,
+        "mb": number
+      },
+      "recordCount": number,
+      "indexSize": {
+        "bytes": number,
+        "mb": number
+      },
+      "recommendations": ["khuyến nghị cho bảng này"]
+    }
+  ]
+}
+
+Lưu ý quan trọng:
+- Chỉ trả về JSON thuần túy, không thêm markdown formatting
+- PHẢI tính toán cả average và maximum record size tự động
+- Tính toán dựa trên đặc điểm của ${databaseType.toUpperCase()} (page size, overhead, compression, etc.)
+- Bao gồm overhead của database engine (metadata, page headers, row overhead, etc.)
+- Đưa ra báo cáo chi tiết về sự khác biệt giữa trường hợp trung bình và tối đa`;
+
+    const userPrompt = `Hãy phân tích DDL schema sau và tự động tính toán kích thước trung bình và tối đa của bản ghi:
+
+DDL Schema:
+${ddl}
+
+Số lượng bản ghi dự kiến: ${recordCount.toLocaleString()}
+Database: ${databaseType.toUpperCase()}
+
+Yêu cầu:
+1. Tự động tính toán average record size (kích thước trung bình thực tế)
+2. Tự động tính toán maximum record size (kích thước tối đa có thể)
+3. Tính tổng dung lượng cho cả hai trường hợp
+4. Đưa ra báo cáo so sánh và khuyến nghị
+
+Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await this.callAPI(messages, customModel);
+    
+    try {
+      // Parse JSON response
+      const result = JSON.parse(response);
+      
+      // Validate and ensure all required fields exist with proper structure
+      const capacityResult: CapacityResult = {
+        averageRecordSize: result.averageRecordSize || 0,
+        maximumRecordSize: result.maximumRecordSize || 0,
+        totalSizeAverage: {
+          bytes: result.totalSizeAverage?.bytes || 0,
+          mb: result.totalSizeAverage?.mb || (result.totalSizeAverage?.bytes / (1024 * 1024)) || 0,
+          gb: result.totalSizeAverage?.gb || (result.totalSizeAverage?.bytes / (1024 * 1024 * 1024)) || 0
+        },
+        totalSizeMaximum: {
+          bytes: result.totalSizeMaximum?.bytes || 0,
+          mb: result.totalSizeMaximum?.mb || (result.totalSizeMaximum?.bytes / (1024 * 1024)) || 0,
+          gb: result.totalSizeMaximum?.gb || (result.totalSizeMaximum?.bytes / (1024 * 1024 * 1024)) || 0
+        },
+        indexSize: result.indexSize ? {
+          bytes: result.indexSize.bytes || 0,
+          mb: result.indexSize.mb || (result.indexSize.bytes / (1024 * 1024)) || 0,
+          gb: result.indexSize.gb || (result.indexSize.bytes / (1024 * 1024 * 1024)) || 0
+        } : undefined,
+        totalWithIndexAverage: result.totalWithIndexAverage ? {
+          bytes: result.totalWithIndexAverage.bytes || 0,
+          mb: result.totalWithIndexAverage.mb || (result.totalWithIndexAverage.bytes / (1024 * 1024)) || 0,
+          gb: result.totalWithIndexAverage.gb || (result.totalWithIndexAverage.bytes / (1024 * 1024 * 1024)) || 0
+        } : undefined,
+        totalWithIndexMaximum: result.totalWithIndexMaximum ? {
+          bytes: result.totalWithIndexMaximum.bytes || 0,
+          mb: result.totalWithIndexMaximum.mb || (result.totalWithIndexMaximum.bytes / (1024 * 1024)) || 0,
+          gb: result.totalWithIndexMaximum.gb || (result.totalWithIndexMaximum.bytes / (1024 * 1024 * 1024)) || 0
+        } : undefined,
+        recommendations: result.recommendations || [],
+        breakdown: result.breakdown || []
+      };
+      
+      return capacityResult;
+    } catch (error) {
+      throw new Error(`Lỗi khi phân tích kết quả JSON: ${response}`);
+    }
   }
 }

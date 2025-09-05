@@ -10,6 +10,7 @@ import {
   GitCompare,
   Languages,
   Wand2,
+  Calculator,
   Zap
 } from "lucide-react";
 
@@ -31,6 +32,12 @@ const navigation = [
     href: "/prompt-planning",
     icon: Wand2,
     description: "Lập kế hoạch và tạo JSON prompts"
+  },
+  {
+    name: "Capacity Analysis",
+    href: "/capacity-analysis",
+    icon: Calculator,
+    description: "Phân tích dung lượng cơ sở dữ liệu"
   },
   {
     name: "Settings",
