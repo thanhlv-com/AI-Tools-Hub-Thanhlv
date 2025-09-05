@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Settings() {
-  const { config, updateConfig, updateQueueConfig, loadAvailableModels, verifyModels, availableModels } = useConfig();
+  const { config, updateConfig, updateQueueConfig, saveConfig, loadAvailableModels, verifyModels, availableModels } = useConfig();
+  const [localConfig, setLocalConfig] = useState(config);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [testing, setTesting] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
   const [verifyingModels, setVerifyingModels] = useState(false);
@@ -22,15 +24,48 @@ export default function Settings() {
   const [verificationProgress, setVerificationProgress] = useState<{ current: number, total: number } | null>(null);
   const { toast } = useToast();
 
+  // Sync local config with global config on mount
+  useEffect(() => {
+    setLocalConfig(config);
+    setHasUnsavedChanges(false);
+  }, [config]);
+
+  // Update local config and mark as changed
+  const handleLocalConfigUpdate = (newConfig: Partial<typeof config>) => {
+    setLocalConfig(prev => ({ ...prev, ...newConfig }));
+    setHasUnsavedChanges(true);
+  };
+
+  // Update local queue config and mark as changed
+  const handleLocalQueueConfigUpdate = (queueConfig: Partial<typeof config.queue>) => {
+    setLocalConfig(prev => ({ 
+      ...prev, 
+      queue: { ...prev.queue, ...queueConfig }
+    }));
+    setHasUnsavedChanges(true);
+  };
+
   const handleSave = () => {
+    updateConfig(localConfig);
+    saveConfig();
+    setHasUnsavedChanges(false);
     toast({
       title: "Đã lưu cấu hình",
       description: "Cấu hình ChatGPT đã được lưu thành công.",
     });
   };
 
+  const handleReset = () => {
+    setLocalConfig(config);
+    setHasUnsavedChanges(false);
+    toast({
+      title: "Đã hoàn tác",
+      description: "Các thay đổi chưa lưu đã được hoàn tác.",
+    });
+  };
+
   const handleTest = async () => {
-    if (!config.apiKey) {
+    if (!localConfig.apiKey) {
       toast({
         title: "Chưa có API Key",
         description: "Vui lòng nhập API Key trước khi test.",
@@ -42,7 +77,7 @@ export default function Settings() {
     setTesting(true);
     
     try {
-      const chatGPT = new ChatGPTService(config);
+      const chatGPT = new ChatGPTService(localConfig);
       await chatGPT.callAPI([
         { role: "user", content: "Say 'Hello, I am working correctly!' in Vietnamese" }
       ]);
@@ -64,7 +99,7 @@ export default function Settings() {
   };
 
   const handleLoadModels = async () => {
-    if (!config.apiKey) {
+    if (!localConfig.apiKey) {
       toast({
         title: "Chưa có API Key",
         description: "Vui lòng nhập API Key trước khi tải models.",
@@ -95,7 +130,7 @@ export default function Settings() {
   };
 
   const handleVerifyModels = async () => {
-    if (!config.apiKey) {
+    if (!localConfig.apiKey) {
       toast({
         title: "Chưa có API Key",
         description: "Vui lòng nhập API Key trước khi xác minh models.",
@@ -178,16 +213,16 @@ export default function Settings() {
               <Label htmlFor="serverUrl">Server URL</Label>
               <Input
                 id="serverUrl"
-                value={config.serverUrl}
-                onChange={(e) => updateConfig({ serverUrl: e.target.value })}
+                value={localConfig.serverUrl}
+                onChange={(e) => handleLocalConfigUpdate({ serverUrl: e.target.value })}
                 placeholder="https://api.openai.com/v1"
                 className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
             </div>
             <div className="space-y-2">
               <ModelSelector 
-                value={config.model}
-                onChange={(value) => updateConfig({ model: value })}
+                value={localConfig.model}
+                onChange={(value) => handleLocalConfigUpdate({ model: value })}
                 label="Model mặc định"
               />
             </div>
@@ -201,8 +236,8 @@ export default function Settings() {
             <Input
               id="apiKey"
               type="password"
-              value={config.apiKey}
-              onChange={(e) => updateConfig({ apiKey: e.target.value })}
+              value={localConfig.apiKey}
+              onChange={(e) => handleLocalConfigUpdate({ apiKey: e.target.value })}
               placeholder="sk-..."
               className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
             />
@@ -228,8 +263,8 @@ export default function Settings() {
               <Input
                 id="maxTokens"
                 type="number"
-                value={config.maxTokens}
-                onChange={(e) => updateConfig({ maxTokens: e.target.value })}
+                value={localConfig.maxTokens}
+                onChange={(e) => handleLocalConfigUpdate({ maxTokens: e.target.value })}
                 min="100"
                 max="8000"
                 className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
@@ -244,8 +279,8 @@ export default function Settings() {
                 step="0.1"
                 min="0"
                 max="2"
-                value={config.temperature}
-                onChange={(e) => updateConfig({ temperature: e.target.value })}
+                value={localConfig.temperature}
+                onChange={(e) => handleLocalConfigUpdate({ temperature: e.target.value })}
                 className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
               <p className="text-xs text-muted-foreground">Mức độ sáng tạo (0.0 - 2.0)</p>
@@ -399,20 +434,20 @@ export default function Settings() {
             </div>
             <Switch
               id="queue-enabled"
-              checked={config.queue.enabled}
-              onCheckedChange={(enabled) => updateQueueConfig({ enabled })}
+              checked={localConfig.queue.enabled}
+              onCheckedChange={(enabled) => handleLocalQueueConfigUpdate({ enabled })}
             />
           </div>
           
-          {config.queue.enabled && (
+          {localConfig.queue.enabled && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="delayMs">Độ trễ giữa các request (ms)</Label>
                 <Input
                   id="delayMs"
                   type="number"
-                  value={config.queue.delayMs}
-                  onChange={(e) => updateQueueConfig({ delayMs: parseInt(e.target.value) || 0 })}
+                  value={localConfig.queue.delayMs}
+                  onChange={(e) => handleLocalQueueConfigUpdate({ delayMs: parseInt(e.target.value) || 0 })}
                   min="0"
                   max="5000"
                   step="100"
@@ -427,8 +462,8 @@ export default function Settings() {
                 <Input
                   id="maxConcurrent"
                   type="number"
-                  value={config.queue.maxConcurrent}
-                  onChange={(e) => updateQueueConfig({ maxConcurrent: parseInt(e.target.value) || 1 })}
+                  value={localConfig.queue.maxConcurrent}
+                  onChange={(e) => handleLocalQueueConfigUpdate({ maxConcurrent: parseInt(e.target.value) || 1 })}
                   min="1"
                   max="10"
                   className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
@@ -459,24 +494,45 @@ export default function Settings() {
       {/* Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-gradient-to-r from-primary/10 to-primary-glow/10 flex items-center">
-            <CheckCircle2 className="w-3 h-3 mr-1 text-primary" />
-            Tự động lưu vào LocalStorage
-          </Badge>
+          {hasUnsavedChanges ? (
+            <Badge variant="destructive" className="flex items-center">
+              <AlertTriangle className="w-3 h-3 mr-1" />
+              Có thay đổi chưa lưu
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="bg-gradient-to-r from-primary/10 to-primary-glow/10 flex items-center">
+              <CheckCircle2 className="w-3 h-3 mr-1 text-primary" />
+              Đã lưu
+            </Badge>
+          )}
         </div>
         <div className="flex space-x-2">
           <Button
             variant="outline"
             onClick={handleTest}
-            disabled={testing || !config.apiKey}
+            disabled={testing || !localConfig.apiKey}
             className="transition-all"
           >
             <TestTube className="w-4 h-4 mr-2" />
             {testing ? "Đang kiểm tra..." : "Test Connection"}
           </Button>
-          <Button onClick={handleSave} className="bg-gradient-to-r from-primary to-primary-glow">
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            Đã lưu tự động
+          {hasUnsavedChanges && (
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              className="transition-all"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Hoàn tác
+            </Button>
+          )}
+          <Button 
+            onClick={handleSave} 
+            disabled={!hasUnsavedChanges}
+            className={hasUnsavedChanges ? "bg-gradient-to-r from-primary to-primary-glow" : ""}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {hasUnsavedChanges ? "Lưu thay đổi" : "Đã lưu"}
           </Button>
         </div>
       </div>

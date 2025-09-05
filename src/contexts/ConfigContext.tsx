@@ -448,10 +448,10 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     }
   }, []);
 
-  // Auto-save when config changes
-  useEffect(() => {
-    saveConfig();
-  }, [config]);
+  // Note: Auto-save removed - Settings page now uses manual save
+  // useEffect(() => {
+  //   saveConfig();
+  // }, [config]);
 
   return (
     <ConfigContext.Provider value={{ 
