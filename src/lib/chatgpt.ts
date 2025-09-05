@@ -887,16 +887,23 @@ Hãy trả về JSON chứa thông tin chi tiết về tables, columns, indexes 
   }
 
   private async analyzeTableCapacity(table: { name: string; columns: unknown[]; primaryKey?: string[]; constraints?: string[] }, recordCount: number, databaseType: string, customModel?: string) {
-    const systemPrompt = `Bạn là chuyên gia tính toán storage capacity cho database table. Tính toán chính xác record size và storage requirement.
+    const systemPrompt = `Bạn là chuyên gia tính toán storage capacity cho database table. Phân tích chi tiết từng field và tính toán chính xác record size.
 
 Database type: ${databaseType.toUpperCase()}
 Record count: ${recordCount.toLocaleString()}
 
 Nhiệm vụ:
-1. Tính toán chính xác average và maximum record size cho bảng này
-2. Bao gồm overhead của ${databaseType.toUpperCase()} (null bitmap, alignment, row header)
-3. Tính total storage requirement cho bảng
-4. Đưa ra khuyến nghị tối ưu hóa riêng cho bảng này
+1. Phân tích từng field chi tiết (data type, size, overhead)
+2. Tính toán row overhead (null bitmap, row header, alignment padding)
+3. Tính toán average và maximum record size
+4. Tính total storage requirement
+5. Đưa ra khuyến nghị tối ưu hóa chi tiết
+
+QUAN TRỌNG: Phân tích từng field một cách chi tiết với:
+- Kích thước cơ bản của data type
+- Overhead cho nullable fields
+- Alignment padding requirements
+- Mô tả rõ ràng về cách tính toán
 
 Trả về JSON:
 \`\`\`json
@@ -913,6 +920,25 @@ Trả về JSON:
     "mb": number  
   },
   "recordCount": ${recordCount},
+  "fieldDetails": [
+    {
+      "fieldName": "field_name",
+      "dataType": "VARCHAR(255)",
+      "maxLength": 255,
+      "nullable": true,
+      "averageSize": 50,
+      "maximumSize": 255,
+      "overhead": 2,
+      "description": "Mô tả chi tiết cách tính toán size",
+      "storageNotes": "Thông tin bổ sung về storage"
+    }
+  ],
+  "rowOverhead": {
+    "nullBitmap": 4,
+    "rowHeader": 8,
+    "alignment": 4,
+    "total": 16
+  },
   "recommendations": ["recommendation 1", "recommendation 2"]
 }
 \`\`\`

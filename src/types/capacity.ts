@@ -38,6 +38,18 @@ export interface CapacityResult {
   breakdown?: TableCapacityBreakdown[];
 }
 
+export interface FieldCapacityDetail {
+  fieldName: string;
+  dataType: string;
+  maxLength?: number;
+  nullable: boolean;
+  averageSize: number;
+  maximumSize: number;
+  overhead: number;
+  description: string;
+  storageNotes?: string;
+}
+
 export interface TableCapacityBreakdown {
   tableName: string;
   averageRecordSize: number;
@@ -54,6 +66,13 @@ export interface TableCapacityBreakdown {
   indexSize?: {
     bytes: number;
     mb: number;
+  };
+  fieldDetails?: FieldCapacityDetail[];
+  rowOverhead?: {
+    nullBitmap: number;
+    rowHeader: number;
+    alignment: number;
+    total: number;
   };
   recommendations?: string[];
 }

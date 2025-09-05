@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
-import { CapacityResult, DDLCapacityRequest } from "@/types/capacity";
+import { CapacityResult, DDLCapacityRequest, FieldCapacityDetail } from "@/types/capacity";
+import { generateConfluenceWikiMarkup, generateFieldAnalysisMarkup, generateSummaryTable, ConfluenceExportOptions } from "@/utils/confluenceExport";
 import { 
   Database, 
   Calculator, 
@@ -28,7 +29,13 @@ import {
   TrendingUp,
   Activity,
   Layers,
-  Clock
+  Clock,
+  Download,
+  FileDown,
+  Table,
+  Settings,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 const databases = [
@@ -53,6 +60,13 @@ export default function CapacityAnalysis() {
   const [useMultiCall, setUseMultiCall] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [showFieldDetails, setShowFieldDetails] = useState(true);
+  const [showOverheadAnalysis, setShowOverheadAnalysis] = useState(true);
+  const [confluenceExportOptions, setConfluenceExportOptions] = useState<ConfluenceExportOptions>({
+    includeFieldDetails: true,
+    includeRecommendations: true,
+    includeOverheadAnalysis: true
+  });
   const { config, getPageModel } = useConfig();
   const { toast } = useToast();
 
@@ -209,13 +223,50 @@ export default function CapacityAnalysis() {
     }
   };
 
-  const handleCopy = (text: string) => {
+  const handleCopy = (text: string, format: string = "JSON") => {
     navigator.clipboard.writeText(text).then(() => {
       toast({
         title: "Đã sao chép",
-        description: "Nội dung đã được sao chép vào clipboard.",
+        description: `Nội dung ${format} đã được sao chép vào clipboard.`,
       });
     });
+  };
+
+  const handleCopyConfluence = () => {
+    if (!result) return;
+    
+    const confluenceMarkup = generateConfluenceWikiMarkup(
+      result,
+      ddl,
+      databaseType,
+      recordCount,
+      confluenceExportOptions
+    );
+    
+    handleCopy(confluenceMarkup, "Confluence Wiki");
+  };
+
+  const handleCopyFieldAnalysis = () => {
+    if (!result?.breakdown) return;
+    
+    const allFields: FieldCapacityDetail[] = [];
+    result.breakdown.forEach(table => {
+      if (table.fieldDetails) {
+        allFields.push(...table.fieldDetails);
+      }
+    });
+    
+    if (allFields.length > 0) {
+      const fieldMarkup = generateFieldAnalysisMarkup(allFields);
+      handleCopy(fieldMarkup, "Field Analysis");
+    }
+  };
+
+  const handleCopySummary = () => {
+    if (!result) return;
+    
+    const summaryMarkup = generateSummaryTable(result, recordCount);
+    handleCopy(summaryMarkup, "Summary Table");
   };
 
   const formatBytes = (bytes: number) => {
@@ -525,11 +576,36 @@ export default function CapacityAnalysis() {
                       {/* Table Breakdown */}
                       {result.breakdown && result.breakdown.length > 0 && (
                         <div className="space-y-3">
-                          <Label className="text-sm font-medium">Chi tiết theo bảng</Label>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium">Chi tiết theo bảng</Label>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowFieldDetails(!showFieldDetails)}
+                              >
+                                {showFieldDetails ? <EyeOff className="w-3 h-3 mr-1" /> : <Eye className="w-3 h-3 mr-1" />}
+                                {showFieldDetails ? "Ẩn chi tiết field" : "Hiện chi tiết field"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowOverheadAnalysis(!showOverheadAnalysis)}
+                              >
+                                <Settings className="w-3 h-3 mr-1" />
+                                {showOverheadAnalysis ? "Ẩn overhead" : "Hiện overhead"}
+                              </Button>
+                            </div>
+                          </div>
                           <div className="space-y-3">
                             {result.breakdown.map((table, index) => (
                               <div key={index} className="p-4 border rounded-lg">
-                                <h4 className="font-medium mb-3">{table.tableName}</h4>
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-medium flex items-center gap-2">
+                                    <Table className="w-4 h-4" />
+                                    {table.tableName}
+                                  </h4>
+                                </div>
                                 
                                 <div className="grid grid-cols-2 gap-4 mb-3">
                                   <div className="space-y-1">
@@ -542,7 +618,7 @@ export default function CapacityAnalysis() {
                                   </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 mb-3">
                                   <div className="p-2 bg-green-50 rounded">
                                     <div className="text-xs text-green-700">Dung lượng TB</div>
                                     <div className="font-semibold text-green-900">
@@ -557,8 +633,73 @@ export default function CapacityAnalysis() {
                                   </div>
                                 </div>
 
-                                <div className="text-xs text-muted-foreground mt-2">
-                                  {table.recordCount.toLocaleString()} bản ghi
+                                {/* Row Overhead Analysis */}
+                                {showOverheadAnalysis && table.rowOverhead && (
+                                  <div className="mt-3 p-3 bg-gray-50 rounded">
+                                    <h5 className="text-xs font-medium text-gray-700 mb-2">Row Overhead Analysis</h5>
+                                    <div className="grid grid-cols-4 gap-2 text-xs">
+                                      <div>
+                                        <div className="text-muted-foreground">Null Bitmap</div>
+                                        <div className="font-medium">{formatBytes(table.rowOverhead.nullBitmap)}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-muted-foreground">Row Header</div>
+                                        <div className="font-medium">{formatBytes(table.rowOverhead.rowHeader)}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-muted-foreground">Alignment</div>
+                                        <div className="font-medium">{formatBytes(table.rowOverhead.alignment)}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-muted-foreground font-semibold">Total Overhead</div>
+                                        <div className="font-semibold text-red-600">{formatBytes(table.rowOverhead.total)}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Field Details */}
+                                {showFieldDetails && table.fieldDetails && table.fieldDetails.length > 0 && (
+                                  <div className="mt-3">
+                                    <h5 className="text-sm font-medium mb-2 flex items-center gap-1">
+                                      <BarChart3 className="w-4 h-4" />
+                                      Chi tiết từng field
+                                    </h5>
+                                    <div className="space-y-2">
+                                      {table.fieldDetails.map((field, fieldIndex) => (
+                                        <div key={fieldIndex} className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                                          <div className="flex justify-between items-start mb-1">
+                                            <div className="font-medium text-blue-900">{field.fieldName}</div>
+                                            <div className="text-blue-700 font-mono">{field.dataType}</div>
+                                          </div>
+                                          <div className="grid grid-cols-3 gap-2 mb-1">
+                                            <div>
+                                              <span className="text-muted-foreground">TB: </span>
+                                              <span className="font-medium">{formatBytes(field.averageSize)}</span>
+                                            </div>
+                                            <div>
+                                              <span className="text-muted-foreground">Max: </span>
+                                              <span className="font-medium">{formatBytes(field.maximumSize)}</span>
+                                            </div>
+                                            <div>
+                                              <span className="text-muted-foreground">Overhead: </span>
+                                              <span className="font-medium">{formatBytes(field.overhead)}</span>
+                                            </div>
+                                          </div>
+                                          <div className="text-blue-700">{field.description}</div>
+                                          {field.storageNotes && (
+                                            <div className="text-blue-600 italic mt-1">{field.storageNotes}</div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="flex justify-between items-center mt-3">
+                                  <div className="text-xs text-muted-foreground">
+                                    {table.recordCount.toLocaleString()} bản ghi
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -585,15 +726,98 @@ export default function CapacityAnalysis() {
 
                       <Separator />
 
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleCopy(JSON.stringify(result, null, 2))}
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          Sao chép kết quả
-                        </Button>
+                      {/* Export Options */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Settings className="w-4 h-4" />
+                          <Label className="text-sm font-medium">Export Options</Label>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyConfluence}
+                            className="justify-start"
+                          >
+                            <FileDown className="w-4 h-4 mr-2" />
+                            Copy Confluence Wiki
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopySummary}
+                            className="justify-start"
+                          >
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            Copy Summary Table
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyFieldAnalysis}
+                            className="justify-start"
+                            disabled={!result.breakdown?.some(table => table.fieldDetails?.length)}
+                          >
+                            <Table className="w-4 h-4 mr-2" />
+                            Copy Field Analysis
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCopy(JSON.stringify(result, null, 2), "JSON")}
+                            className="justify-start"
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Raw JSON
+                          </Button>
+                        </div>
+
+                        {/* Export Settings */}
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <Label className="text-xs font-medium text-gray-700 mb-2 block">Confluence Export Settings</Label>
+                          <div className="flex flex-wrap gap-3 text-xs">
+                            <label className="flex items-center gap-1">
+                              <input
+                                type="checkbox"
+                                checked={confluenceExportOptions.includeFieldDetails}
+                                onChange={(e) => setConfluenceExportOptions({
+                                  ...confluenceExportOptions,
+                                  includeFieldDetails: e.target.checked
+                                })}
+                                className="rounded"
+                              />
+                              Include Field Details
+                            </label>
+                            <label className="flex items-center gap-1">
+                              <input
+                                type="checkbox"
+                                checked={confluenceExportOptions.includeRecommendations}
+                                onChange={(e) => setConfluenceExportOptions({
+                                  ...confluenceExportOptions,
+                                  includeRecommendations: e.target.checked
+                                })}
+                                className="rounded"
+                              />
+                              Include Recommendations
+                            </label>
+                            <label className="flex items-center gap-1">
+                              <input
+                                type="checkbox"
+                                checked={confluenceExportOptions.includeOverheadAnalysis}
+                                onChange={(e) => setConfluenceExportOptions({
+                                  ...confluenceExportOptions,
+                                  includeOverheadAnalysis: e.target.checked
+                                })}
+                                className="rounded"
+                              />
+                              Include Overhead Analysis
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
