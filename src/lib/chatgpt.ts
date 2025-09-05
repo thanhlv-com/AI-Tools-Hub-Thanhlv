@@ -387,4 +387,69 @@ ${text}`;
     const results = await Promise.all(translationPromises);
     return results;
   }
+
+  async generatePrompt(
+    promptGoal: string,
+    targetAudience?: string,
+    outputFormat?: string,
+    task?: string,
+    persona?: string,
+    context?: string,
+    constraints?: string[],
+    examples?: string,
+    customModel?: string
+  ): Promise<string> {
+    const systemPrompt = `Bạn là chuyên gia về prompt engineering và AI. Nhiệm vụ của bạn là tạo ra một JSON prompt có cấu trúc hoàn chỉnh và tối ưu cho các mô hình ngôn ngữ lớn.
+
+Yêu cầu:
+- Phân tích thông tin đầu vào và tạo ra JSON prompt hoàn chỉnh
+- Bổ sung thông tin còn thiếu một cách thông minh và phù hợp
+- Tối ưu hóa prompt để đạt hiệu quả cao nhất
+- Đảm bảo JSON có cấu trúc đúng và đầy đủ các trường bắt buộc
+- Thêm metadata phù hợp và gợi ý model AI phù hợp
+
+Cấu trúc JSON cần tạo:
+{
+  "prompt_goal": "Mục tiêu chính của prompt",
+  "target_audience": "Đối tượng mục tiêu",
+  "output_format": "Định dạng đầu ra mong muốn",
+  "task": "Nhiệm vụ cụ thể AI cần thực hiện",
+  "persona": "Vai trò/persona AI cần đảm nhận",
+  "context": "Bối cảnh và thông tin nền",
+  "constraints": ["Ràng buộc 1", "Ràng buộc 2", ...],
+  "examples": "Ví dụ minh họa input/output",
+  "metadata": {
+    "created_at": "YYYY-MM-DD",
+    "version": "1.0",
+    "ai_model_recommendation": "model_name"
+  }
+}
+
+Lưu ý quan trọng:
+- Chỉ trả về JSON thuần túy, không thêm markdown formatting
+- Nếu thông tin không đủ, hãy suy luận và bổ sung thông minh
+- Đảm bảo tất cả các trường đều có giá trị hợp lý
+- Constraints phải là array, không được để trống
+- Gợi ý model AI phù hợp nhất cho prompt này`;
+
+    const userPrompt = `Hãy tạo JSON prompt dựa trên thông tin sau:
+
+Mục tiêu prompt: ${promptGoal}
+${targetAudience ? `Đối tượng mục tiêu: ${targetAudience}` : ''}
+${outputFormat ? `Định dạng đầu ra: ${outputFormat}` : ''}
+${task ? `Nhiệm vụ cụ thể: ${task}` : ''}
+${persona ? `Persona: ${persona}` : ''}
+${context ? `Bối cảnh: ${context}` : ''}
+${constraints && constraints.length > 0 ? `Ràng buộc: ${constraints.join(', ')}` : ''}
+${examples ? `Ví dụ: ${examples}` : ''}
+
+Hãy phân tích và tạo ra JSON prompt hoàn chỉnh, tối ưu nhất có thể.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    return await this.callAPI(messages, customModel);
+  }
 }

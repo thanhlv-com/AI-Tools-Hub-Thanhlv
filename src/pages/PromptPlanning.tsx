@@ -7,9 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useConfig } from "@/contexts/ConfigContext";
+import { ChatGPTService } from "@/lib/chatgpt";
 import { PromptFormData, JSONPrompt, ValidationResult } from "@/types/prompt";
 import { PromptExamples } from "@/components/PromptExamples";
+import { ModelSelector } from "@/components/ModelSelector";
 import { 
   Wand2, 
   Copy, 
@@ -24,13 +28,16 @@ import {
   FileOutput,
   Lock,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Zap,
+  Bot
 } from "lucide-react";
 
 const PAGE_ID = "prompt-planning";
 
 export default function PromptPlanning() {
   const { toast } = useToast();
+  const { config } = useConfig();
   
   // Form state with session persistence
   const [promptGoal, setPromptGoal] = useFieldSession(PAGE_ID, "promptGoal", "");
@@ -49,6 +56,9 @@ export default function PromptPlanning() {
     missingFields: [], 
     suggestions: [] 
   });
+  const [generationMode, setGenerationMode] = useState<"static" | "ai">("static");
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const addConstraint = () => {
     setConstraints([...constraints, ""]);
@@ -94,10 +104,18 @@ export default function PromptPlanning() {
     };
   }, [promptGoal, targetAudience, outputFormat, task, persona, context, constraints, examples]);
 
-  const generateJSON = () => {
+  const generateJSON = async () => {
     const validationResult = validateForm();
     setValidation(validationResult);
 
+    if (generationMode === "static") {
+      generateStaticJSON(validationResult);
+    } else {
+      await generateAIJSON(validationResult);
+    }
+  };
+
+  const generateStaticJSON = (validationResult: ValidationResult) => {
     if (!validationResult.isValid) {
       toast({
         title: "Thiếu thông tin bắt buộc",
@@ -133,6 +151,84 @@ export default function PromptPlanning() {
       title: "JSON Prompt đã được tạo!",
       description: "Bạn có thể copy và sử dụng JSON này cho các mô hình AI",
     });
+  };
+
+  const generateAIJSON = async (validationResult: ValidationResult) => {
+    if (!promptGoal.trim()) {
+      toast({
+        title: "Thiếu mục tiêu prompt",
+        description: "Vui lòng điền ít nhất mục tiêu prompt để AI có thể tạo JSON",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!config.apiKey) {
+      toast({
+        title: "Chưa cấu hình API Key",
+        description: "Vui lòng vào Settings để nhập API Key",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const chatGPTService = new ChatGPTService(config);
+      const model = selectedModel || config.model;
+      
+      const aiResult = await chatGPTService.generatePrompt(
+        promptGoal,
+        targetAudience,
+        outputFormat,
+        task,
+        persona,
+        context,
+        constraints.filter(c => c.trim()),
+        examples,
+        model
+      );
+
+      // Try to parse the AI result as JSON to validate it
+      try {
+        const parsedJSON = JSON.parse(aiResult);
+        setGeneratedJSON(JSON.stringify(parsedJSON, null, 2));
+        toast({
+          title: "AI đã tạo JSON Prompt!",
+          description: "JSON prompt được tối ưu bởi AI đã sẵn sàng sử dụng",
+        });
+      } catch (parseError) {
+        // If AI didn't return valid JSON, wrap it in a fallback structure
+        const fallbackJSON: JSONPrompt = {
+          prompt_goal: promptGoal,
+          target_audience: targetAudience || "Tổng quát",
+          output_format: outputFormat || "Text",
+          task: task || promptGoal,
+          persona: persona || "AI Assistant",
+          context: context || aiResult,
+          constraints: constraints.filter(c => c.trim()),
+          examples: examples || "",
+          metadata: {
+            created_at: new Date().toISOString().split('T')[0],
+            version: "1.0",
+            ai_model_recommendation: model
+          }
+        };
+        setGeneratedJSON(JSON.stringify(fallbackJSON, null, 2));
+        toast({
+          title: "JSON Prompt đã được tạo!",
+          description: "AI đã hỗ trợ tối ưu prompt của bạn",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Lỗi tạo AI Prompt",
+        description: error instanceof Error ? error.message : "Lỗi không xác định",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToClipboard = async () => {
@@ -351,9 +447,66 @@ export default function PromptPlanning() {
                 </div>
               )}
 
-              <Button onClick={generateJSON} className="w-full">
-                <Wand2 className="w-4 h-4 mr-2" />
-                Tạo JSON Prompt
+              {/* Generation Mode Selection */}
+              <div>
+                <Label className="flex items-center space-x-2 mb-3">
+                  <Zap className="w-4 h-4" />
+                  <span>Chế độ tạo JSON</span>
+                </Label>
+                <Tabs value={generationMode} onValueChange={(value) => setGenerationMode(value as "static" | "ai")} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="static" className="flex items-center space-x-2">
+                      <FileText className="w-4 h-4" />
+                      <span>Tĩnh</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="ai" className="flex items-center space-x-2">
+                      <Bot className="w-4 h-4" />
+                      <span>AI</span>
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="static" className="mt-4">
+                    <div className="text-sm text-muted-foreground mb-4">
+                      Tạo JSON prompt dựa trên thông tin đã nhập một cách trực tiếp
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="ai" className="mt-4">
+                    <div className="space-y-3">
+                      <div className="text-sm text-muted-foreground">
+                        AI sẽ phân tích và tối ưu hóa prompt của bạn, bổ sung thông tin thiếu
+                      </div>
+                      <ModelSelector
+                        value={selectedModel}
+                        onChange={setSelectedModel}
+                        label="Model cho AI Generation"
+                        showDefault={true}
+                        pageId={PAGE_ID}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              <Button onClick={generateJSON} disabled={isGenerating} className="w-full">
+                {isGenerating ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-background border-t-foreground" />
+                    Đang tạo bởi AI...
+                  </>
+                ) : (
+                  <>
+                    {generationMode === "ai" ? (
+                      <>
+                        <Bot className="w-4 h-4 mr-2" />
+                        Tạo JSON bằng AI
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-4 h-4 mr-2" />
+                        Tạo JSON Prompt
+                      </>
+                    )}
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
