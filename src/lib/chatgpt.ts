@@ -208,7 +208,7 @@ export class ChatGPTService {
     }
   }
 
-  async callAPI(messages: ChatGPTMessage[], customModel?: string): Promise<string> {
+  async callAPI(messages: ChatGPTMessage[], customModel?: string, retryCount: number = 0): Promise<string> {
     // Wrap the actual API call in a function and add it to the queue
     return globalRequestQueue.enqueue(async () => {
       if (!this.config.apiKey) {
@@ -216,6 +216,8 @@ export class ChatGPTService {
       }
 
       const model = customModel || this.config.model;
+      const maxRetries = 3;
+      const baseDelay = 1000; // 1 second
       
       const requestBody: ChatGPTRequest = {
         model,
@@ -224,36 +226,79 @@ export class ChatGPTService {
         temperature: parseFloat(this.config.temperature),
       };
 
-      try {
-        const response = await fetch(`${this.config.serverUrl}/chat/completions`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${this.config.apiKey}`,
-          },
-          body: JSON.stringify(requestBody),
-        });
+      const makeRequest = async (attempt: number): Promise<string> => {
+        try {
+          // Create AbortController for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            `API Error (${response.status}): ${errorData.error?.message || response.statusText}`
-          );
-        }
+          const response = await fetch(`${this.config.serverUrl}/chat/completions`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${this.config.apiKey}`,
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal,
+          });
 
-        const data: ChatGPTResponse = await response.json();
-        
-        if (!data.choices || data.choices.length === 0) {
-          throw new Error("Không nhận được response từ ChatGPT");
-        }
+          clearTimeout(timeoutId);
 
-        return data.choices[0].message.content;
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            
+            // Check if it's a rate limiting error (429) or server error (5xx)
+            if (response.status === 429 || response.status >= 500) {
+              if (attempt < maxRetries) {
+                const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+                console.warn(`API call failed (${response.status}), retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries + 1})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return makeRequest(attempt + 1);
+              }
+            }
+            
+            throw new Error(
+              `API Error (${response.status}): ${errorData.error?.message || response.statusText}`
+            );
+          }
+
+          const data: ChatGPTResponse = await response.json();
+          
+          if (!data.choices || data.choices.length === 0) {
+            throw new Error("Không nhận được response từ ChatGPT");
+          }
+
+          return data.choices[0].message.content;
+        } catch (error) {
+          // Handle specific error types
+          if (error instanceof Error) {
+            if (error.name === 'AbortError') {
+              if (attempt < maxRetries) {
+                console.warn(`Request timeout, retrying... (attempt ${attempt + 1}/${maxRetries + 1})`);
+                const delay = baseDelay * Math.pow(2, attempt);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return makeRequest(attempt + 1);
+              }
+              throw new Error("Kết nối bị timeout. Vui lòng thử lại sau.");
+            }
+            
+            if (error.message.includes('fetch')) {
+              if (attempt < maxRetries) {
+                console.warn(`Network error, retrying... (attempt ${attempt + 1}/${maxRetries + 1})`);
+                const delay = baseDelay * Math.pow(2, attempt);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return makeRequest(attempt + 1);
+              }
+              throw new Error("Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.");
+            }
+            
+            throw error;
+          }
+          throw new Error("Lỗi không xác định khi gọi ChatGPT API");
         }
-        throw new Error("Lỗi không xác định khi gọi ChatGPT API");
-      }
+      };
+
+      return makeRequest(0);
     });
   }
 
@@ -530,8 +575,8 @@ Cách tính toán kích thước bản ghi:
 }
 
 Lưu ý quan trọng:
-- Chỉ trả về JSON thuần túy, không thêm markdown formatting
-- PHẢI tính toán cả average và maximum record size tự động
+- ĐÓNG GÓI kết quả trong \`\`\`json và \`\`\` để đảm bảo format đúng
+- PHẢI tính toán cả average và maximum record size tự động  
 - Tính toán dựa trên đặc điểm của ${databaseType.toUpperCase()} (page size, overhead, compression, etc.)
 - Bao gồm overhead của database engine (metadata, page headers, row overhead, etc.)
 - Đưa ra báo cáo chi tiết về sự khác biệt giữa trường hợp trung bình và tối đa`;
@@ -560,8 +605,28 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
     const response = await this.callAPI(messages, customModel);
     
     try {
+      // Clean the response to extract JSON
+      let cleanedResponse = response.trim();
+      
+      // Remove markdown code blocks if present
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      // Remove any leading/trailing text that's not JSON
+      const jsonStart = cleanedResponse.indexOf('{');
+      const jsonEnd = cleanedResponse.lastIndexOf('}');
+      
+      if (jsonStart === -1 || jsonEnd === -1) {
+        throw new Error(`Không tìm thấy JSON hợp lệ trong response: ${response.substring(0, 200)}...`);
+      }
+      
+      const jsonString = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+      
       // Parse JSON response
-      const result = JSON.parse(response);
+      const result = JSON.parse(jsonString);
       
       // Validate and ensure all required fields exist with proper structure
       const capacityResult: CapacityResult = {
@@ -598,7 +663,460 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
       
       return capacityResult;
     } catch (error) {
-      throw new Error(`Lỗi khi phân tích kết quả JSON: ${response}`);
+      console.error('JSON parsing error:', error);
+      console.error('Original response:', response);
+      
+      if (error instanceof SyntaxError) {
+        throw new Error(`Lỗi định dạng JSON từ AI: ${error.message}. Response: ${response.substring(0, 500)}...`);
+      }
+      
+      throw new Error(`Lỗi khi phân tích kết quả: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  // New multi-call capacity analysis method with improved error handling
+  async analyzeCapacityMultiCall(
+    request: DDLCapacityRequest,
+    onProgress?: (step: string, progress: number) => void
+  ): Promise<CapacityResult> {
+    const { ddl, databaseType, recordCount, customModel } = request;
+    
+    try {
+      onProgress?.("Đang phân tích cấu trúc DDL...", 10);
+      
+      // Step 1: Parse DDL structure and identify tables with retry
+      let schemaAnalysis;
+      try {
+        schemaAnalysis = await this.analyzeSchemaStructure(ddl, databaseType, customModel);
+        onProgress?.("Đã hoàn thành phân tích cấu trúc", 25);
+      } catch (error) {
+        console.error('Schema analysis failed:', error);
+        onProgress?.("Lỗi phân tích cấu trúc, chuyển sang phương pháp đơn giản...", 25);
+        // Fallback to single call method
+        return await this.analyzeCapacity(request);
+      }
+      
+      // Step 2: Analyze each table individually with error handling
+      onProgress?.("Đang phân tích từng bảng...", 40);
+      const tableResults = [];
+      const failedTables = [];
+      
+      // Process tables sequentially to avoid overwhelming the API
+      for (let i = 0; i < schemaAnalysis.tables.length; i++) {
+        const table = schemaAnalysis.tables[i];
+        try {
+          const result = await this.analyzeTableCapacity(table, recordCount, databaseType, customModel);
+          tableResults.push(result);
+          onProgress?.(`Đã phân tích bảng ${table.name}`, 40 + (i + 1) * 20 / schemaAnalysis.tables.length);
+        } catch (error) {
+          console.error(`Failed to analyze table ${table.name}:`, error);
+          failedTables.push(table.name);
+          
+          // Create a basic fallback result for failed tables
+          tableResults.push({
+            tableName: table.name,
+            averageRecordSize: 100, // Basic estimate
+            maximumRecordSize: 500,
+            totalSizeAverage: {
+              bytes: recordCount * 100,
+              mb: (recordCount * 100) / (1024 * 1024)
+            },
+            totalSizeMaximum: {
+              bytes: recordCount * 500,
+              mb: (recordCount * 500) / (1024 * 1024)
+            },
+            recordCount: recordCount,
+            recommendations: [`Không thể phân tích chi tiết bảng ${table.name}. Sử dụng ước tính cơ bản.`]
+          });
+        }
+      }
+      
+      onProgress?.("Đã hoàn thành phân tích bảng", 70);
+      
+      // Step 3: Analyze indexes and constraints with fallback
+      let indexAnalysis;
+      try {
+        indexAnalysis = await this.analyzeIndexes(schemaAnalysis.indexes || [], tableResults, databaseType, customModel);
+        onProgress?.("Đã phân tích xong indexes", 85);
+      } catch (error) {
+        console.error('Index analysis failed:', error);
+        // Provide basic index analysis fallback
+        const totalRecords = tableResults.reduce((sum, table) => sum + (table.recordCount || recordCount), 0);
+        indexAnalysis = {
+          totalIndexSize: {
+            bytes: totalRecords * 50, // Basic estimate for index size
+            mb: (totalRecords * 50) / (1024 * 1024),
+            gb: (totalRecords * 50) / (1024 * 1024 * 1024)
+          },
+          indexBreakdown: [],
+          generalRecommendations: ["Không thể phân tích chi tiết indexes. Sử dụng ước tính cơ bản."]
+        };
+        onProgress?.("Sử dụng ước tính cơ bản cho indexes", 85);
+      }
+      
+      // Step 4: Aggregate results and generate recommendations with error handling
+      try {
+        const finalResult = await this.aggregateCapacityResults(
+          tableResults, 
+          indexAnalysis, 
+          schemaAnalysis, 
+          recordCount, 
+          databaseType, 
+          customModel
+        );
+        onProgress?.("Hoàn thành phân tích", 100);
+        
+        // Add warnings about failed components
+        if (failedTables.length > 0) {
+          finalResult.recommendations = finalResult.recommendations || [];
+          finalResult.recommendations.unshift(
+            `Lưu ý: Không thể phân tích chi tiết ${failedTables.length} bảng: ${failedTables.join(', ')}. Sử dụng ước tính cơ bản.`
+          );
+        }
+        
+        return finalResult;
+      } catch (error) {
+        console.error('Final aggregation failed:', error);
+        onProgress?.("Lỗi tổng hợp kết quả, chuyển sang phương pháp đơn giản...", 90);
+        // Fallback to single call method
+        return await this.analyzeCapacity(request);
+      }
+      
+    } catch (error) {
+      console.error('Multi-call analysis completely failed:', error);
+      onProgress?.("Phân tích nhiều bước thất bại, chuyển sang phương pháp đơn giản...", 50);
+      // Final fallback to single call method
+      return await this.analyzeCapacity(request);
+    }
+  }
+
+  private async analyzeSchemaStructure(ddl: string, databaseType: string, customModel?: string) {
+    const systemPrompt = `Bạn là chuyên gia database schema analysis. Nhiệm vụ của bạn là phân tích DDL và trích xuất thông tin cấu trúc.
+
+Database type: ${databaseType.toUpperCase()}
+
+Yêu cầu:
+1. Phân tích DDL và trích xuất danh sách bảng
+2. Xác định columns, data types, constraints cho mỗi bảng
+3. Nhận diện indexes, primary keys, foreign keys
+4. Phân tích relationships giữa các bảng
+
+Trả về JSON format:
+\`\`\`json
+{
+  "tables": [
+    {
+      "name": "table_name",
+      "columns": [
+        {
+          "name": "column_name",
+          "type": "data_type",
+          "nullable": boolean,
+          "maxLength": number,
+          "defaultValue": string
+        }
+      ],
+      "primaryKey": ["column1", "column2"],
+      "constraints": ["constraint descriptions"]
+    }
+  ],
+  "indexes": [
+    {
+      "name": "index_name",
+      "table": "table_name", 
+      "columns": ["col1", "col2"],
+      "type": "PRIMARY|UNIQUE|INDEX",
+      "estimatedSelectivity": 0.8
+    }
+  ],
+  "relationships": [
+    {
+      "fromTable": "table1",
+      "toTable": "table2", 
+      "type": "one-to-many|many-to-many|one-to-one"
+    }
+  ]
+}
+\`\`\`
+
+Lưu ý: Đóng gói kết quả trong \`\`\`json và \`\`\` để đảm bảo format đúng.`;
+
+    const userPrompt = `Phân tích DDL schema sau và trích xuất cấu trúc:
+
+${ddl}
+
+Hãy trả về JSON chứa thông tin chi tiết về tables, columns, indexes và relationships.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await this.callAPI(messages, customModel);
+    
+    try {
+      // Clean the response to extract JSON
+      let cleanedResponse = response.trim();
+      
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const jsonStart = cleanedResponse.indexOf('{');
+      const jsonEnd = cleanedResponse.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        const jsonString = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+        return JSON.parse(jsonString);
+      }
+      
+      return JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Schema analysis JSON parsing error:', error);
+      console.error('Original response:', response);
+      throw new Error(`Lỗi phân tích cấu trúc DDL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async analyzeTableCapacity(table: { name: string; columns: unknown[]; primaryKey?: string[]; constraints?: string[] }, recordCount: number, databaseType: string, customModel?: string) {
+    const systemPrompt = `Bạn là chuyên gia tính toán storage capacity cho database table. Tính toán chính xác record size và storage requirement.
+
+Database type: ${databaseType.toUpperCase()}
+Record count: ${recordCount.toLocaleString()}
+
+Nhiệm vụ:
+1. Tính toán chính xác average và maximum record size cho bảng này
+2. Bao gồm overhead của ${databaseType.toUpperCase()} (null bitmap, alignment, row header)
+3. Tính total storage requirement cho bảng
+4. Đưa ra khuyến nghị tối ưu hóa riêng cho bảng này
+
+Trả về JSON:
+\`\`\`json
+{
+  "tableName": "${table.name}",
+  "averageRecordSize": number,
+  "maximumRecordSize": number,
+  "totalSizeAverage": {
+    "bytes": number,
+    "mb": number
+  },
+  "totalSizeMaximum": {
+    "bytes": number,
+    "mb": number  
+  },
+  "recordCount": ${recordCount},
+  "recommendations": ["recommendation 1", "recommendation 2"]
+}
+\`\`\`
+
+Lưu ý: Đóng gói kết quả trong \`\`\`json và \`\`\` để đảm bảo format đúng.`;
+
+    const userPrompt = `Tính toán capacity cho bảng:
+Table: ${table.name}
+Columns: ${JSON.stringify(table.columns, null, 2)}
+Primary Key: ${JSON.stringify(table.primaryKey)}
+Constraints: ${JSON.stringify(table.constraints)}
+
+Hãy tính toán chính xác record size và storage requirement.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await this.callAPI(messages, customModel);
+    
+    try {
+      let cleanedResponse = response.trim();
+      
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const jsonStart = cleanedResponse.indexOf('{');
+      const jsonEnd = cleanedResponse.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        const jsonString = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+        return JSON.parse(jsonString);
+      }
+      
+      return JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Table capacity JSON parsing error:', error);
+      console.error('Original response:', response);
+      throw new Error(`Lỗi phân tích bảng ${table.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async analyzeIndexes(indexes: unknown[], tableResults: { tableName: string; recordCount: number }[], databaseType: string, customModel?: string) {
+    const systemPrompt = `Bạn là chuyên gia database index optimization. Tính toán storage requirement cho indexes và đưa ra khuyến nghị.
+
+Database type: ${databaseType.toUpperCase()}
+
+Nhiệm vụ:
+1. Tính toán storage requirement cho từng index
+2. Ước tính overhead của index maintenance
+3. Phân tích index selectivity và hiệu quả
+4. Đưa ra khuyến nghị tối ưu hóa index
+
+Trả về JSON:
+\`\`\`json
+{
+  "totalIndexSize": {
+    "bytes": number,
+    "mb": number,
+    "gb": number
+  },
+  "indexBreakdown": [
+    {
+      "name": "index_name",
+      "table": "table_name",
+      "size": {
+        "bytes": number,
+        "mb": number
+      },
+      "efficiency": "HIGH|MEDIUM|LOW",
+      "recommendations": ["rec1", "rec2"]
+    }
+  ],
+  "generalRecommendations": ["recommendation 1"]
+}
+\`\`\`
+
+Lưu ý: Đóng gói kết quả trong \`\`\`json và \`\`\` để đảm bảo format đúng.`;
+
+    const userPrompt = `Phân tích indexes:
+${JSON.stringify(indexes, null, 2)}
+
+Table Results để tham khảo:
+${JSON.stringify(tableResults.map(t => ({ name: t.tableName, recordCount: t.recordCount })), null, 2)}
+
+Hãy tính toán storage requirement và đưa ra khuyến nghị tối ưu.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await this.callAPI(messages, customModel);
+    
+    try {
+      let cleanedResponse = response.trim();
+      
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const jsonStart = cleanedResponse.indexOf('{');
+      const jsonEnd = cleanedResponse.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        const jsonString = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+        return JSON.parse(jsonString);
+      }
+      
+      return JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Index analysis JSON parsing error:', error);
+      console.error('Original response:', response);
+      throw new Error(`Lỗi phân tích indexes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async aggregateCapacityResults(
+    tableResults: unknown[], 
+    indexAnalysis: { totalIndexSize: unknown }, 
+    schemaAnalysis: unknown, 
+    recordCount: number,
+    databaseType: string, 
+    customModel?: string
+  ) {
+    const systemPrompt = `Bạn là chuyên gia database capacity planning. Tổng hợp kết quả từ các phân tích riêng lẻ thành báo cáo tổng thể.
+
+Database type: ${databaseType.toUpperCase()}
+Total records: ${recordCount.toLocaleString()}
+
+Nhiệm vụ:
+1. Tổng hợp kết quả từ tất cả bảng
+2. Kết hợp với analysis của indexes
+3. Tính toán tổng dung lượng average và maximum
+4. Đưa ra khuyến nghị tổng thể cho toàn bộ database
+5. So sánh và phân tích trade-offs
+
+Trả về JSON theo format CapacityResult đầy đủ.`;
+
+    const userPrompt = `Tổng hợp kết quả capacity analysis:
+
+Table Results:
+${JSON.stringify(tableResults, null, 2)}
+
+Index Analysis:
+${JSON.stringify(indexAnalysis, null, 2)}
+
+Schema Overview:
+${JSON.stringify(schemaAnalysis, null, 2)}
+
+Hãy tạo báo cáo tổng thể với recommendations cho toàn bộ database.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await this.callAPI(messages, customModel);
+    
+    let result;
+    try {
+      let cleanedResponse = response.trim();
+      
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const jsonStart = cleanedResponse.indexOf('{');
+      const jsonEnd = cleanedResponse.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        const jsonString = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+        result = JSON.parse(jsonString);
+      } else {
+        result = JSON.parse(cleanedResponse);
+      }
+    } catch (error) {
+      console.error('Aggregate results JSON parsing error:', error);
+      console.error('Original response:', response);
+      throw new Error(`Lỗi tổng hợp kết quả: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+    
+    // Ensure proper structure for CapacityResult
+    const capacityResult: CapacityResult = {
+      averageRecordSize: (result as { averageRecordSize?: number }).averageRecordSize || 0,
+      maximumRecordSize: (result as { maximumRecordSize?: number }).maximumRecordSize || 0,
+      totalSizeAverage: {
+        bytes: (result as { totalSizeAverage?: { bytes?: number } }).totalSizeAverage?.bytes || 0,
+        mb: (result as { totalSizeAverage?: { mb?: number, bytes?: number } }).totalSizeAverage?.mb || ((result as { totalSizeAverage?: { bytes?: number } }).totalSizeAverage?.bytes || 0) / (1024 * 1024),
+        gb: (result as { totalSizeAverage?: { gb?: number, bytes?: number } }).totalSizeAverage?.gb || ((result as { totalSizeAverage?: { bytes?: number } }).totalSizeAverage?.bytes || 0) / (1024 * 1024 * 1024)
+      },
+      totalSizeMaximum: {
+        bytes: (result as { totalSizeMaximum?: { bytes?: number } }).totalSizeMaximum?.bytes || 0,
+        mb: (result as { totalSizeMaximum?: { mb?: number, bytes?: number } }).totalSizeMaximum?.mb || ((result as { totalSizeMaximum?: { bytes?: number } }).totalSizeMaximum?.bytes || 0) / (1024 * 1024),
+        gb: (result as { totalSizeMaximum?: { gb?: number, bytes?: number } }).totalSizeMaximum?.gb || ((result as { totalSizeMaximum?: { bytes?: number } }).totalSizeMaximum?.bytes || 0) / (1024 * 1024 * 1024)
+      },
+      indexSize: indexAnalysis.totalIndexSize as { bytes: number; mb: number; gb: number } | undefined,
+      totalWithIndexAverage: (result as { totalWithIndexAverage?: { bytes: number; mb: number; gb: number } }).totalWithIndexAverage,
+      totalWithIndexMaximum: (result as { totalWithIndexMaximum?: { bytes: number; mb: number; gb: number } }).totalWithIndexMaximum,
+      recommendations: (result as { recommendations?: string[] }).recommendations || [],
+      breakdown: tableResults as { tableName: string; averageRecordSize: number; maximumRecordSize: number; totalSizeAverage: { bytes: number; mb: number }; totalSizeMaximum: { bytes: number; mb: number }; recordCount: number; indexSize?: { bytes: number; mb: number }; recommendations?: string[] }[]
+    };
+    return capacityResult;
   }
 }
