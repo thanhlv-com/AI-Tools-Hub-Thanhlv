@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { ModelInfo, ChatGPTService } from "@/lib/chatgpt";
 import { DDLAnalysisHistory } from "@/types/history";
 import { TranslationHistory, TranslationPreference, TranslationPreferences } from "@/types/translation";
+import { ApiKeyManager } from "@/lib/encryption";
 
 export interface QueueConfig {
   enabled: boolean;
@@ -22,8 +23,8 @@ interface ConfigContextType {
   config: ChatGPTConfig;
   updateConfig: (newConfig: Partial<ChatGPTConfig>) => void;
   updateQueueConfig: (queueConfig: Partial<QueueConfig>) => void;
-  saveConfig: () => void;
-  loadConfig: () => void;
+  saveConfig: () => Promise<void>;
+  loadConfig: () => Promise<void>;
   availableModels: ModelInfo[];
   setAvailableModels: (models: ModelInfo[]) => void;
   loadAvailableModels: () => Promise<ModelInfo[]>;
@@ -79,11 +80,17 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [translationPreferences, setTranslationPreferences] = useState<TranslationPreferences>({});
   const [pageModels, setPageModels] = useState<{ [pageId: string]: string }>({});
 
-  const loadConfig = () => {
+  const loadConfig = async () => {
     try {
       const saved = localStorage.getItem('ddl-tool-config');
       if (saved) {
         const parsedConfig = JSON.parse(saved);
+        
+        // Decrypt API key if it exists and is encrypted
+        if (parsedConfig.apiKey) {
+          parsedConfig.apiKey = await ApiKeyManager.decryptFromStorage(parsedConfig.apiKey);
+        }
+        
         setConfig({ ...defaultConfig, ...parsedConfig });
       }
     } catch (error) {
@@ -91,9 +98,16 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     }
   };
 
-  const saveConfig = () => {
+  const saveConfig = async () => {
     try {
-      localStorage.setItem('ddl-tool-config', JSON.stringify(config));
+      // Create a copy of config with encrypted API key
+      const configToSave = { ...config };
+      
+      if (configToSave.apiKey) {
+        configToSave.apiKey = await ApiKeyManager.encryptForStorage(configToSave.apiKey);
+      }
+      
+      localStorage.setItem('ddl-tool-config', JSON.stringify(configToSave));
     } catch (error) {
       console.error('Error saving config:', error);
     }
@@ -435,7 +449,11 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
 
   // Load config and history on mount
   useEffect(() => {
-    loadConfig();
+    const initializeConfig = async () => {
+      await loadConfig();
+    };
+    
+    initializeConfig();
     loadHistory();
     loadTranslationHistory();
     loadTranslationPreferences();

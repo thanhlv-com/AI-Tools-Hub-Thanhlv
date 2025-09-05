@@ -17,6 +17,7 @@ export default function Settings() {
   const { config, updateConfig, updateQueueConfig, saveConfig, loadAvailableModels, verifyModels, availableModels } = useConfig();
   const [localConfig, setLocalConfig] = useState(config);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
   const [verifyingModels, setVerifyingModels] = useState(false);
@@ -45,14 +46,25 @@ export default function Settings() {
     setHasUnsavedChanges(true);
   };
 
-  const handleSave = () => {
-    updateConfig(localConfig);
-    saveConfig();
-    setHasUnsavedChanges(false);
-    toast({
-      title: "Đã lưu cấu hình",
-      description: "Cấu hình ChatGPT đã được lưu thành công.",
-    });
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      updateConfig(localConfig);
+      await saveConfig();
+      setHasUnsavedChanges(false);
+      toast({
+        title: "Đã lưu cấu hình",
+        description: "Cấu hình ChatGPT đã được lưu thành công (API Key được mã hóa).",
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi lưu cấu hình",
+        description: "Không thể lưu cấu hình. Vui lòng thử lại.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleReset = () => {
@@ -528,11 +540,20 @@ export default function Settings() {
           )}
           <Button 
             onClick={handleSave} 
-            disabled={!hasUnsavedChanges}
+            disabled={!hasUnsavedChanges || saving}
             className={hasUnsavedChanges ? "bg-gradient-to-r from-primary to-primary-glow" : ""}
           >
-            <Save className="w-4 h-4 mr-2" />
-            {hasUnsavedChanges ? "Lưu thay đổi" : "Đã lưu"}
+            {saving ? (
+              <>
+                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-background border-t-foreground" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                {hasUnsavedChanges ? "Lưu thay đổi" : "Đã lưu"}
+              </>
+            )}
           </Button>
         </div>
       </div>
