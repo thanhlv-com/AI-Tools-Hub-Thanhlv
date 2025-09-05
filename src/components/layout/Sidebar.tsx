@@ -9,6 +9,7 @@ import {
   X,
   GitCompare,
   Languages,
+  Wand2,
   Zap
 } from "lucide-react";
 
@@ -24,6 +25,12 @@ const navigation = [
     href: "/translation",
     icon: Languages,
     description: "Dịch thuật đa ngôn ngữ với AI"
+  },
+  {
+    name: "Prompt Planning",
+    href: "/prompt-planning",
+    icon: Wand2,
+    description: "Lập kế hoạch và tạo JSON prompts"
   },
   {
     name: "Settings",

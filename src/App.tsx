@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { ConfigProvider } from "@/contexts/ConfigContext";
 import DDLCompare from "./pages/DDLCompare";
 import Translation from "./pages/Translation";
+import PromptPlanning from "./pages/PromptPlanning";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<DDLCompare />} />
               <Route path="/translation" element={<Translation />} />
+              <Route path="/prompt-planning" element={<PromptPlanning />} />
               <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
