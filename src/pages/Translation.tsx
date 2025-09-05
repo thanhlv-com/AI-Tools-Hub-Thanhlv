@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useFieldSession } from "@/hooks/usePageSession";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +13,7 @@ import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { TranslationHistory } from "@/components/TranslationHistory";
 import { TranslationPreferences } from "@/components/TranslationPreferences";
-import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
+import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES } from "@/data/translation";
 import { MultiTranslationRequest, MultiTranslationResult, TranslationHistory as TranslationHistoryType, TranslationPreference } from "@/types/translation";
 import { 
   Languages, 
@@ -33,19 +34,24 @@ import {
   Plus,
   Minus,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  GraduationCap
 } from "lucide-react";
 
 const PAGE_ID = "translation";
 
 export default function Translation() {
-  const [sourceText, setSourceText] = useState("");
-  const [sourceLanguage, setSourceLanguage] = useState("auto");
-  const [targetLanguages, setTargetLanguages] = useState<string[]>(["vi"]);
-  const [translationStyle, setTranslationStyle] = useState("natural");
+  // Session-persisted state
+  const [sourceText, setSourceText] = useFieldSession(PAGE_ID, "sourceText", "");
+  const [sourceLanguage, setSourceLanguage] = useFieldSession(PAGE_ID, "sourceLanguage", "auto");
+  const [targetLanguages, setTargetLanguages] = useFieldSession(PAGE_ID, "targetLanguages", ["vi"]);
+  const [translationStyle, setTranslationStyle] = useFieldSession(PAGE_ID, "translationStyle", "natural");
+  const [translationProficiency, setTranslationProficiency] = useFieldSession(PAGE_ID, "translationProficiency", "intermediate");
+  const [translationResults, setTranslationResults] = useFieldSession(PAGE_ID, "translationResults", []);
+  
+  // Temporary state (not persisted)
   const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState<string>("");
-  const [translationResults, setTranslationResults] = useState<MultiTranslationResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [retryingLanguages, setRetryingLanguages] = useState<Set<string>>(new Set());
@@ -118,6 +124,7 @@ export default function Translation() {
         sourceLanguage,
         targetLanguages,
         style: translationStyle,
+        proficiency: translationProficiency,
         model: pageModel || undefined
       };
       
@@ -142,6 +149,7 @@ export default function Translation() {
         sourceLanguage,
         targetLanguages,
         style: translationStyle,
+        proficiency: translationProficiency,
         model: modelToUse
       });
       
@@ -218,6 +226,7 @@ export default function Translation() {
         sourceLanguage,
         targetLanguages: [targetLanguage], // Only retry this specific language
         style: translationStyle,
+        proficiency: translationProficiency,
         model: pageModel || undefined
       };
 
@@ -320,7 +329,12 @@ export default function Translation() {
     return TRANSLATION_STYLES.find(style => style.id === id) || TRANSLATION_STYLES[0];
   };
 
+  const getProficiencyInfo = (id: string) => {
+    return TRANSLATION_PROFICIENCIES.find(prof => prof.id === id) || TRANSLATION_PROFICIENCIES[2]; // default to intermediate
+  };
+
   const currentStyle = getStyleInfo(translationStyle);
+  const currentProficiency = getProficiencyInfo(translationProficiency);
 
   return (
     <div className="relative">
@@ -359,7 +373,7 @@ export default function Translation() {
         </div>
 
         {/* Configuration Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {/* Language Selection */}
           <Card className="shadow-card">
             <CardHeader>
@@ -486,6 +500,48 @@ export default function Translation() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {currentStyle.description}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Proficiency Level */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <GraduationCap className="w-5 h-5 text-primary" />
+                <span>Trình độ đầu ra</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Select value={translationProficiency} onValueChange={setTranslationProficiency}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRANSLATION_PROFICIENCIES.map((proficiency) => (
+                      <SelectItem key={proficiency.id} value={proficiency.id}>
+                        <div className="flex items-center space-x-2">
+                          <span>{proficiency.icon}</span>
+                          <span>{proficiency.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-lg">{currentProficiency.icon}</span>
+                    <span className="font-medium text-sm">{currentProficiency.name}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {currentProficiency.level}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {currentProficiency.description}
                   </p>
                 </div>
               </div>

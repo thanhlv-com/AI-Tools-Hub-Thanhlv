@@ -13,11 +13,21 @@ export interface TranslationStyle {
   prompt: string;
 }
 
+export interface TranslationProficiency {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  level: string;
+  prompt: string;
+}
+
 export interface TranslationRequest {
   text: string;
   sourceLanguage: string;
   targetLanguage: string;
   style: string;
+  proficiency?: string;
   model?: string;
 }
 
@@ -26,6 +36,7 @@ export interface MultiTranslationRequest {
   sourceLanguage: string;
   targetLanguages: string[];
   style: string;
+  proficiency?: string;
   model?: string;
 }
 
@@ -65,6 +76,7 @@ export interface TranslationHistory {
   sourceLanguage: string;
   targetLanguages: string[];
   style: string;
+  proficiency?: string;
   model: string;
   metadata?: {
     sourceLength: number;
@@ -81,6 +93,7 @@ export interface TranslationPreference {
   sourceLanguage: string;
   targetLanguages: string[];
   style: string;
+  proficiency?: string;
   model?: string;
   timestamp: number;
 }

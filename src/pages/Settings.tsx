@@ -18,7 +18,7 @@ export default function Settings() {
   const [testing, setTesting] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
   const [verifyingModels, setVerifyingModels] = useState(false);
-  const [modelVerificationResult, setModelVerificationResult] = useState<{ validModels: any[], invalidModels: string[] } | null>(null);
+  const [modelVerificationResult, setModelVerificationResult] = useState<{ validModels: unknown[], invalidModels: string[] } | null>(null);
   const [verificationProgress, setVerificationProgress] = useState<{ current: number, total: number } | null>(null);
   const { toast } = useToast();
 

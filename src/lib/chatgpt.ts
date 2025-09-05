@@ -1,6 +1,6 @@
 import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
-import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
+import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES } from "@/data/translation";
 
 export interface ChatGPTMessage {
   role: "system" | "user" | "assistant";
@@ -290,11 +290,12 @@ Hãy tạo migration script để chuyển đổi từ DDL hiện tại sang DDL
   }
 
   async translateText(request: TranslationRequest): Promise<string> {
-    const { text, sourceLanguage, targetLanguage, style, model } = request;
+    const { text, sourceLanguage, targetLanguage, style, proficiency, model } = request;
     
     const sourceLang = LANGUAGES.find(lang => lang.code === sourceLanguage);
     const targetLang = LANGUAGES.find(lang => lang.code === targetLanguage);
     const translationStyle = TRANSLATION_STYLES.find(s => s.id === style);
+    const translationProficiency = proficiency ? TRANSLATION_PROFICIENCIES.find(p => p.id === proficiency) : null;
     
     if (!sourceLang || !targetLang || !translationStyle) {
       throw new Error("Invalid language or style selection");
@@ -306,17 +307,23 @@ Yêu cầu dịch thuật:
 - Ngôn ngữ nguồn: ${sourceLang.name} (${sourceLang.nativeName})
 - Ngôn ngữ đích: ${targetLang.name} (${targetLang.nativeName})
 - Phong cách dịch: ${translationStyle.name}
-- Mô tả phong cách: ${translationStyle.description}
+- Mô tả phong cách: ${translationStyle.description}${translationProficiency ? `
+- Trình độ đầu ra: ${translationProficiency.name} (${translationProficiency.level})
+- Mô tả trình độ: ${translationProficiency.description}` : ''}
 
-Hướng dẫn chi tiết:
-${translationStyle.prompt}
+Hướng dẫn chi tiết về phong cách:
+${translationStyle.prompt}${translationProficiency ? `
+
+Hướng dẫn chi tiết về trình độ đầu ra:
+${translationProficiency.prompt}` : ''}
 
 Lưu ý quan trọng:
 - Chỉ trả về bản dịch cuối cùng, không thêm giải thích
 - Giữ nguyên định dạng của văn bản gốc (xuống dòng, dấu câu, etc.)
 - Nếu có từ khóa chuyên ngành, hãy dịch phù hợp với ngữ cảnh
 - Đảm bảo bản dịch phù hợp với văn hóa của ngôn ngữ đích
-- Nếu ngôn ngữ nguồn là "auto", hãy tự động phát hiện ngôn ngữ`;
+- Nếu ngôn ngữ nguồn là "auto", hãy tự động phát hiện ngôn ngữ${translationProficiency ? `
+- Điều chỉnh độ phức tạp của ngôn ngữ theo trình độ đã chọn: ${translationProficiency.name}` : ''}`;
 
     const userPrompt = `Hãy dịch văn bản sau:
 
@@ -331,7 +338,7 @@ ${text}`;
   }
 
   async translateToMultipleLanguages(request: MultiTranslationRequest): Promise<MultiTranslationResult[]> {
-    const { text, sourceLanguage, targetLanguages, style, model } = request;
+    const { text, sourceLanguage, targetLanguages, style, proficiency, model } = request;
     
     const sourceLang = LANGUAGES.find(lang => lang.code === sourceLanguage);
     const translationStyle = TRANSLATION_STYLES.find(s => s.id === style);
@@ -357,6 +364,7 @@ ${text}`;
           sourceLanguage,
           targetLanguage: targetLangCode,
           style,
+          proficiency,
           model
         };
 

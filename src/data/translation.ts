@@ -1,4 +1,4 @@
-import { Language, TranslationStyle } from "@/types/translation";
+import { Language, TranslationStyle, TranslationProficiency } from "@/types/translation";
 
 export const LANGUAGES: Language[] = [
   { code: "auto", name: "Tự động phát hiện", nativeName: "Auto-detect", flag: "🌐" },
@@ -98,5 +98,56 @@ export const TRANSLATION_STYLES: TranslationStyle[] = [
     description: "Dịch theo phong cách báo chí, trung lập, khách quan, súc tích và dễ hiểu cho đại chúng.",
     icon: "📰",
     prompt: "Translate the following text in journalistic style, maintaining objectivity and clarity. Use concise language suitable for news reporting."
+  }
+];
+
+export const TRANSLATION_PROFICIENCIES: TranslationProficiency[] = [
+  {
+    id: "beginner",
+    name: "Người mới bắt đầu",
+    description: "Sử dụng từ vựng đơn giản, cấu trúc câu cơ bản. Phù hợp cho người mới học hoặc trình độ sơ cấp.",
+    icon: "🌱",
+    level: "A1-A2",
+    prompt: "Use simple vocabulary and basic sentence structures. Avoid complex grammar, idioms, or advanced vocabulary. Break down complex ideas into simple, easy-to-understand concepts."
+  },
+  {
+    id: "elementary",
+    name: "Sơ cấp",
+    description: "Từ vựng phổ biến, câu đơn giản với giải thích ngắn gọn. Phù hợp cho người học cơ bản.",
+    icon: "📚",
+    level: "A2-B1",
+    prompt: "Use common vocabulary and straightforward sentences. Include brief explanations for potentially difficult words. Keep grammar simple but correct."
+  },
+  {
+    id: "intermediate",
+    name: "Trung cấp",
+    description: "Từ vựng đa dạng hơn, cấu trúc câu phức tạp vừa phải. Phù hợp cho người học trung cấp.",
+    icon: "🎯",
+    level: "B1-B2",
+    prompt: "Use varied vocabulary and moderately complex sentence structures. Include some idiomatic expressions and common phrases while maintaining clarity."
+  },
+  {
+    id: "advanced",
+    name: "Nâng cao",
+    description: "Từ vựng phong phú, cấu trúc câu phức tạp, thành ngữ. Phù hợp cho người có trình độ cao.",
+    icon: "🎓",
+    level: "B2-C1",
+    prompt: "Use rich vocabulary, complex sentence structures, and appropriate idioms. Maintain sophisticated language while ensuring accuracy and natural flow."
+  },
+  {
+    id: "native",
+    name: "Bản ngữ",
+    description: "Sử dụng toàn bộ khả năng của ngôn ngữ, bao gồm slang, thành ngữ địa phương. Như người bản xứ.",
+    icon: "👑",
+    level: "C1-C2",
+    prompt: "Use the full range of the language including colloquialisms, regional idioms, and native-like expressions. Translate as a native speaker would naturally express the ideas."
+  },
+  {
+    id: "child-friendly",
+    name: "Dành cho trẻ em",
+    description: "Ngôn ngữ đơn giản, thân thiện với trẻ em. Tránh nội dung phức tạp hoặc không phù hợp.",
+    icon: "🧒",
+    level: "Kid-friendly",
+    prompt: "Use child-friendly language with simple words and concepts. Make it engaging and easy for children to understand. Avoid complex or inappropriate content."
   }
 ];
