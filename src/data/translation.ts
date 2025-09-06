@@ -129,6 +129,62 @@ export const EMOTICON_OPTIONS: EmoticonOption[] = [
     description: "Thay thế emoticon/emoji bằng các biểu tượng phù hợp với văn hóa của ngôn ngữ đích",
     icon: "🌍",
     prompt: "Replace emoticons and emojis with ones that are more culturally appropriate for the target language and region."
+  },
+  {
+    id: "enhance-emotional",
+    name: "Tăng cường cảm xúc",
+    description: "Thêm nhiều emoticon/emoji để làm nổi bật và khuếch đại cảm xúc trong văn bản",
+    icon: "💫",
+    prompt: "Enhance the emotional impact by adding multiple relevant emoticons and emojis that amplify the feelings and sentiments expressed in the text."
+  },
+  {
+    id: "minimal-subtle",
+    name: "Tối giản tinh tế",
+    description: "Chỉ thêm một số ít emoticon/emoji tinh tế, phù hợp với phong cách nhẹ nhàng",
+    icon: "✨",
+    prompt: "Add only minimal, subtle emoticons and emojis sparingly to maintain elegance while adding a gentle touch of expression."
+  },
+  {
+    id: "youth-friendly",
+    name: "Thân thiện trẻ trung",
+    description: "Sử dụng emoticon/emoji phong cách trẻ trung, hiện đại, phù hợp với giới trẻ",
+    icon: "🤩",
+    prompt: "Use trendy, youthful emoticons and emojis that appeal to younger audiences with modern, energetic expressions."
+  },
+  {
+    id: "professional-warm",
+    name: "Chuyên nghiệp ấm áp",
+    description: "Cân bằng giữa tính chuyên nghiệp và sự thân thiện với emoticon/emoji vừa phải",
+    icon: "🤝",
+    prompt: "Balance professionalism with warmth by using appropriate emoticons that maintain business courtesy while being approachable."
+  },
+  {
+    id: "kawaii-cute",
+    name: "Dễ thương Kawaii",
+    description: "Sử dụng emoticon/emoji theo phong cách kawaii Nhật Bản, tập trung vào sự dễ thương",
+    icon: "🥰",
+    prompt: "Use kawaii-style cute emoticons and emojis inspired by Japanese culture, focusing on adorable and endearing expressions."
+  },
+  {
+    id: "text-emoticons",
+    name: "Emoticon văn bản",
+    description: "Chuyển đổi emoji thành emoticon văn bản ASCII như :) ^_^ ¯\\_(ツ)_/¯",
+    icon: ":-)",
+    prompt: "Convert emojis to text-based ASCII emoticons like :) :D ^_^ ¯\\_(ツ)_/¯ for a more classic, universal appearance."
+  },
+  {
+    id: "gender-neutral",
+    name: "Trung tính giới tính",
+    description: "Ưu tiên sử dụng emoticon/emoji không phân biệt giới tính và bao trùm",
+    icon: "🙂",
+    prompt: "Prioritize gender-neutral and inclusive emoticons and emojis that represent diversity and avoid gender-specific expressions."
+  },
+  {
+    id: "seasonal-themed",
+    name: "Theo chủ đề mùa",
+    description: "Thêm emoticon/emoji phù hợp với mùa hiện tại hoặc dịp lễ đặc biệt",
+    icon: "🌸",
+    prompt: "Add emoticons and emojis that match the current season, holidays, or special occasions mentioned in or relevant to the text."
   }
 ];
 
