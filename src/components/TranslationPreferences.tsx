@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ModelSelector } from "@/components/ModelSelector";
 import { TranslationPreference } from "@/types/translation";
-import { LANGUAGES, TRANSLATION_STYLES } from "@/data/translation";
+import { LANGUAGES, TRANSLATION_STYLES, EMOTICON_OPTIONS } from "@/data/translation";
 import { 
   Settings, 
   Plus, 
@@ -36,6 +36,7 @@ interface TranslationPreferencesProps {
     sourceLanguage: string;
     targetLanguages: string[];
     style: string;
+    emoticonOption?: string;
     model?: string;
   };
   className?: string;
@@ -56,6 +57,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
     sourceLanguage: "auto",
     targetLanguages: ["vi"],
     style: "natural",
+    emoticonOption: "keep-original",
     model: ""
   });
 
@@ -67,6 +69,10 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
 
   const getStyleInfo = (id: string) => {
     return TRANSLATION_STYLES.find(style => style.id === id) || { id, name: id, icon: "🔤", description: "" };
+  };
+
+  const getEmoticonInfo = (id: string) => {
+    return EMOTICON_OPTIONS.find(option => option.id === id) || { id, name: id, icon: "🔄", description: "" };
   };
 
   const handleCreatePreference = () => {
@@ -86,6 +92,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
         sourceLanguage: newPreference.sourceLanguage,
         targetLanguages: newPreference.targetLanguages,
         style: newPreference.style,
+        emoticonOption: newPreference.emoticonOption,
         model: newPreference.model || undefined
       });
 
@@ -95,6 +102,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
         sourceLanguage: "auto",
         targetLanguages: ["vi"],
         style: "natural",
+        emoticonOption: "keep-original",
         model: ""
       });
       setIsCreating(false);
@@ -122,6 +130,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
       sourceLanguage: currentSettings.sourceLanguage,
       targetLanguages: currentSettings.targetLanguages,
       style: currentSettings.style,
+      emoticonOption: currentSettings.emoticonOption || "keep-original",
       model: currentSettings.model || ""
     });
     setIsCreating(true);
@@ -375,6 +384,29 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                         </Select>
                       </div>
 
+                      {/* Emoticon Options */}
+                      <div className="space-y-2">
+                        <Label>Xử lý Emoticon</Label>
+                        <Select 
+                          value={newPreference.emoticonOption} 
+                          onValueChange={(value) => setNewPreference(prev => ({ ...prev, emoticonOption: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60">
+                            {EMOTICON_OPTIONS.map((option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                <div className="flex items-center space-x-2">
+                                  <span>{option.icon}</span>
+                                  <span className="truncate">{option.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {/* Model Selection */}
                       <div className="space-y-2">
                         <Label>Model (tuỳ chọn)</Label>
@@ -420,6 +452,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                 const isExpanded = expandedId === preference.id;
                 const sourceInfo = getLanguageInfo(preference.sourceLanguage);
                 const styleInfo = getStyleInfo(preference.style);
+                const emoticonInfo = getEmoticonInfo(preference.emoticonOption || "keep-original");
                 
                 return (
                   <Card key={preference.id} className="hover:shadow-md transition-all">
@@ -448,6 +481,9 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                             </Badge>
                             <Badge variant="outline" className="text-xs">
                               {styleInfo.icon} {styleInfo.name}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {emoticonInfo.icon} {emoticonInfo.name}
                             </Badge>
                             {preference.model && (
                               <Badge variant="outline" className="text-xs">
@@ -516,6 +552,10 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                                 <div>
                                   <span className="text-muted-foreground">Phong cách: </span>
                                   <span>{styleInfo.icon} {styleInfo.name}</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">Emoticon: </span>
+                                  <span>{emoticonInfo.icon} {emoticonInfo.name}</span>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Model: </span>
