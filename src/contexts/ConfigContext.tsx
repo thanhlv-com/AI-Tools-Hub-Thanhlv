@@ -23,7 +23,7 @@ interface ConfigContextType {
   config: ChatGPTConfig;
   updateConfig: (newConfig: Partial<ChatGPTConfig>) => void;
   updateQueueConfig: (queueConfig: Partial<QueueConfig>) => void;
-  saveConfig: () => Promise<void>;
+  saveConfig: (configToSave?: ChatGPTConfig) => Promise<void>;
   loadConfig: () => Promise<void>;
   availableModels: ModelInfo[];
   setAvailableModels: (models: ModelInfo[]) => void;
@@ -98,18 +98,30 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     }
   };
 
-  const saveConfig = async () => {
+  const saveConfig = async (configToSave?: ChatGPTConfig) => {
     try {
-      // Create a copy of config with encrypted API key
-      const configToSave = { ...config };
+      // Use provided config or current config state
+      const targetConfig = configToSave || config;
+      console.log('Saving config:', { 
+        hasApiKey: !!targetConfig.apiKey,
+        serverUrl: targetConfig.serverUrl,
+        model: targetConfig.model
+      });
       
-      if (configToSave.apiKey) {
-        configToSave.apiKey = await ApiKeyManager.encryptForStorage(configToSave.apiKey);
+      // Create a copy of config with encrypted API key
+      const configWithEncryptedKey = { ...targetConfig };
+      
+      if (configWithEncryptedKey.apiKey) {
+        console.log('Encrypting API key...');
+        configWithEncryptedKey.apiKey = await ApiKeyManager.encryptForStorage(configWithEncryptedKey.apiKey);
+        console.log('API key encrypted successfully');
       }
       
-      localStorage.setItem('ddl-tool-config', JSON.stringify(configToSave));
+      localStorage.setItem('ddl-tool-config', JSON.stringify(configWithEncryptedKey));
+      console.log('Config saved to localStorage successfully');
     } catch (error) {
       console.error('Error saving config:', error);
+      throw error; // Re-throw so the UI can handle it
     }
   };
 

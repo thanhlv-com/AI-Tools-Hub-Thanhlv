@@ -49,17 +49,20 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Save the local config directly to localStorage and update global state
       updateConfig(localConfig);
-      await saveConfig();
+      await saveConfig(localConfig);
+      
       setHasUnsavedChanges(false);
       toast({
         title: "Đã lưu cấu hình",
         description: "Cấu hình ChatGPT đã được lưu thành công (API Key được mã hóa).",
       });
     } catch (error) {
+      console.error('Save config error:', error);
       toast({
         title: "Lỗi lưu cấu hình",
-        description: "Không thể lưu cấu hình. Vui lòng thử lại.",
+        description: error instanceof Error ? error.message : "Không thể lưu cấu hình. Vui lòng thử lại.",
         variant: "destructive"
       });
     } finally {
