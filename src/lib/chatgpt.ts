@@ -527,8 +527,9 @@ Tasks:
 3. Calculate maximum record size (all fields at maximum possible values)
 4. Estimate total storage and index overhead
 5. Provide optimization recommendations
+6. Include field-level analysis with size calculations for each column
 
-For ${databaseType.toUpperCase()}, include engine overhead (row headers, null bitmaps, alignment).
+For ${databaseType.toUpperCase()}, include engine overhead (row headers, null bitmaps, alignment). Analyze each field individually to provide detailed breakdown.
 
 Return ONLY valid JSON in this exact format:
 {
@@ -540,7 +541,7 @@ Return ONLY valid JSON in this exact format:
   "totalWithIndexAverage": {"bytes": <num>, "mb": <num>, "gb": <num>},
   "totalWithIndexMaximum": {"bytes": <num>, "mb": <num>, "gb": <num>},
   "recommendations": ["rec1", "rec2"],
-  "breakdown": [{"tableName": "name", "averageRecordSize": <num>, "maximumRecordSize": <num>, "totalSizeAverage": {"bytes": <num>, "mb": <num>}, "totalSizeMaximum": {"bytes": <num>, "mb": <num>}, "recordCount": ${recordCount}}]
+  "breakdown": [{"tableName": "name", "averageRecordSize": <num>, "maximumRecordSize": <num>, "totalSizeAverage": {"bytes": <num>, "mb": <num>}, "totalSizeMaximum": {"bytes": <num>, "mb": <num>}, "recordCount": ${recordCount}, "fieldDetails": [{"fieldName": "field", "dataType": "VARCHAR(255)", "nullable": true, "averageSize": 50, "maximumSize": 255, "overhead": 1, "description": "Field description"}]}]
 }`;
 
     const userPrompt = `Analyze this ${databaseType.toUpperCase()} DDL schema and calculate storage capacity:
@@ -683,15 +684,40 @@ Calculate average/maximum record sizes and total storage. Return JSON only.`;
           onProgress?.(`Table ${table.name} completed`, 50 + (i + 1) * 15);
         } catch (error) {
           console.error(`Table analysis failed for ${table.name}:`, error);
-          // Create basic fallback result
+          // Create basic fallback result with field details from schema
+          const fieldDetails = table.columns ? table.columns.map((col: {name?: string; type?: string; nullable?: boolean}, idx: number) => ({
+            fieldName: col.name || `field_${idx}`,
+            dataType: col.type || 'VARCHAR(255)',
+            maxLength: col.type?.match(/\((\d+)\)/)?.[1] ? parseInt(col.type.match(/\((\d+)\)/)[1]) : undefined,
+            nullable: col.nullable !== false,
+            averageSize: this.estimateFieldSize(col.type || 'VARCHAR(255)', true),
+            maximumSize: this.estimateFieldSize(col.type || 'VARCHAR(255)', false),
+            overhead: col.nullable !== false ? 1 : 0,
+            description: `Estimated size for ${col.type || 'VARCHAR(255)'} field`,
+            storageNotes: `Basic estimate due to analysis error`
+          })) : [];
+          
+          const avgRecordSize = fieldDetails.reduce((sum, field) => sum + field.averageSize + field.overhead, 20); // +20 for row overhead
+          const maxRecordSize = fieldDetails.reduce((sum, field) => sum + field.maximumSize + field.overhead, 20);
+          
           tableResults.push({
             tableName: table.name,
-            averageRecordSize: 100,
-            maximumRecordSize: 500,
-            totalSizeAverage: { bytes: recordCount * 100, mb: (recordCount * 100) / (1024 * 1024) },
-            totalSizeMaximum: { bytes: recordCount * 500, mb: (recordCount * 500) / (1024 * 1024) },
+            averageRecordSize: avgRecordSize,
+            maximumRecordSize: maxRecordSize,
+            totalSizeAverage: { bytes: recordCount * avgRecordSize, mb: (recordCount * avgRecordSize) / (1024 * 1024) },
+            totalSizeMaximum: { bytes: recordCount * maxRecordSize, mb: (recordCount * maxRecordSize) / (1024 * 1024) },
             recordCount: recordCount,
-            recommendations: [`Basic estimate for table ${table.name} due to analysis error.`]
+            fieldDetails: fieldDetails,
+            rowOverhead: {
+              nullBitmap: Math.ceil(fieldDetails.length / 8),
+              rowHeader: 8,
+              alignment: 4,
+              total: Math.ceil(fieldDetails.length / 8) + 8 + 4
+            },
+            recommendations: [
+              `Basic estimate for table ${table.name} due to analysis error.`,
+              `Field analysis based on DDL structure - may not be fully accurate.`
+            ]
           });
         }
       }
@@ -750,6 +776,50 @@ Calculate average/maximum record sizes and total storage. Return JSON only.`;
       onProgress?.("Multi-call failed, using single call fallback...", 50);
       return await this.analyzeCapacity(request);
     }
+  }
+
+  private estimateFieldSize(dataType: string, average: boolean = true): number {
+    const type = dataType.toUpperCase();
+    
+    // Extract length from VARCHAR(n), CHAR(n), etc.
+    const lengthMatch = type.match(/\((\d+)\)/);
+    const length = lengthMatch ? parseInt(lengthMatch[1]) : null;
+    
+    // Basic size estimates
+    if (type.includes('INT')) return 4;
+    if (type.includes('BIGINT')) return 8;
+    if (type.includes('SMALLINT')) return 2;
+    if (type.includes('TINYINT')) return 1;
+    if (type.includes('DECIMAL') || type.includes('NUMERIC')) return 16;
+    if (type.includes('FLOAT')) return 4;
+    if (type.includes('DOUBLE')) return 8;
+    if (type.includes('DATE')) return 3;
+    if (type.includes('DATETIME') || type.includes('TIMESTAMP')) return 8;
+    if (type.includes('TIME')) return 3;
+    if (type.includes('BOOLEAN') || type.includes('BOOL')) return 1;
+    
+    // Variable length types
+    if (type.includes('VARCHAR')) {
+      if (length) {
+        return average ? Math.min(length * 0.6, length) : length; // Assume 60% usage on average
+      }
+      return average ? 50 : 255; // Default estimate
+    }
+    
+    if (type.includes('CHAR')) {
+      return length || 255;
+    }
+    
+    if (type.includes('TEXT')) {
+      return average ? 1000 : 65535; // TEXT field estimates
+    }
+    
+    if (type.includes('BLOB')) {
+      return average ? 1024 : 65535; // BLOB field estimates
+    }
+    
+    // Default fallback
+    return average ? 50 : 255;
   }
 
   private async analyzeSchemaStructure(ddl: string, databaseType: string, customModel?: string) {

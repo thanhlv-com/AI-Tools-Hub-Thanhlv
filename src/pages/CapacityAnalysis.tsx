@@ -269,6 +269,115 @@ export default function CapacityAnalysis() {
     handleCopy(summaryMarkup, "Summary Table");
   };
 
+  const handleCopyDetailedFieldReport = () => {
+    if (!result?.breakdown) return;
+    
+    const allFields: FieldCapacityDetail[] = [];
+    const tableData: { [tableName: string]: FieldCapacityDetail[] } = {};
+    
+    result.breakdown.forEach(table => {
+      if (table.fieldDetails) {
+        allFields.push(...table.fieldDetails);
+        tableData[table.tableName] = table.fieldDetails;
+      }
+    });
+    
+    if (allFields.length > 0) {
+      let report = "# Báo Cáo Chi Tiết Phân Tích Field\n\n";
+      
+      // Overall summary
+      const totalDataSize = allFields.reduce((sum, field) => sum + field.averageSize, 0);
+      const totalOverhead = allFields.reduce((sum, field) => sum + field.overhead, 0);
+      const efficiency = totalDataSize > 0 ? ((totalDataSize / (totalDataSize + totalOverhead)) * 100) : 0;
+      
+      report += `## Tổng Quan\n`;
+      report += `- **Tổng số fields:** ${allFields.length}\n`;
+      report += `- **Tổng dung lượng data:** ${formatBytes(totalDataSize)}\n`;
+      report += `- **Tổng overhead:** ${formatBytes(totalOverhead)}\n`;
+      report += `- **Hiệu quả lưu trữ:** ${efficiency.toFixed(1)}%\n\n`;
+      
+      // Per-table analysis
+      Object.entries(tableData).forEach(([tableName, fields]) => {
+        report += `## Bảng: ${tableName}\n\n`;
+        report += `| Field | Data Type | Kích thước TB | Kích thước Max | Overhead | % Overhead | Nullable | Ghi chú |\n`;
+        report += `|-------|-----------|---------------|----------------|----------|------------|----------|----------|\n`;
+        
+        fields
+          .sort((a, b) => (b.averageSize + b.overhead) - (a.averageSize + a.overhead))
+          .forEach(field => {
+            const overheadPercent = field.averageSize > 0 ? (field.overhead / field.averageSize * 100) : 0;
+            const nullable = field.nullable ? "✓" : "✗";
+            
+            const notes = [];
+            if (overheadPercent > 30) notes.push("High Overhead");
+            if (field.averageSize > 1000) notes.push("Large Field");
+            if (field.maximumSize / field.averageSize > 5) notes.push("Variable Size");
+            
+            report += `| ${field.fieldName} | \`${field.dataType}\` | ${formatBytes(field.averageSize)} | ${formatBytes(field.maximumSize)} | ${formatBytes(field.overhead)} | ${overheadPercent.toFixed(1)}% | ${nullable} | ${notes.join(", ")} |\n`;
+          });
+        
+        report += `\n`;
+        
+        // Table-specific recommendations
+        const tableDataSize = fields.reduce((sum, field) => sum + field.averageSize, 0);
+        const tableOverhead = fields.reduce((sum, field) => sum + field.overhead, 0);
+        const tableEfficiency = tableDataSize > 0 ? ((tableDataSize / (tableDataSize + tableOverhead)) * 100) : 0;
+        const nullableFields = fields.filter(f => f.nullable).length;
+        const highOverheadFields = fields.filter(f => 
+          f.averageSize > 0 ? (f.overhead / f.averageSize * 100) > 20 : false
+        ).length;
+        
+        report += `### Thống kê bảng ${tableName}:\n`;
+        report += `- **Hiệu quả lưu trữ:** ${tableEfficiency.toFixed(1)}%\n`;
+        report += `- **Fields có overhead cao:** ${highOverheadFields}/${fields.length}\n`;
+        report += `- **Nullable fields:** ${nullableFields}/${fields.length}\n\n`;
+        
+        if (nullableFields / fields.length > 0.7) {
+          report += `⚠️ **Khuyến nghị:** Bảng có quá nhiều nullable fields (${nullableFields}/${fields.length}). Xem xét sắp xếp lại thứ tự columns để tối ưu null bitmap.\n\n`;
+        }
+        
+        if (highOverheadFields > fields.length * 0.3) {
+          report += `⚠️ **Khuyến nghị:** ${highOverheadFields}/${fields.length} fields có overhead cao. Xem xét review data types và padding.\n\n`;
+        }
+      });
+      
+      // Top optimization opportunities
+      const optimizationFields = allFields
+        .filter(field => {
+          const overheadPercent = field.averageSize > 0 ? (field.overhead / field.averageSize * 100) : 0;
+          return overheadPercent > 20 || field.averageSize > 1000 || (field.maximumSize / field.averageSize > 5);
+        })
+        .sort((a, b) => {
+          const aOverheadPercent = a.averageSize > 0 ? (a.overhead / a.averageSize * 100) : 0;
+          const bOverheadPercent = b.averageSize > 0 ? (b.overhead / b.averageSize * 100) : 0;
+          return bOverheadPercent - aOverheadPercent;
+        })
+        .slice(0, 5);
+        
+      if (optimizationFields.length > 0) {
+        report += `## Top 5 Khuyến Nghị Tối Ưu Hóa\n\n`;
+        optimizationFields.forEach((field, idx) => {
+          const overheadPercent = field.averageSize > 0 ? (field.overhead / field.averageSize * 100) : 0;
+          report += `${idx + 1}. **${field.fieldName}** (\`${field.dataType}\`):\n`;
+          
+          if (overheadPercent > 30) {
+            report += `   - Overhead cao: ${overheadPercent.toFixed(1)}%\n`;
+            report += `   - 💡 Xem xét tối ưu hóa data type\n`;
+          } else if (field.averageSize > 1000) {
+            report += `   - Kích thước lớn: ${formatBytes(field.averageSize)}\n`;
+            report += `   - 💡 Xem xét nén hoặc tách riêng\n`;
+          } else if (field.maximumSize / field.averageSize > 5) {
+            report += `   - Độ biến thiên cao: ${field.maximumSize / field.averageSize}x\n`;
+            report += `   - 💡 Xem xét sử dụng VARCHAR thay vì CHAR\n`;
+          }
+          report += `\n`;
+        });
+      }
+      
+      handleCopy(report, "Detailed Field Report");
+    }
+  };
+
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -786,6 +895,262 @@ export default function CapacityAnalysis() {
                         </div>
                       )}
 
+                      {/* Detailed Field Analysis Report */}
+                      {result.breakdown && (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold flex items-center gap-2">
+                              <BarChart3 className="w-5 h-5 text-purple-600" />
+                              Báo Cáo Chi Tiết Phân Tích Field
+                            </h4>
+                            <Badge variant="outline" className="text-purple-700 border-purple-300">
+                              {result.breakdown.reduce((total, table) => total + (table.fieldDetails?.length || 0), 0)} fields
+                            </Badge>
+                          </div>
+                          
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                            <div className="text-sm text-purple-800">
+                              Phân tích chi tiết dung lượng, hiệu quả lưu trữ và khuyến nghị tối ưu hóa cho từng field
+                            </div>
+                          </div>
+
+                          {result.breakdown.some(table => table.fieldDetails?.length) ? (
+                            result.breakdown.map((table, tableIndex) => 
+                              table.fieldDetails && table.fieldDetails.length > 0 && (
+                              <div key={tableIndex} className="border border-purple-200 rounded-lg overflow-hidden">
+                                <div className="bg-purple-100 px-4 py-3 border-b border-purple-200">
+                                  <h5 className="font-medium text-purple-900 flex items-center gap-2">
+                                    <Table className="w-4 h-4" />
+                                    {table.tableName}
+                                    <Badge variant="secondary" className="ml-2">
+                                      {table.fieldDetails.length} fields
+                                    </Badge>
+                                  </h5>
+                                </div>
+                                
+                                <div className="p-4">
+                                  {/* Field Analysis Summary */}
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                                      <div className="text-xs text-blue-700 font-medium">Tổng dung lượng field (TB)</div>
+                                      <div className="text-lg font-bold text-blue-900">
+                                        {formatBytes(table.fieldDetails.reduce((sum, field) => sum + field.averageSize, 0))}
+                                      </div>
+                                    </div>
+                                    <div className="p-3 bg-orange-50 border border-orange-200 rounded">
+                                      <div className="text-xs text-orange-700 font-medium">Tổng overhead</div>
+                                      <div className="text-lg font-bold text-orange-900">
+                                        {formatBytes(table.fieldDetails.reduce((sum, field) => sum + field.overhead, 0))}
+                                      </div>
+                                    </div>
+                                    <div className="p-3 bg-green-50 border border-green-200 rounded">
+                                      <div className="text-xs text-green-700 font-medium">Hiệu quả lưu trữ</div>
+                                      <div className="text-lg font-bold text-green-900">
+                                        {(() => {
+                                          const totalData = table.fieldDetails.reduce((sum, field) => sum + field.averageSize, 0);
+                                          const totalOverhead = table.fieldDetails.reduce((sum, field) => sum + field.overhead, 0);
+                                          const efficiency = totalData > 0 ? ((totalData / (totalData + totalOverhead)) * 100) : 0;
+                                          return `${efficiency.toFixed(1)}%`;
+                                        })()}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Detailed Field Table */}
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-sm border-collapse">
+                                      <thead>
+                                        <tr className="bg-gray-50 border-b">
+                                          <th className="text-left p-2 font-medium">Field</th>
+                                          <th className="text-left p-2 font-medium">Data Type</th>
+                                          <th className="text-right p-2 font-medium">Kích thước TB</th>
+                                          <th className="text-right p-2 font-medium">Kích thước Max</th>
+                                          <th className="text-right p-2 font-medium">Overhead</th>
+                                          <th className="text-right p-2 font-medium">% Overhead</th>
+                                          <th className="text-center p-2 font-medium">Nullable</th>
+                                          <th className="text-left p-2 font-medium">Đánh giá</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {table.fieldDetails
+                                          .sort((a, b) => (b.averageSize + b.overhead) - (a.averageSize + a.overhead))
+                                          .map((field, fieldIndex) => {
+                                            const overheadPercent = field.averageSize > 0 ? (field.overhead / field.averageSize * 100) : 0;
+                                            const isHighOverhead = overheadPercent > 20;
+                                            const isLargeField = field.averageSize > 100;
+                                            
+                                            return (
+                                              <tr key={fieldIndex} className={`border-b hover:bg-gray-50 ${isHighOverhead ? 'bg-yellow-50' : ''}`}>
+                                                <td className="p-2">
+                                                  <div className="font-medium text-gray-900">{field.fieldName}</div>
+                                                  {field.maxLength && (
+                                                    <div className="text-xs text-gray-500">Max length: {field.maxLength}</div>
+                                                  )}
+                                                </td>
+                                                <td className="p-2 font-mono text-xs">{field.dataType}</td>
+                                                <td className="p-2 text-right font-medium">{formatBytes(field.averageSize)}</td>
+                                                <td className="p-2 text-right font-medium">{formatBytes(field.maximumSize)}</td>
+                                                <td className="p-2 text-right">
+                                                  <span className={`font-medium ${isHighOverhead ? 'text-red-600' : 'text-gray-700'}`}>
+                                                    {formatBytes(field.overhead)}
+                                                  </span>
+                                                </td>
+                                                <td className="p-2 text-right">
+                                                  <span className={`text-xs px-1 py-0.5 rounded ${
+                                                    overheadPercent > 30 ? 'bg-red-100 text-red-800' :
+                                                    overheadPercent > 15 ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-green-100 text-green-800'
+                                                  }`}>
+                                                    {overheadPercent.toFixed(1)}%
+                                                  </span>
+                                                </td>
+                                                <td className="p-2 text-center">
+                                                  {field.nullable ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-green-600 mx-auto" />
+                                                  ) : (
+                                                    <span className="w-4 h-4 bg-gray-300 rounded-full inline-block" />
+                                                  )}
+                                                </td>
+                                                <td className="p-2">
+                                                  <div className="flex flex-wrap gap-1">
+                                                    {isHighOverhead && (
+                                                      <Badge variant="destructive" className="text-xs">
+                                                        High Overhead
+                                                      </Badge>
+                                                    )}
+                                                    {isLargeField && (
+                                                      <Badge variant="outline" className="text-xs text-blue-700 border-blue-300">
+                                                        Large Field
+                                                      </Badge>
+                                                    )}
+                                                    {field.averageSize !== field.maximumSize && field.maximumSize / field.averageSize > 3 && (
+                                                      <Badge variant="outline" className="text-xs text-orange-700 border-orange-300">
+                                                        Variable Size
+                                                      </Badge>
+                                                    )}
+                                                  </div>
+                                                </td>
+                                              </tr>
+                                            );
+                                          })}
+                                      </tbody>
+                                    </table>
+                                  </div>
+
+                                  {/* Field Optimization Recommendations */}
+                                  <div className="mt-4 space-y-2">
+                                    <h6 className="font-medium text-sm text-gray-800 flex items-center gap-1">
+                                      <Info className="w-4 h-4" />
+                                      Khuyến nghị tối ưu hóa fields
+                                    </h6>
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {table.fieldDetails
+                                        .filter(field => {
+                                          const overheadPercent = field.averageSize > 0 ? (field.overhead / field.averageSize * 100) : 0;
+                                          return overheadPercent > 20 || field.averageSize > 1000 || 
+                                                 (field.maximumSize / field.averageSize > 5);
+                                        })
+                                        .slice(0, 3)
+                                        .map((field, idx) => {
+                                          const overheadPercent = field.averageSize > 0 ? (field.overhead / field.averageSize * 100) : 0;
+                                          let recommendation = "";
+                                          let bgColor = "bg-blue-50 border-blue-200 text-blue-800";
+                                          
+                                          if (overheadPercent > 30) {
+                                            recommendation = `Field "${field.fieldName}" có overhead cao (${overheadPercent.toFixed(1)}%). Xem xét tối ưu hóa data type.`;
+                                            bgColor = "bg-red-50 border-red-200 text-red-800";
+                                          } else if (field.averageSize > 1000) {
+                                            recommendation = `Field "${field.fieldName}" có kích thước lớn (${formatBytes(field.averageSize)}). Xem xét nén hoặc tách riêng.`;
+                                            bgColor = "bg-orange-50 border-orange-200 text-orange-800";
+                                          } else if (field.maximumSize / field.averageSize > 5) {
+                                            recommendation = `Field "${field.fieldName}" có độ biến thiên kích thước cao. Xem xét sử dụng VARCHAR thay vì CHAR.`;
+                                            bgColor = "bg-yellow-50 border-yellow-200 text-yellow-800";
+                                          }
+                                          
+                                          return recommendation ? (
+                                            <div key={idx} className={`p-2 text-xs rounded border ${bgColor}`}>
+                                              {recommendation}
+                                            </div>
+                                          ) : null;
+                                        })
+                                        .filter(Boolean)
+                                      }
+                                      
+                                      {/* General recommendations based on table analysis */}
+                                      {(() => {
+                                        const totalFields = table.fieldDetails.length;
+                                        const nullableFields = table.fieldDetails.filter(f => f.nullable).length;
+                                        const highOverheadFields = table.fieldDetails.filter(f => 
+                                          f.averageSize > 0 ? (f.overhead / f.averageSize * 100) > 20 : false
+                                        ).length;
+                                        
+                                        const recommendations = [];
+                                        
+                                        if (nullableFields / totalFields > 0.7) {
+                                          recommendations.push(
+                                            <div key="nullable" className="p-2 text-xs rounded border bg-blue-50 border-blue-200 text-blue-800">
+                                              Bảng có nhiều nullable fields ({nullableFields}/{totalFields}). Xem xét sắp xếp lại thứ tự columns để tối ưu null bitmap.
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        if (highOverheadFields > totalFields * 0.3) {
+                                          recommendations.push(
+                                            <div key="overhead" className="p-2 text-xs rounded border bg-yellow-50 border-yellow-200 text-yellow-800">
+                                              {highOverheadFields}/{totalFields} fields có overhead cao. Xem xét review data types và padding.
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        return recommendations;
+                                      })()}
+                                    </div>
+                                  </div>
+
+                                  {/* Storage Notes */}
+                                  {table.fieldDetails.some(field => field.storageNotes) && (
+                                    <div className="mt-4 p-3 bg-gray-50 rounded border">
+                                      <h6 className="font-medium text-sm text-gray-800 mb-2">Ghi chú về lưu trữ</h6>
+                                      <div className="space-y-1">
+                                        {table.fieldDetails
+                                          .filter(field => field.storageNotes)
+                                          .map((field, idx) => (
+                                            <div key={idx} className="text-xs text-gray-600">
+                                              <span className="font-medium">{field.fieldName}:</span> {field.storageNotes}
+                                            </div>
+                                          ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          )) : (
+                            <div className="p-6 text-center bg-gray-50 border border-gray-200 rounded-lg">
+                              <BarChart3 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                              <h5 className="font-medium text-gray-700 mb-2">
+                                Chưa có chi tiết phân tích field
+                              </h5>
+                              <div className="text-sm text-gray-500 space-y-2">
+                                <p>
+                                  Để xem phân tích chi tiết cho từng field, hãy sử dụng phương pháp 
+                                  <span className="font-medium"> "Nhiều lời gọi AI"</span> trong phần cấu hình.
+                                </p>
+                                <p>
+                                  Phương pháp này sẽ cung cấp thông tin chi tiết về:
+                                </p>
+                                <ul className="text-xs text-gray-400 mt-2 space-y-1">
+                                  <li>• Kích thước trung bình và tối đa của từng field</li>
+                                  <li>• Phân tích overhead và hiệu quả lưu trữ</li>
+                                  <li>• Khuyến nghị tối ưu hóa cho từng field</li>
+                                  <li>• Thống kê nullable và data type</li>
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <Separator />
 
                       {/* Export Options */}
@@ -795,7 +1160,7 @@ export default function CapacityAnalysis() {
                           <Label className="text-sm font-medium">Export Options</Label>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -825,6 +1190,17 @@ export default function CapacityAnalysis() {
                           >
                             <Table className="w-4 h-4 mr-2" />
                             Copy Field Analysis
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyDetailedFieldReport}
+                            className="justify-start"
+                            disabled={!result.breakdown?.some(table => table.fieldDetails?.length)}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Copy Detailed Field Report
                           </Button>
                           
                           <Button
