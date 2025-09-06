@@ -13,7 +13,7 @@ import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { TranslationHistory } from "@/components/TranslationHistory";
 import { TranslationPreferences } from "@/components/TranslationPreferences";
-import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES } from "@/data/translation";
+import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS } from "@/data/translation";
 import { MultiTranslationRequest, MultiTranslationResult, TranslationHistory as TranslationHistoryType, TranslationPreference } from "@/types/translation";
 import { 
   Languages, 
@@ -47,6 +47,7 @@ export default function Translation() {
   const [targetLanguages, setTargetLanguages] = useFieldSession(PAGE_ID, "targetLanguages", ["vi"]);
   const [translationStyle, setTranslationStyle] = useFieldSession(PAGE_ID, "translationStyle", "natural");
   const [translationProficiency, setTranslationProficiency] = useFieldSession(PAGE_ID, "translationProficiency", "intermediate");
+  const [emoticonOption, setEmoticonOption] = useFieldSession(PAGE_ID, "emoticonOption", "keep-original");
   const [translationResults, setTranslationResults] = useFieldSession(PAGE_ID, "translationResults", []);
   
   // Temporary state (not persisted)
@@ -125,6 +126,7 @@ export default function Translation() {
         targetLanguages,
         style: translationStyle,
         proficiency: translationProficiency,
+        emoticonOption,
         model: pageModel || undefined
       };
       
@@ -150,6 +152,7 @@ export default function Translation() {
         targetLanguages,
         style: translationStyle,
         proficiency: translationProficiency,
+        emoticonOption,
         model: modelToUse
       });
       
@@ -227,6 +230,7 @@ export default function Translation() {
         targetLanguages: [targetLanguage], // Only retry this specific language
         style: translationStyle,
         proficiency: translationProficiency,
+        emoticonOption,
         model: pageModel || undefined
       };
 
@@ -284,6 +288,9 @@ export default function Translation() {
     setSourceLanguage(historyItem.sourceLanguage);
     setTargetLanguages(historyItem.targetLanguages);
     setTranslationStyle(historyItem.style);
+    if (historyItem.emoticonOption) {
+      setEmoticonOption(historyItem.emoticonOption);
+    }
     
     // Recreate translation results from history
     const results: MultiTranslationResult[] = historyItem.targetLanguages.map(langCode => ({
@@ -306,6 +313,9 @@ export default function Translation() {
     setSourceLanguage(preference.sourceLanguage);
     setTargetLanguages(preference.targetLanguages);
     setTranslationStyle(preference.style);
+    if (preference.emoticonOption) {
+      setEmoticonOption(preference.emoticonOption);
+    }
     
     // Clear current results since we're changing settings
     setTranslationResults([]);
@@ -333,8 +343,13 @@ export default function Translation() {
     return TRANSLATION_PROFICIENCIES.find(prof => prof.id === id) || TRANSLATION_PROFICIENCIES[2]; // default to intermediate
   };
 
+  const getEmoticonInfo = (id: string) => {
+    return EMOTICON_OPTIONS.find(emoticon => emoticon.id === id) || EMOTICON_OPTIONS[0]; // default to keep-original
+  };
+
   const currentStyle = getStyleInfo(translationStyle);
   const currentProficiency = getProficiencyInfo(translationProficiency);
+  const currentEmoticonOption = getEmoticonInfo(emoticonOption);
 
   return (
     <div className="relative">
@@ -373,7 +388,7 @@ export default function Translation() {
         </div>
 
         {/* Configuration Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
           {/* Language Selection */}
           <Card className="shadow-card">
             <CardHeader>
@@ -542,6 +557,45 @@ export default function Translation() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {currentProficiency.description}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Emoticon Options */}
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <span className="text-xl">😊</span>
+                <span>Xử lý Emoticon</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Select value={emoticonOption} onValueChange={setEmoticonOption}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EMOTICON_OPTIONS.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        <div className="flex items-center space-x-2">
+                          <span>{option.icon}</span>
+                          <span>{option.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-lg">{currentEmoticonOption.icon}</span>
+                    <span className="font-medium text-sm">{currentEmoticonOption.name}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {currentEmoticonOption.description}
                   </p>
                 </div>
               </div>
@@ -780,12 +834,19 @@ Ví dụ:
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Phong cách:</span>
                   <div className="flex items-center space-x-1 mt-1">
                     <span>{currentStyle.icon}</span>
                     <span className="font-medium">{currentStyle.name}</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Emoticon:</span>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <span>{currentEmoticonOption.icon}</span>
+                    <span className="font-medium">{currentEmoticonOption.name}</span>
                   </div>
                 </div>
                 <div>
@@ -865,6 +926,7 @@ Ví dụ:
                   sourceLanguage,
                   targetLanguages,
                   style: translationStyle,
+                  emoticonOption,
                   model: getPageModel(PAGE_ID) || undefined
                 }}
                 className="h-full"

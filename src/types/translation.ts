@@ -22,12 +22,21 @@ export interface TranslationProficiency {
   prompt: string;
 }
 
+export interface EmoticonOption {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  prompt: string;
+}
+
 export interface TranslationRequest {
   text: string;
   sourceLanguage: string;
   targetLanguage: string;
   style: string;
   proficiency?: string;
+  emoticonOption?: string;
   model?: string;
 }
 
@@ -37,6 +46,7 @@ export interface MultiTranslationRequest {
   targetLanguages: string[];
   style: string;
   proficiency?: string;
+  emoticonOption?: string;
   model?: string;
 }
 
@@ -77,6 +87,7 @@ export interface TranslationHistory {
   targetLanguages: string[];
   style: string;
   proficiency?: string;
+  emoticonOption?: string;
   model: string;
   metadata?: {
     sourceLength: number;
@@ -94,6 +105,7 @@ export interface TranslationPreference {
   targetLanguages: string[];
   style: string;
   proficiency?: string;
+  emoticonOption?: string;
   model?: string;
   timestamp: number;
 }

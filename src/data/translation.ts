@@ -1,4 +1,4 @@
-import { Language, TranslationStyle, TranslationProficiency } from "@/types/translation";
+import { Language, TranslationStyle, TranslationProficiency, EmoticonOption } from "@/types/translation";
 
 export const LANGUAGES: Language[] = [
   { code: "auto", name: "Tự động phát hiện", nativeName: "Auto-detect", flag: "🌐" },
@@ -98,6 +98,37 @@ export const TRANSLATION_STYLES: TranslationStyle[] = [
     description: "Dịch theo phong cách báo chí, trung lập, khách quan, súc tích và dễ hiểu cho đại chúng.",
     icon: "📰",
     prompt: "Translate the following text in journalistic style, maintaining objectivity and clarity. Use concise language suitable for news reporting."
+  }
+];
+
+export const EMOTICON_OPTIONS: EmoticonOption[] = [
+  {
+    id: "keep-original",
+    name: "Giữ nguyên",
+    description: "Giữ nguyên tất cả emoticon/emoji từ văn bản gốc, không thêm hoặc thay đổi",
+    icon: "🔄",
+    prompt: "Keep all existing emoticons and emojis exactly as they are in the original text. Do not add new ones or modify existing ones."
+  },
+  {
+    id: "add-contextual",
+    name: "Thêm theo ngữ cảnh",
+    description: "Thêm emoticon/emoji phù hợp với nội dung và cảm xúc của văn bản để tăng tính sinh động",
+    icon: "😊",
+    prompt: "Add contextually appropriate emoticons and emojis that match the tone and content of the text to make it more expressive and engaging."
+  },
+  {
+    id: "remove-all",
+    name: "Loại bỏ tất cả",
+    description: "Loại bỏ tất cả emoticon/emoji để tạo ra văn bản thuần túy, trang trọng",
+    icon: "🚫",
+    prompt: "Remove all emoticons and emojis from the translation to create clean, formal text without any visual expressions."
+  },
+  {
+    id: "localize",
+    name: "Địa phương hóa",
+    description: "Thay thế emoticon/emoji bằng các biểu tượng phù hợp với văn hóa của ngôn ngữ đích",
+    icon: "🌍",
+    prompt: "Replace emoticons and emojis with ones that are more culturally appropriate for the target language and region."
   }
 ];
 
