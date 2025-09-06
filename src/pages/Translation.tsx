@@ -388,239 +388,276 @@ export default function Translation() {
         </div>
 
         {/* Configuration Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
-          {/* Language Selection */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Globe className="w-5 h-5 text-primary" />
-                <span>Ngôn ngữ</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Source Language */}
-              <div className="space-y-2">
-                <Label>Ngôn ngữ nguồn</Label>
-                <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        <div className="flex items-center space-x-2">
-                          <span>{lang.flag}</span>
-                          <span>{lang.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="space-y-6">
+          {/* Primary Configuration Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Language Selection */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Globe className="w-5 h-5 text-primary" />
+                  <span>Cấu hình Ngôn ngữ</span>
+                </CardTitle>
+                <CardDescription>
+                  Chọn ngôn ngữ nguồn và đích cho dịch thuật
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Source Language */}
+                <div className="space-y-2">
+                  <Label>Ngôn ngữ nguồn</Label>
+                  <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {LANGUAGES.map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          <div className="flex items-center space-x-2">
+                            <span>{lang.flag}</span>
+                            <span>{lang.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Swap Button */}
-              <div className="flex items-center justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSwapLanguages}
-                  disabled={sourceLanguage === "auto" || targetLanguages.length !== 1}
-                  className="w-10 h-10 p-0"
-                >
-                  <ArrowUpDown className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Target Languages */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Ngôn ngữ đích ({targetLanguages.length})</Label>
+                {/* Swap Button */}
+                <div className="flex items-center justify-center">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={addTargetLanguage}
-                    disabled={targetLanguages.length >= 10}
-                    className="h-7 px-2"
+                    onClick={handleSwapLanguages}
+                    disabled={sourceLanguage === "auto" || targetLanguages.length !== 1}
+                    className="w-10 h-10 p-0"
                   >
-                    <Plus className="w-3 h-3" />
+                    <ArrowUpDown className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {targetLanguages.map((langCode, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <Select 
-                        value={langCode} 
-                        onValueChange={(value) => updateTargetLanguage(index, value)}
-                      >
-                        <SelectTrigger className="flex-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-40">
-                          {LANGUAGES.filter(lang => lang.code !== "auto").map((lang) => (
-                            <SelectItem key={lang.code} value={lang.code}>
-                              <div className="flex items-center space-x-2">
-                                <span>{lang.flag}</span>
-                                <span>{lang.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeTargetLanguage(index)}
-                        disabled={targetLanguages.length <= 1}
-                        className="h-9 w-9 p-0"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Translation Style */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Wand2 className="w-5 h-5 text-primary" />
-                <span>Phong cách dịch</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Select value={translationStyle} onValueChange={setTranslationStyle}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRANSLATION_STYLES.map((style) => (
-                      <SelectItem key={style.id} value={style.id}>
-                        <div className="flex items-center space-x-2">
-                          <span>{style.icon}</span>
-                          <span>{style.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-lg">{currentStyle.icon}</span>
-                    <span className="font-medium text-sm">{currentStyle.name}</span>
+                {/* Target Languages */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Ngôn ngữ đích ({targetLanguages.length})</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={addTargetLanguage}
+                      disabled={targetLanguages.length >= 10}
+                      className="h-7 px-2"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {targetLanguages.map((langCode, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <Select 
+                          value={langCode} 
+                          onValueChange={(value) => updateTargetLanguage(index, value)}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-40">
+                            {LANGUAGES.filter(lang => lang.code !== "auto").map((lang) => (
+                              <SelectItem key={lang.code} value={lang.code}>
+                                <div className="flex items-center space-x-2">
+                                  <span>{lang.flag}</span>
+                                  <span>{lang.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeTargetLanguage(index)}
+                          disabled={targetLanguages.length <= 1}
+                          className="h-9 w-9 p-0"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Model Selection */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <SettingsIcon className="w-5 h-5 text-primary" />
+                  <span>Model & Cấu hình AI</span>
+                </CardTitle>
+                <CardDescription>
+                  Chọn model AI và cấu hình cho dịch thuật
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ModelSelector 
+                  pageId={PAGE_ID}
+                  label="Model cho Translation"
+                  showDefault={true}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Translation Options Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Translation Style & Proficiency Combined */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Wand2 className="w-5 h-5 text-primary" />
+                  <span>Phong cách & Trình độ</span>
+                </CardTitle>
+                <CardDescription>
+                  Chọn phong cách dịch và trình độ đầu ra
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Translation Style */}
+                <div className="space-y-2">
+                  <Label>Phong cách dịch</Label>
+                  <Select value={translationStyle} onValueChange={setTranslationStyle}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TRANSLATION_STYLES.map((style) => (
+                        <SelectItem key={style.id} value={style.id}>
+                          <div className="flex items-center space-x-2">
+                            <span>{style.icon}</span>
+                            <span>{style.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
                     {currentStyle.description}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Proficiency Level */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <GraduationCap className="w-5 h-5 text-primary" />
-                <span>Trình độ đầu ra</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Select value={translationProficiency} onValueChange={setTranslationProficiency}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRANSLATION_PROFICIENCIES.map((proficiency) => (
-                      <SelectItem key={proficiency.id} value={proficiency.id}>
-                        <div className="flex items-center space-x-2">
-                          <span>{proficiency.icon}</span>
-                          <span>{proficiency.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-lg">{currentProficiency.icon}</span>
-                    <span className="font-medium text-sm">{currentProficiency.name}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {currentProficiency.level}
-                    </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {currentProficiency.description}
-                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Emoticon Options */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <span className="text-xl">😊</span>
-                <span>Xử lý Emoticon</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Select value={emoticonOption} onValueChange={setEmoticonOption}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EMOTICON_OPTIONS.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        <div className="flex items-center space-x-2">
-                          <span>{option.icon}</span>
-                          <span>{option.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-lg">{currentEmoticonOption.icon}</span>
-                    <span className="font-medium text-sm">{currentEmoticonOption.name}</span>
+                {/* Proficiency Level */}
+                <div className="space-y-2">
+                  <Label>Trình độ đầu ra</Label>
+                  <Select value={translationProficiency} onValueChange={setTranslationProficiency}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TRANSLATION_PROFICIENCIES.map((proficiency) => (
+                        <SelectItem key={proficiency.id} value={proficiency.id}>
+                          <div className="flex items-center space-x-2">
+                            <span>{proficiency.icon}</span>
+                            <span>{proficiency.name}</span>
+                            <Badge variant="outline" className="text-xs ml-1">
+                              {proficiency.level}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Emoticon Options */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <span className="text-xl">😊</span>
+                  <span>Xử lý Emoticon</span>
+                </CardTitle>
+                <CardDescription>
+                  Cách xử lý emoticon và emoji trong bản dịch
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Select value={emoticonOption} onValueChange={setEmoticonOption}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {EMOTICON_OPTIONS.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
+                          <div className="flex items-center space-x-2">
+                            <span>{option.icon}</span>
+                            <span className="truncate">{option.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-sm">{currentEmoticonOption.icon}</span>
+                      <span className="font-medium text-xs">{currentEmoticonOption.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {currentEmoticonOption.description}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {currentEmoticonOption.description}
-                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Model Selection */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <SettingsIcon className="w-5 h-5 text-primary" />
-                <span>Model Configuration</span>
-              </CardTitle>
-              <CardDescription>
-                Chọn model riêng cho trang này hoặc dùng mặc định
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ModelSelector 
-                pageId={PAGE_ID}
-                label="Model cho Translation"
-                showDefault={true}
-              />
-            </CardContent>
-          </Card>
+            {/* Quick Settings Summary */}
+            <Card className="shadow-card bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-5 h-5 text-primary" />
+                  <span>Tóm tắt cấu hình</span>
+                </CardTitle>
+                <CardDescription>
+                  Xem nhanh các tùy chọn hiện tại
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Nguồn:</span>
+                    <div className="flex items-center space-x-1">
+                      <span>{getLanguageInfo(sourceLanguage).flag}</span>
+                      <span className="font-medium text-xs">{getLanguageInfo(sourceLanguage).name}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Đích:</span>
+                    <span className="font-medium">{targetLanguages.length} ngôn ngữ</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Phong cách:</span>
+                    <div className="flex items-center space-x-1">
+                      <span>{currentStyle.icon}</span>
+                      <span className="font-medium text-xs">{currentStyle.name}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Emoticon:</span>
+                    <div className="flex items-center space-x-1">
+                      <span>{currentEmoticonOption.icon}</span>
+                      <span className="font-medium text-xs">{currentEmoticonOption.name}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Model:</span>
+                    <span className="font-medium text-xs">{getPageModel(PAGE_ID) || config.model}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Translation Section */}
