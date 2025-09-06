@@ -216,6 +216,7 @@ export class ChatGPTService {
       }
 
       const model = customModel || this.config.model;
+      const maxRetries = 5; // Limit retry attempts
       const retryDelay = 5000; // 5 seconds fixed delay
       
       const requestBody: ChatGPTRequest = {
@@ -229,7 +230,7 @@ export class ChatGPTService {
         try {
           // Create AbortController for timeout
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+          const timeoutId = setTimeout(() => controller.abort(), 120000); // Increased to 120 second timeout for capacity analysis
 
           const response = await fetch(`${this.config.serverUrl}/chat/completions`, {
             method: "POST",
@@ -246,10 +247,19 @@ export class ChatGPTService {
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             
-            // Always retry on any error (except authentication errors) with 5 second delay
-            if (response.status !== 401 && response.status !== 403) {
-              console.warn(`API call failed (${response.status}), retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
-              await new Promise(resolve => setTimeout(resolve, retryDelay));
+            // Limit retry attempts and handle 503 specifically
+            if (attempt < maxRetries && response.status !== 401 && response.status !== 403) {
+              let delay = retryDelay;
+              
+              // Exponential backoff for 503 and rate limit errors
+              if (response.status === 503 || response.status === 429) {
+                delay = Math.min(retryDelay * Math.pow(2, attempt), 30000); // Cap at 30 seconds
+                console.warn(`Service unavailable (${response.status}), using exponential backoff: ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+              } else {
+                console.warn(`API call failed (${response.status}), retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, delay));
               return makeRequest(attempt + 1);
             }
             
@@ -261,24 +271,27 @@ export class ChatGPTService {
           const data: ChatGPTResponse = await response.json();
           
           if (!data.choices || data.choices.length === 0) {
-            // Retry on invalid response
-            console.warn(`Invalid response received, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
-            return makeRequest(attempt + 1);
+            // Retry on invalid response with attempt limit
+            if (attempt < maxRetries) {
+              console.warn(`Invalid response received, retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+              return makeRequest(attempt + 1);
+            }
+            throw new Error("Invalid response from API after maximum retries");
           }
 
           return data.choices[0].message.content;
         } catch (error) {
-          // Handle specific error types
-          if (error instanceof Error) {
+          // Handle specific error types with retry limit
+          if (error instanceof Error && attempt < maxRetries) {
             if (error.name === 'AbortError') {
-              console.warn(`Request timeout, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
+              console.warn(`Request timeout, retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${maxRetries})`);
               await new Promise(resolve => setTimeout(resolve, retryDelay));
               return makeRequest(attempt + 1);
             }
             
             if (error.message.includes('fetch') || error.message.includes('network')) {
-              console.warn(`Network error, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
+              console.warn(`Network error, retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${maxRetries})`);
               await new Promise(resolve => setTimeout(resolve, retryDelay));
               return makeRequest(attempt + 1);
             }
@@ -288,16 +301,17 @@ export class ChatGPTService {
               throw error;
             }
             
-            // For all other errors, retry
-            console.warn(`Error occurred, retrying in ${retryDelay}ms... (attempt ${attempt + 1}): ${error.message}`);
+            // For all other errors, retry with limit
+            console.warn(`Error occurred, retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${maxRetries}): ${error.message}`);
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             return makeRequest(attempt + 1);
           }
           
-          // Unknown error, retry
-          console.warn(`Unknown error, retrying in ${retryDelay}ms... (attempt ${attempt + 1})`);
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-          return makeRequest(attempt + 1);
+          // Max retries exceeded or authentication error
+          if (attempt >= maxRetries) {
+            throw new Error(`Maximum retry attempts (${maxRetries}) exceeded. Last error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+          throw error;
         }
       };
 
@@ -505,100 +519,36 @@ Hãy phân tích và tạo ra JSON prompt hoàn chỉnh, tối ưu nhất có th
   async analyzeCapacity(request: DDLCapacityRequest): Promise<CapacityResult> {
     const { ddl, databaseType, recordCount, customModel } = request;
     
-    const systemPrompt = `Bạn là chuyên gia về database và data storage optimization. Nhiệm vụ của bạn là phân tích DDL schema và tính toán dung lượng cơ sở dữ liệu một cách chính xác.
+    const systemPrompt = `You are a database storage analyst. Calculate record sizes and total capacity for ${databaseType.toUpperCase()} with ${recordCount.toLocaleString()} records.
 
-Yêu cầu phân tích:
-- Database type: ${databaseType.toUpperCase()}
-- Số lượng bản ghi: ${recordCount.toLocaleString()}
+Tasks:
+1. Analyze DDL schema structure and data types
+2. Calculate average record size (realistic values: VARCHAR 50% max, typical numbers)
+3. Calculate maximum record size (all fields at maximum possible values)
+4. Estimate total storage and index overhead
+5. Provide optimization recommendations
 
-Nhiệm vụ chính:
-1. Phân tích DDL schema để hiểu cấu trúc bảng, kiểu dữ liệu, constraints
-2. TỰ ĐỘNG TÍNH TOÁN kích thước trung bình (average) và kích thước tối đa (maximum) của một bản ghi
-3. Tính toán tổng dung lượng cho cả trường hợp trung bình và tối đa
-4. Ước tính dung lượng index (primary key, foreign key, unique constraints)
-5. Đưa ra khuyến nghị tối ưu hóa storage và performance
-6. Phân tích chi tiết theo từng bảng
+For ${databaseType.toUpperCase()}, include engine overhead (row headers, null bitmaps, alignment).
 
-Cách tính toán kích thước bản ghi:
-- AVERAGE: Sử dụng giá trị trung bình cho VARCHAR/TEXT (50% max length), số liệu điển hình
-- MAXIMUM: Sử dụng giá trị tối đa có thể cho tất cả field (VARCHAR max length, số lớn nhất, etc.)
-- Bao gồm overhead của ${databaseType.toUpperCase()} (null bitmap, row header, alignment, etc.)
-
-Định dạng output (JSON):
+Return ONLY valid JSON in this exact format:
 {
-  "averageRecordSize": number,
-  "maximumRecordSize": number,
-  "totalSizeAverage": {
-    "bytes": number,
-    "mb": number,
-    "gb": number
-  },
-  "totalSizeMaximum": {
-    "bytes": number,
-    "mb": number,
-    "gb": number
-  },
-  "indexSize": {
-    "bytes": number,
-    "mb": number,
-    "gb": number
-  },
-  "totalWithIndexAverage": {
-    "bytes": number,
-    "mb": number,
-    "gb": number
-  },
-  "totalWithIndexMaximum": {
-    "bytes": number,
-    "mb": number,
-    "gb": number
-  },
-  "recommendations": ["khuyến nghị 1", "khuyến nghị 2", ...],
-  "breakdown": [
-    {
-      "tableName": "tên bảng",
-      "averageRecordSize": number,
-      "maximumRecordSize": number,
-      "totalSizeAverage": {
-        "bytes": number,
-        "mb": number
-      },
-      "totalSizeMaximum": {
-        "bytes": number,
-        "mb": number
-      },
-      "recordCount": number,
-      "indexSize": {
-        "bytes": number,
-        "mb": number
-      },
-      "recommendations": ["khuyến nghị cho bảng này"]
-    }
-  ]
-}
+  "averageRecordSize": <bytes>,
+  "maximumRecordSize": <bytes>,
+  "totalSizeAverage": {"bytes": <num>, "mb": <num>, "gb": <num>},
+  "totalSizeMaximum": {"bytes": <num>, "mb": <num>, "gb": <num>},
+  "indexSize": {"bytes": <num>, "mb": <num>, "gb": <num>},
+  "totalWithIndexAverage": {"bytes": <num>, "mb": <num>, "gb": <num>},
+  "totalWithIndexMaximum": {"bytes": <num>, "mb": <num>, "gb": <num>},
+  "recommendations": ["rec1", "rec2"],
+  "breakdown": [{"tableName": "name", "averageRecordSize": <num>, "maximumRecordSize": <num>, "totalSizeAverage": {"bytes": <num>, "mb": <num>}, "totalSizeMaximum": {"bytes": <num>, "mb": <num>}, "recordCount": ${recordCount}}]
+}`;
 
-Lưu ý quan trọng:
-- ĐÓNG GÓI kết quả trong \`\`\`json và \`\`\` để đảm bảo format đúng
-- PHẢI tính toán cả average và maximum record size tự động  
-- Tính toán dựa trên đặc điểm của ${databaseType.toUpperCase()} (page size, overhead, compression, etc.)
-- Bao gồm overhead của database engine (metadata, page headers, row overhead, etc.)
-- Đưa ra báo cáo chi tiết về sự khác biệt giữa trường hợp trung bình và tối đa`;
+    const userPrompt = `Analyze this ${databaseType.toUpperCase()} DDL schema and calculate storage capacity:
 
-    const userPrompt = `Hãy phân tích DDL schema sau và tự động tính toán kích thước trung bình và tối đa của bản ghi:
+${ddl.substring(0, 2000)}${ddl.length > 2000 ? '...' : ''}
 
-DDL Schema:
-${ddl}
-
-Số lượng bản ghi dự kiến: ${recordCount.toLocaleString()}
-Database: ${databaseType.toUpperCase()}
-
-Yêu cầu:
-1. Tự động tính toán average record size (kích thước trung bình thực tế)
-2. Tự động tính toán maximum record size (kích thước tối đa có thể)
-3. Tính tổng dung lượng cho cả hai trường hợp
-4. Đưa ra báo cáo so sánh và khuyến nghị
-
-Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
+Records: ${recordCount.toLocaleString()}
+Calculate average/maximum record sizes and total storage. Return JSON only.`;
 
     const messages: ChatGPTMessage[] = [
       { role: "system", content: systemPrompt },
@@ -677,181 +627,143 @@ Hãy tính toán chi tiết và đưa ra kết quả JSON hoàn chỉnh.`;
     }
   }
 
-  // New multi-call capacity analysis method with improved error handling
+  // Optimized multi-call capacity analysis method with rate limiting
   async analyzeCapacityMultiCall(
     request: DDLCapacityRequest,
     onProgress?: (step: string, progress: number) => void
   ): Promise<CapacityResult> {
     const { ddl, databaseType, recordCount, customModel } = request;
     
+    // Add delay between API calls to prevent 503 errors
+    const delayBetweenCalls = async (ms: number = 2000) => {
+      await new Promise(resolve => setTimeout(resolve, ms));
+    };
+    
     try {
-      onProgress?.("Đang phân tích cấu trúc DDL...", 10);
+      onProgress?.("Analyzing DDL structure...", 10);
       
-      // Step 1: Parse DDL structure and identify tables with retry
-      let schemaAnalysis;
-      try {
-        onProgress?.("Đang phân tích cấu trúc DDL với retry logic...", 10);
-        schemaAnalysis = await this.analyzeSchemaStructure(ddl, databaseType, customModel);
-        onProgress?.("Đã hoàn thành phân tích cấu trúc", 25);
-      } catch (error) {
-        console.error('Schema analysis failed:', error);
-        onProgress?.("Lỗi phân tích cấu trúc sau nhiều lần thử, chuyển sang phương pháp đơn giản...", 25);
-        // Fallback to single call method
+      // Check DDL size - if too large, fallback immediately
+      if (ddl.length > 10000) {
+        onProgress?.("DDL too large, using single call method...", 20);
         return await this.analyzeCapacity(request);
       }
       
-      // Step 2: Analyze each table individually with error handling
-      onProgress?.("Đang phân tích từng bảng...", 40);
-      const tableResults = [];
-      const failedTables = [];
+      // Step 1: Parse DDL structure (simplified)
+      let schemaAnalysis;
+      try {
+        schemaAnalysis = await this.analyzeSchemaStructure(ddl, databaseType, customModel);
+        onProgress?.("Schema analysis completed", 30);
+        await delayBetweenCalls(); // Rate limiting
+      } catch (error) {
+        console.error('Schema analysis failed:', error);
+        onProgress?.("Schema analysis failed, falling back to single call...", 30);
+        return await this.analyzeCapacity(request);
+      }
       
-      // Process tables sequentially to avoid overwhelming the API
-      for (let i = 0; i < schemaAnalysis.tables.length; i++) {
+      // If more than 3 tables, use single call to avoid too many requests
+      if (schemaAnalysis.tables && schemaAnalysis.tables.length > 3) {
+        onProgress?.("Too many tables, using single call method...", 40);
+        return await this.analyzeCapacity(request);
+      }
+      
+      // Step 2: Analyze tables with delays
+      onProgress?.("Analyzing tables...", 50);
+      const tableResults = [];
+      
+      for (let i = 0; i < Math.min(schemaAnalysis.tables?.length || 0, 3); i++) {
         const table = schemaAnalysis.tables[i];
         try {
-          onProgress?.(`Đang phân tích bảng ${table.name} (sẽ retry nếu cần)...`, 40 + i * 20 / schemaAnalysis.tables.length);
+          onProgress?.(`Analyzing table ${table.name}...`, 50 + i * 15);
+          
+          // Add delay before each table analysis
+          if (i > 0) await delayBetweenCalls();
+          
           const result = await this.analyzeTableCapacity(table, recordCount, databaseType, customModel);
           tableResults.push(result);
-          onProgress?.(`Đã phân tích xong bảng ${table.name}`, 40 + (i + 1) * 20 / schemaAnalysis.tables.length);
+          onProgress?.(`Table ${table.name} completed`, 50 + (i + 1) * 15);
         } catch (error) {
-          console.error(`Failed to analyze table ${table.name} after retries:`, error);
-          failedTables.push(table.name);
-          
-          // Create a basic fallback result for failed tables
+          console.error(`Table analysis failed for ${table.name}:`, error);
+          // Create basic fallback result
           tableResults.push({
             tableName: table.name,
-            averageRecordSize: 100, // Basic estimate
+            averageRecordSize: 100,
             maximumRecordSize: 500,
-            totalSizeAverage: {
-              bytes: recordCount * 100,
-              mb: (recordCount * 100) / (1024 * 1024)
-            },
-            totalSizeMaximum: {
-              bytes: recordCount * 500,
-              mb: (recordCount * 500) / (1024 * 1024)
-            },
+            totalSizeAverage: { bytes: recordCount * 100, mb: (recordCount * 100) / (1024 * 1024) },
+            totalSizeMaximum: { bytes: recordCount * 500, mb: (recordCount * 500) / (1024 * 1024) },
             recordCount: recordCount,
-            recommendations: [`Không thể phân tích chi tiết bảng ${table.name} sau nhiều lần retry. Sử dụng ước tính cơ bản.`]
+            recommendations: [`Basic estimate for table ${table.name} due to analysis error.`]
           });
         }
       }
       
-      onProgress?.("Đã hoàn thành phân tích bảng", 70);
+      onProgress?.("Tables analyzed", 80);
+      await delayBetweenCalls(); // Delay before final aggregation
       
-      // Step 3: Analyze indexes and constraints with fallback
-      let indexAnalysis;
-      try {
-        onProgress?.("Đang phân tích indexes (sẽ retry nếu cần)...", 75);
-        indexAnalysis = await this.analyzeIndexes(schemaAnalysis.indexes || [], tableResults, databaseType, customModel);
-        onProgress?.("Đã phân tích xong indexes", 85);
-      } catch (error) {
-        console.error('Index analysis failed after retries:', error);
-        // Provide basic index analysis fallback
-        const totalRecords = tableResults.reduce((sum, table) => sum + (table.recordCount || recordCount), 0);
-        indexAnalysis = {
-          totalIndexSize: {
-            bytes: totalRecords * 50, // Basic estimate for index size
-            mb: (totalRecords * 50) / (1024 * 1024),
-            gb: (totalRecords * 50) / (1024 * 1024 * 1024)
-          },
-          indexBreakdown: [],
-          generalRecommendations: ["Không thể phân tích chi tiết indexes sau nhiều lần retry. Sử dụng ước tính cơ bản."]
-        };
-        onProgress?.("Sử dụng ước tính cơ bản cho indexes sau retry", 85);
-      }
+      // Step 3: Simple aggregation (skip complex index analysis to avoid 503)
+      onProgress?.("Finalizing results...", 90);
       
-      // Step 4: Aggregate results and generate recommendations with error handling
-      try {
-        const finalResult = await this.aggregateCapacityResults(
-          tableResults, 
-          indexAnalysis, 
-          schemaAnalysis, 
-          recordCount, 
-          databaseType, 
-          customModel
-        );
-        onProgress?.("Hoàn thành phân tích", 100);
-        
-        // Add warnings about failed components
-        if (failedTables.length > 0) {
-          finalResult.recommendations = finalResult.recommendations || [];
-          finalResult.recommendations.unshift(
-            `Lưu ý: Không thể phân tích chi tiết ${failedTables.length} bảng: ${failedTables.join(', ')}. Sử dụng ước tính cơ bản.`
-          );
-        }
-        
-        return finalResult;
-      } catch (error) {
-        console.error('Final aggregation failed:', error);
-        onProgress?.("Lỗi tổng hợp kết quả, chuyển sang phương pháp đơn giản...", 90);
-        // Fallback to single call method
-        return await this.analyzeCapacity(request);
-      }
+      const totalAvgBytes = tableResults.reduce((sum, table) => sum + (table.totalSizeAverage?.bytes || 0), 0);
+      const totalMaxBytes = tableResults.reduce((sum, table) => sum + (table.totalSizeMaximum?.bytes || 0), 0);
+      const indexEstimate = totalAvgBytes * 0.1; // Simple 10% estimate for indexes
+      
+      const result: CapacityResult = {
+        averageRecordSize: Math.round(totalAvgBytes / recordCount),
+        maximumRecordSize: Math.round(totalMaxBytes / recordCount),
+        totalSizeAverage: {
+          bytes: totalAvgBytes,
+          mb: totalAvgBytes / (1024 * 1024),
+          gb: totalAvgBytes / (1024 * 1024 * 1024)
+        },
+        totalSizeMaximum: {
+          bytes: totalMaxBytes,
+          mb: totalMaxBytes / (1024 * 1024),
+          gb: totalMaxBytes / (1024 * 1024 * 1024)
+        },
+        indexSize: {
+          bytes: indexEstimate,
+          mb: indexEstimate / (1024 * 1024),
+          gb: indexEstimate / (1024 * 1024 * 1024)
+        },
+        totalWithIndexAverage: {
+          bytes: totalAvgBytes + indexEstimate,
+          mb: (totalAvgBytes + indexEstimate) / (1024 * 1024),
+          gb: (totalAvgBytes + indexEstimate) / (1024 * 1024 * 1024)
+        },
+        totalWithIndexMaximum: {
+          bytes: totalMaxBytes + indexEstimate,
+          mb: (totalMaxBytes + indexEstimate) / (1024 * 1024),
+          gb: (totalMaxBytes + indexEstimate) / (1024 * 1024 * 1024)
+        },
+        recommendations: [
+          "Analysis completed with rate limiting to prevent 503 errors",
+          "Consider optimizing VARCHAR field sizes",
+          "Review indexing strategy for better performance"
+        ],
+        breakdown: tableResults
+      };
+      
+      onProgress?.("Analysis completed", 100);
+      return result;
       
     } catch (error) {
-      console.error('Multi-call analysis completely failed:', error);
-      onProgress?.("Phân tích nhiều bước thất bại, chuyển sang phương pháp đơn giản...", 50);
-      // Final fallback to single call method
+      console.error('Multi-call analysis failed:', error);
+      onProgress?.("Multi-call failed, using single call fallback...", 50);
       return await this.analyzeCapacity(request);
     }
   }
 
   private async analyzeSchemaStructure(ddl: string, databaseType: string, customModel?: string) {
-    const systemPrompt = `Bạn là chuyên gia database schema analysis. Nhiệm vụ của bạn là phân tích DDL và trích xuất thông tin cấu trúc.
-
-Database type: ${databaseType.toUpperCase()}
-
-Yêu cầu:
-1. Phân tích DDL và trích xuất danh sách bảng
-2. Xác định columns, data types, constraints cho mỗi bảng
-3. Nhận diện indexes, primary keys, foreign keys
-4. Phân tích relationships giữa các bảng
-
-Trả về JSON format:
-\`\`\`json
+    const systemPrompt = `Parse ${databaseType.toUpperCase()} DDL and extract basic structure. Return concise JSON:
 {
-  "tables": [
-    {
-      "name": "table_name",
-      "columns": [
-        {
-          "name": "column_name",
-          "type": "data_type",
-          "nullable": boolean,
-          "maxLength": number,
-          "defaultValue": string
-        }
-      ],
-      "primaryKey": ["column1", "column2"],
-      "constraints": ["constraint descriptions"]
-    }
-  ],
-  "indexes": [
-    {
-      "name": "index_name",
-      "table": "table_name", 
-      "columns": ["col1", "col2"],
-      "type": "PRIMARY|UNIQUE|INDEX",
-      "estimatedSelectivity": 0.8
-    }
-  ],
-  "relationships": [
-    {
-      "fromTable": "table1",
-      "toTable": "table2", 
-      "type": "one-to-many|many-to-many|one-to-one"
-    }
-  ]
-}
-\`\`\`
+  "tables": [{"name": "table_name", "columns": [{"name": "col", "type": "VARCHAR(255)", "nullable": true}], "primaryKey": ["col1"]}],
+  "indexes": [{"name": "idx", "table": "table1", "columns": ["col1"]}]
+}`;
 
-Lưu ý: Đóng gói kết quả trong \`\`\`json và \`\`\` để đảm bảo format đúng.`;
+    const userPrompt = `Parse this ${databaseType.toUpperCase()} DDL:
 
-    const userPrompt = `Phân tích DDL schema sau và trích xuất cấu trúc:
+${ddl.substring(0, 1500)}${ddl.length > 1500 ? '...' : ''}
 
-${ddl}
-
-Hãy trả về JSON chứa thông tin chi tiết về tables, columns, indexes và relationships.`;
+Return JSON with table structure.`;
 
     const messages: ChatGPTMessage[] = [
       { role: "system", content: systemPrompt },
