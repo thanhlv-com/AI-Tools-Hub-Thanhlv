@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -43,6 +43,53 @@ interface TranslationPreferencesProps {
 }
 
 const PAGE_ID = "translation";
+
+// Create options for SearchableSelect components
+const languageOptions: SearchableSelectOption[] = LANGUAGES.map(lang => ({
+  value: lang.code,
+  label: (
+    <div className="flex items-center space-x-2">
+      <span>{lang.flag}</span>
+      <span>{lang.name}</span>
+    </div>
+  ),
+  searchText: `${lang.name} ${lang.nativeName} ${lang.code}`
+}));
+
+const targetLanguageOptions: SearchableSelectOption[] = LANGUAGES
+  .filter(lang => lang.code !== "auto")
+  .map(lang => ({
+    value: lang.code,
+    label: (
+      <div className="flex items-center space-x-2">
+        <span>{lang.flag}</span>
+        <span>{lang.name}</span>
+      </div>
+    ),
+    searchText: `${lang.name} ${lang.nativeName} ${lang.code}`
+  }));
+
+const styleOptions: SearchableSelectOption[] = TRANSLATION_STYLES.map(style => ({
+  value: style.id,
+  label: (
+    <div className="flex items-center space-x-2">
+      <span>{style.icon}</span>
+      <span>{style.name}</span>
+    </div>
+  ),
+  searchText: `${style.name} ${style.description}`
+}));
+
+const emoticonOptions: SearchableSelectOption[] = EMOTICON_OPTIONS.map(option => ({
+  value: option.id,
+  label: (
+    <div className="flex items-center space-x-2">
+      <span>{option.icon}</span>
+      <span className="truncate">{option.name}</span>
+    </div>
+  ),
+  searchText: `${option.name} ${option.description}`
+}));
 
 export function TranslationPreferences({ onApplyPreference, currentSettings, className = "" }: TranslationPreferencesProps) {
   const { translationPreferences, addTranslationPreference, updateTranslationPreference, removeTranslationPreference, getPageModel } = useConfig();
@@ -276,24 +323,13 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                       {/* Source Language */}
                       <div className="space-y-2">
                         <Label>Ngôn ngữ nguồn</Label>
-                        <Select 
-                          value={newPreference.sourceLanguage} 
+                        <SearchableSelect
+                          value={newPreference.sourceLanguage}
                           onValueChange={(value) => setNewPreference(prev => ({ ...prev, sourceLanguage: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-60">
-                            {LANGUAGES.map((lang) => (
-                              <SelectItem key={lang.code} value={lang.code}>
-                                <div className="flex items-center space-x-2">
-                                  <span>{lang.flag}</span>
-                                  <span>{lang.name}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          options={languageOptions}
+                          placeholder="Chọn ngôn ngữ nguồn..."
+                          searchPlaceholder="Tìm kiếm ngôn ngữ..."
+                        />
                       </div>
 
                       {/* Target Languages */}
@@ -316,27 +352,17 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                         <div className="space-y-2 max-h-32 overflow-y-auto">
                           {newPreference.targetLanguages.map((langCode, index) => (
                             <div key={index} className="flex items-center space-x-2">
-                              <Select 
-                                value={langCode} 
+                              <SearchableSelect
+                                value={langCode}
                                 onValueChange={(value) => setNewPreference(prev => ({ 
                                   ...prev, 
                                   targetLanguages: updateTargetLanguage(prev.targetLanguages, index, value) 
                                 }))}
-                              >
-                                <SelectTrigger className="flex-1">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-40">
-                                  {LANGUAGES.filter(lang => lang.code !== "auto").map((lang) => (
-                                    <SelectItem key={lang.code} value={lang.code}>
-                                      <div className="flex items-center space-x-2">
-                                        <span>{lang.flag}</span>
-                                        <span>{lang.name}</span>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                options={targetLanguageOptions}
+                                placeholder="Chọn ngôn ngữ..."
+                                searchPlaceholder="Tìm kiếm..."
+                                className="flex-1"
+                              />
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -364,47 +390,25 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                       {/* Translation Style */}
                       <div className="space-y-2">
                         <Label>Phong cách dịch</Label>
-                        <Select 
-                          value={newPreference.style} 
+                        <SearchableSelect
+                          value={newPreference.style}
                           onValueChange={(value) => setNewPreference(prev => ({ ...prev, style: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TRANSLATION_STYLES.map((style) => (
-                              <SelectItem key={style.id} value={style.id}>
-                                <div className="flex items-center space-x-2">
-                                  <span>{style.icon}</span>
-                                  <span>{style.name}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          options={styleOptions}
+                          placeholder="Chọn phong cách dịch..."
+                          searchPlaceholder="Tìm kiếm phong cách..."
+                        />
                       </div>
 
                       {/* Emoticon Options */}
                       <div className="space-y-2">
                         <Label>Xử lý Emoticon</Label>
-                        <Select 
-                          value={newPreference.emoticonOption} 
+                        <SearchableSelect
+                          value={newPreference.emoticonOption}
                           onValueChange={(value) => setNewPreference(prev => ({ ...prev, emoticonOption: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-60">
-                            {EMOTICON_OPTIONS.map((option) => (
-                              <SelectItem key={option.id} value={option.id}>
-                                <div className="flex items-center space-x-2">
-                                  <span>{option.icon}</span>
-                                  <span className="truncate">{option.name}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          options={emoticonOptions}
+                          placeholder="Chọn xử lý emoticon..."
+                          searchPlaceholder="Tìm kiếm..."
+                        />
                       </div>
 
                       {/* Model Selection */}

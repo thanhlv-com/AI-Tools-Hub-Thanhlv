@@ -1,10 +1,10 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useConfig } from "@/contexts/ConfigContext";
 import { Brain, Zap, RefreshCw, AlertTriangle } from "lucide-react";
-import { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const getModelColor = (modelId: string): string => {
@@ -116,8 +116,38 @@ export function ModelSelector({
     }
   };
 
-  // Models are now loaded from localStorage on mount via ConfigContext
-  // Manual loading can be triggered by the refresh button
+  // Create options for SearchableSelect
+  const modelOptions: SearchableSelectOption[] = React.useMemo(() => {
+    const options = availableModels.length > 0 
+      ? availableModels.map((model) => ({
+          value: model.id,
+          label: (
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${getModelColor(model.id)}`} />
+              <div className="flex flex-col">
+                <span className="font-medium">{model.id}</span>
+                <span className="text-xs text-muted-foreground">{getModelDescription(model.id)}</span>
+              </div>
+            </div>
+          ),
+          searchText: `${model.id} ${getModelDescription(model.id)}`
+        }))
+      : [{
+          value: config.model,
+          label: (
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${getModelColor(config.model)}`} />
+              <div className="flex flex-col">
+                <span className="font-medium">{config.model}</span>
+                <span className="text-xs text-muted-foreground">Default model</span>
+              </div>
+            </div>
+          ),
+          searchText: `${config.model} Default model`
+        }];
+    
+    return options;
+  }, [availableModels, config.model]);
 
   return (
     <div className={className}>
@@ -142,36 +172,14 @@ export function ModelSelector({
       
       <div className="flex space-x-2">
         <div className="flex-1">
-          <Select value={currentValue} onValueChange={handleModelChange}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {availableModels.length > 0 ? (
-                availableModels.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${getModelColor(model.id)}`} />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{model.id}</span>
-                        <span className="text-xs text-muted-foreground">{getModelDescription(model.id)}</span>
-                      </div>
-                    </div>
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value={config.model}>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${getModelColor(config.model)}`} />
-                    <div className="flex flex-col">
-                      <span className="font-medium">{config.model}</span>
-                      <span className="text-xs text-muted-foreground">Default model</span>
-                    </div>
-                  </div>
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={currentValue}
+            onValueChange={handleModelChange}
+            options={modelOptions}
+            placeholder="Chọn model AI..."
+            searchPlaceholder="Tìm kiếm model..."
+            disabled={!config.apiKey}
+          />
         </div>
         
         <Button 

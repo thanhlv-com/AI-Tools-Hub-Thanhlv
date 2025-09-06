@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,17 @@ const databases = [
   { id: "oracle", name: "Oracle", icon: "🔴" },
   { id: "sqlite", name: "SQLite", icon: "💎" }
 ];
+
+const databaseOptions: SearchableSelectOption[] = databases.map(db => ({
+  value: db.id,
+  label: (
+    <div className="flex items-center space-x-2">
+      <span>{db.icon}</span>
+      <span>{db.name}</span>
+    </div>
+  ),
+  searchText: `${db.name} ${db.id}`
+}));
 
 const PAGE_ID = "ddl-compare";
 
@@ -174,21 +185,14 @@ export default function DDLCompare() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Select value={databaseType} onValueChange={setDatabaseType}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {databases.map((db) => (
-                  <SelectItem key={db.id} value={db.id}>
-                    <div className="flex items-center space-x-2">
-                      <span>{db.icon}</span>
-                      <span>{db.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={databaseType}
+              onValueChange={setDatabaseType}
+              options={databaseOptions}
+              placeholder="Chọn loại database..."
+              searchPlaceholder="Tìm kiếm database..."
+              className="w-full"
+            />
           </CardContent>
         </Card>
 
