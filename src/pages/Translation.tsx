@@ -387,27 +387,31 @@ export default function Translation() {
           </div>
         </div>
 
-        {/* Configuration Section */}
-        <div className="space-y-6">
-          {/* Primary Configuration Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Language Selection */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Globe className="w-5 h-5 text-primary" />
-                  <span>Cấu hình Ngôn ngữ</span>
-                </CardTitle>
-                <CardDescription>
-                  Chọn ngôn ngữ nguồn và đích cho dịch thuật
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        {/* Configuration Section - Optimized Layout */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <SettingsIcon className="w-5 h-5 text-primary" />
+              <span>Cấu hình dịch thuật</span>
+            </CardTitle>
+            <CardDescription>
+              Tùy chỉnh ngôn ngữ, phong cách và model AI cho dịch thuật
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {/* Languages Section */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Globe className="w-4 h-4 text-primary" />
+                  <Label className="font-medium">Ngôn ngữ</Label>
+                </div>
+                
                 {/* Source Language */}
                 <div className="space-y-2">
-                  <Label>Ngôn ngữ nguồn</Label>
+                  <Label className="text-sm text-muted-foreground">Nguồn</Label>
                   <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
@@ -424,40 +428,42 @@ export default function Translation() {
                 </div>
 
                 {/* Swap Button */}
-                <div className="flex items-center justify-center">
+                <div className="flex justify-center">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleSwapLanguages}
                     disabled={sourceLanguage === "auto" || targetLanguages.length !== 1}
-                    className="w-10 h-10 p-0"
+                    className="w-8 h-8 p-0"
                   >
-                    <ArrowUpDown className="w-4 h-4" />
+                    <ArrowUpDown className="w-3 h-3" />
                   </Button>
                 </div>
 
                 {/* Target Languages */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Ngôn ngữ đích ({targetLanguages.length})</Label>
+                    <Label className="text-sm text-muted-foreground">
+                      Đích ({targetLanguages.length})
+                    </Label>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={addTargetLanguage}
                       disabled={targetLanguages.length >= 10}
-                      className="h-7 px-2"
+                      className="h-6 px-2"
                     >
                       <Plus className="w-3 h-3" />
                     </Button>
                   </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
                     {targetLanguages.map((langCode, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <Select 
                           value={langCode} 
                           onValueChange={(value) => updateTargetLanguage(index, value)}
                         >
-                          <SelectTrigger className="flex-1">
+                          <SelectTrigger className="h-8 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="max-h-40">
@@ -476,7 +482,7 @@ export default function Translation() {
                           size="sm"
                           onClick={() => removeTargetLanguage(index)}
                           disabled={targetLanguages.length <= 1}
-                          className="h-9 w-9 p-0"
+                          className="h-8 w-8 p-0"
                         >
                           <Minus className="w-3 h-3" />
                         </Button>
@@ -484,49 +490,20 @@ export default function Translation() {
                     ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Model Selection */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <SettingsIcon className="w-5 h-5 text-primary" />
-                  <span>Model & Cấu hình AI</span>
-                </CardTitle>
-                <CardDescription>
-                  Chọn model AI và cấu hình cho dịch thuật
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ModelSelector 
-                  pageId={PAGE_ID}
-                  label="Model cho Translation"
-                  showDefault={true}
-                />
-              </CardContent>
-            </Card>
-          </div>
+              {/* Translation Options */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Wand2 className="w-4 h-4 text-primary" />
+                  <Label className="font-medium">Tùy chọn dịch thuật</Label>
+                </div>
 
-          {/* Translation Options Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Translation Style & Proficiency Combined */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Wand2 className="w-5 h-5 text-primary" />
-                  <span>Phong cách & Trình độ</span>
-                </CardTitle>
-                <CardDescription>
-                  Chọn phong cách dịch và trình độ đầu ra
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 {/* Translation Style */}
                 <div className="space-y-2">
-                  <Label>Phong cách dịch</Label>
+                  <Label className="text-sm text-muted-foreground">Phong cách</Label>
                   <Select value={translationStyle} onValueChange={setTranslationStyle}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -547,9 +524,9 @@ export default function Translation() {
 
                 {/* Proficiency Level */}
                 <div className="space-y-2">
-                  <Label>Trình độ đầu ra</Label>
+                  <Label className="text-sm text-muted-foreground">Trình độ</Label>
                   <Select value={translationProficiency} onValueChange={setTranslationProficiency}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -567,24 +544,12 @@ export default function Translation() {
                     </SelectContent>
                   </Select>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Emoticon Options */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <span className="text-xl">😊</span>
-                  <span>Xử lý Emoticon</span>
-                </CardTitle>
-                <CardDescription>
-                  Cách xử lý emoticon và emoji trong bản dịch
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                {/* Emoticon Options */}
                 <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Xử lý Emoticon</Label>
                   <Select value={emoticonOption} onValueChange={setEmoticonOption}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
@@ -598,67 +563,67 @@ export default function Translation() {
                       ))}
                     </SelectContent>
                   </Select>
-                  
-                  <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-sm">{currentEmoticonOption.icon}</span>
-                      <span className="font-medium text-xs">{currentEmoticonOption.name}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {currentEmoticonOption.description}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Settings Summary */}
-            <Card className="shadow-card bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-5 h-5 text-primary" />
-                  <span>Tóm tắt cấu hình</span>
-                </CardTitle>
-                <CardDescription>
-                  Xem nhanh các tùy chọn hiện tại
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Nguồn:</span>
-                    <div className="flex items-center space-x-1">
-                      <span>{getLanguageInfo(sourceLanguage).flag}</span>
-                      <span className="font-medium text-xs">{getLanguageInfo(sourceLanguage).name}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Đích:</span>
-                    <span className="font-medium">{targetLanguages.length} ngôn ngữ</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Phong cách:</span>
-                    <div className="flex items-center space-x-1">
-                      <span>{currentStyle.icon}</span>
-                      <span className="font-medium text-xs">{currentStyle.name}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Emoticon:</span>
-                    <div className="flex items-center space-x-1">
                       <span>{currentEmoticonOption.icon}</span>
-                      <span className="font-medium text-xs">{currentEmoticonOption.name}</span>
+                      <span className="font-medium">{currentEmoticonOption.name}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Model:</span>
-                    <span className="font-medium text-xs">{getPageModel(PAGE_ID) || config.model}</span>
+                    <span>{currentEmoticonOption.description}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </div>
+
+              {/* Model & Summary */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <GraduationCap className="w-4 h-4 text-primary" />
+                  <Label className="font-medium">Model & Tóm tắt</Label>
+                </div>
+
+                {/* Model Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Model AI</Label>
+                  <ModelSelector 
+                    pageId={PAGE_ID}
+                    label=""
+                    showDefault={true}
+                  />
+                </div>
+
+                <Separator />
+
+                {/* Configuration Summary */}
+                <div className="bg-muted/20 p-3 rounded-lg space-y-2">
+                  <Label className="text-sm font-medium">Cấu hình hiện tại</Label>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Nguồn:</span>
+                      <div className="flex items-center space-x-1">
+                        <span>{getLanguageInfo(sourceLanguage).flag}</span>
+                        <span>{getLanguageInfo(sourceLanguage).name}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Đích:</span>
+                      <span>{targetLanguages.length} ngôn ngữ</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Phong cách:</span>
+                      <div className="flex items-center space-x-1">
+                        <span>{currentStyle.icon}</span>
+                        <span>{currentStyle.name}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Model:</span>
+                      <span>{getPageModel(PAGE_ID) || config.model}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Translation Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
