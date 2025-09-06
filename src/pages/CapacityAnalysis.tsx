@@ -346,15 +346,77 @@ export default function CapacityAnalysis() {
                       />
                     </div>
 
-                    <div>
+                    <div className="space-y-3">
                       <Label htmlFor="record-count">Số lượng bản ghi dự kiến</Label>
-                      <Input
-                        id="record-count"
-                        type="number"
-                        placeholder="1000000"
-                        value={recordCount}
-                        onChange={(e) => setRecordCount(parseInt(e.target.value) || 0)}
-                      />
+                      
+                      {/* Quick Preset Buttons */}
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { label: "1K", value: 1000 },
+                          { label: "10K", value: 10000 },
+                          { label: "100K", value: 100000 },
+                          { label: "1M", value: 1000000 },
+                          { label: "10M", value: 10000000 },
+                          { label: "100M", value: 100000000 },
+                          { label: "1B",   value: 1000000000 },
+                          { label: "10B",  value: 10000000000 },
+                          { label: "100B", value: 100000000000 }
+                        ].map(preset => (
+                          <Button
+                            key={preset.value}
+                            variant={recordCount === preset.value ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setRecordCount(preset.value)}
+                            className="text-xs"
+                          >
+                            {preset.label}
+                          </Button>
+                        ))}
+                      </div>
+                      
+                      {/* Enhanced Input with Formatting */}
+                      <div className="space-y-2">
+                        <Input
+                          id="record-count"
+                          type="text"
+                          placeholder="1,000,000"
+                          value={recordCount ? recordCount.toLocaleString() : ''}
+                          onChange={(e) => {
+                            const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                            setRecordCount(parseInt(numericValue) || 0);
+                          }}
+                          className="font-mono"
+                        />
+                        
+                        {/* Visual Helper */}
+                        <div className="flex justify-between items-center text-xs text-muted-foreground">
+                          <div>
+                            {recordCount > 0 && (
+                              <span>
+                                {recordCount >= 1000000 ? `${(recordCount / 1000000).toFixed(1)}M` :
+                                 recordCount >= 1000 ? `${(recordCount / 1000).toFixed(1)}K` :
+                                 recordCount.toString()} bản ghi
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div>Gợi ý: 1K = 1,000 | 1M = 1,000,000</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Validation Warning */}
+                      {recordCount > 0 && recordCount < 100 && (
+                        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                          ⚠️ Số lượng bản ghi quá nhỏ có thể cho kết quả không chính xác
+                        </div>
+                      )}
+                      
+                      {recordCount > 1000000000 && (
+                        <div className="p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
+                          📊 Số lượng bản ghi rất lớn - thời gian phân tích có thể lâu hơn
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-3">
