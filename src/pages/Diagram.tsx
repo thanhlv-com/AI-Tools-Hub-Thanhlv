@@ -14,7 +14,7 @@ import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
-import { DiagramRequest, DiagramResult, DiagramHistory as DiagramHistoryType } from "@/types/diagram";
+import { DiagramRequest, DiagramResult, DiagramHistory as DiagramHistoryType, DiagramTypeId } from "@/types/diagram";
 import { shouldAddStepIndexing } from "@/lib/diagramStepIndexing";
 import { 
   Shapes, 
@@ -171,7 +171,20 @@ export default function Diagram() {
         model: pageModel || undefined
       };
       
-      const result = await chatGPT.generateDiagram(request);
+      let result;
+      
+      if (outputFormat === 'plantuml') {
+        // Use the new PlantUML-focused method for PlantUML format
+        result = await chatGPT.generatePlantUMLDiagram(
+          description,
+          diagramType as DiagramTypeId,
+          outputLanguage,
+          pageModel || undefined
+        );
+      } else {
+        // Use the existing method for other formats
+        result = await chatGPT.generateDiagram(request);
+      }
       setDiagramResult(result);
       
       if (result.error) {
@@ -186,6 +199,10 @@ export default function Diagram() {
         const diagramTypeInfo = DIAGRAM_TYPES.find(t => t.id === diagramType);
         const historyTitle = `${diagramTypeInfo?.name} - ${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`;
         
+        const diagramCode = outputFormat === 'plantuml' 
+          ? (result as { pumlCode: string }).pumlCode 
+          : (result as { diagramCode: string }).diagramCode;
+        
         addToDiagramHistory({
           title: historyTitle,
           description,
@@ -197,7 +214,7 @@ export default function Diagram() {
           includeIcons,
           includeColors,
           includeNotes,
-          diagramCode: result.diagramCode,
+          diagramCode,
           model: modelToUse
         });
         
@@ -575,7 +592,10 @@ Ví dụ:
                   {diagramResult && !diagramResult.error && (
                     <>
                       <Badge variant="outline" className="text-xs">
-                        {diagramResult.diagramCode.length} ký tự
+                        {outputFormat === 'plantuml' 
+                          ? ('pumlCode' in diagramResult ? (diagramResult as { pumlCode: string }).pumlCode?.length || 0 : 0)
+                          : ('diagramCode' in diagramResult ? (diagramResult as { diagramCode: string }).diagramCode?.length || 0 : 0)
+                        } ký tự
                       </Badge>
                       {shouldAddStepIndexing(diagramType) && (
                         <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
@@ -590,7 +610,12 @@ Ví dụ:
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(diagramResult.diagramCode, "Mã sơ đồ")}
+                    onClick={() => {
+                      const code = outputFormat === 'plantuml' 
+                        ? ('pumlCode' in diagramResult ? (diagramResult as { pumlCode: string }).pumlCode || '' : '')
+                        : ('diagramCode' in diagramResult ? (diagramResult as { diagramCode: string }).diagramCode || '' : '');
+                      copyToClipboard(code, `Mã ${outputFormat === 'plantuml' ? 'PlantUML' : currentFormat.name}`);
+                    }}
                     className="flex items-center space-x-2"
                   >
                     <Copy className="w-4 h-4" />
@@ -599,7 +624,7 @@ Ví dụ:
                 )}
               </div>
               <CardDescription>
-                Mã Mermaid được tạo từ AI
+                Mã {currentFormat.name} được tạo từ AI {outputFormat === 'plantuml' ? 'với Solution Architect expertise' : 'đa định dạng'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -621,11 +646,28 @@ Ví dụ:
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         <CheckCircle2 className="w-4 h-4 text-green-500" />
-                        <span className="text-sm font-medium">Mã Mermaid</span>
+                        <span className="text-sm font-medium">Mã {currentFormat.name}</span>
                       </div>
                     </div>
+                    
+                    {/* Show explanation if available (only for PlantUML) */}
+                    {outputFormat === 'plantuml' && 'explanation' in diagramResult && (diagramResult as { explanation: string }).explanation && (
+                      <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                        <h4 className="font-medium text-blue-800 mb-1 flex items-center">
+                          <Lightbulb className="w-4 h-4 mr-1" />
+                          Giải thích sơ đồ:
+                        </h4>
+                        <p className="text-blue-700 text-sm">{(diagramResult as { explanation: string }).explanation}</p>
+                      </div>
+                    )}
+                    
                     <pre className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-3 rounded border border-slate-200 dark:border-slate-700 overflow-x-auto">
-                      <code>{diagramResult.diagramCode}</code>
+                      <code>
+                        {outputFormat === 'plantuml' 
+                          ? ('pumlCode' in diagramResult ? (diagramResult as { pumlCode: string }).pumlCode || '' : '')
+                          : ('diagramCode' in diagramResult ? (diagramResult as { diagramCode: string }).diagramCode || '' : '')
+                        }
+                      </code>
                     </pre>
                     {diagramResult.metadata && (
                       <div className="text-xs text-muted-foreground">

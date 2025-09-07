@@ -1628,6 +1628,183 @@ Total records to calculate for: ${recordCount.toLocaleString()}`;
     }
   }
 
+  async generatePlantUMLDiagram(
+    description: string,
+    diagramType: DiagramTypeId,
+    outputLanguage?: string,
+    customModel?: string
+  ): Promise<DiagramResult> {
+    const diagramTypeInfo = DIAGRAM_TYPES.find(type => type.id === diagramType);
+    
+    if (!diagramTypeInfo) {
+      throw new Error("Loại sơ đồ không hợp lệ");
+    }
+
+    const systemPrompt = `## Vai trò và Mục tiêu
+
+Bạn là một Solution Architect với hơn 15 năm kinh nghiệm thiết kế, tư vấn và triển khai các hệ thống phần mềm phức tạp, từ monolithic đến microservices, và từ hệ thống on-premise đến giải pháp cloud-native. Chuyên môn của bạn không chỉ là phác thảo kiến trúc tổng thể mà còn dịch các luồng xử lý phức tạp thành các sơ đồ PlantUML (PUML) rõ ràng, chuyên nghiệp và trực quan.
+
+Mục tiêu chính của bạn là giúp người dùng tạo ra các sơ đồ PlantUML chất lượng cao. Các sơ đồ này phải dễ hiểu bằng cách đánh số các bước (step-by-step) và hấp dẫn về mặt trực quan bằng cách tích hợp các icon đẹp, phù hợp với ngữ cảnh.
+
+## Chuyên môn cốt lõi
+
+**Kiến trúc phần mềm**: Hiểu sâu về các mô hình kiến trúc (Microservices, Event-Driven, SOA, C4 Model, v.v.) và các thành phần hệ thống (API Gateway, Load Balancer, Message Queue, Database, Cache, v.v.).
+
+**Chuyên gia PlantUML**: Thành thạo cú pháp PlantUML cho các loại sơ đồ khác nhau:
+- Sequence Diagram: Mô tả luồng tương tác theo thứ tự thời gian.
+- Usecase Diagram: Mô tả các use case của hệ thống.
+- Component Diagram: Mô tả cấu trúc các thành phần.
+- Deployment Diagram: Mô tả việc triển khai vật lý của hệ thống.
+
+**Tích hợp Iconography**: Có kiến thức về việc sử dụng các thư viện icon phổ biến trong PlantUML như FontAwesome, Material Icons, Archimate để làm cho sơ đồ trông chuyên nghiệp và dễ nhận biết.
+
+**Tư duy logic và Đơn giản hóa**: Khả năng phân tích một yêu cầu phức tạp, chia nhỏ thành các bước logic và trình bày một cách tuần tự và rõ ràng.
+
+## Quy trình làm việc
+
+Loại sơ đồ: ${diagramTypeInfo.name}
+Mô tả: ${diagramTypeInfo.description}
+
+## Quy tắc bắt buộc khi tạo code PlantUML
+
+Tất cả code PlantUML bạn tạo PHẢI tuân thủ những quy tắc này:
+
+**Luôn đánh số các bước (Numbering):**
+- Sử dụng autonumber để tự động đánh số các bước tương tác trong sơ đồ Sequence. Điều này là bắt buộc để đảm bảo trình tự và dễ theo dõi.
+- Bạn có thể tùy chỉnh định dạng của autonumber nếu cần (ví dụ: autonumber "<b>[00]")
+
+**Tích hợp Icons một cách thông minh:**
+- Luôn khai báo thư viện icon ở đầu source code.
+- Chọn icon phù hợp nhất cho vai trò của thành phần (ví dụ: users cho người dùng, server cho máy chủ, database cho cơ sở dữ liệu, cloud cho dịch vụ đám mây).
+
+**Cấu trúc và Thẩm mỹ:**
+- Sử dụng skinparam để cải thiện giao diện của sơ đồ, làm cho nó trông hiện đại và chuyên nghiệp.
+- Ví dụ: skinparam sequenceArrowThickness 2, skinparam roundcorner 20, skinparam participantpadding 20.
+- Sử dụng box để nhóm các thành phần liên quan (ví dụ: nhóm microservices trong một box "Backend Services").
+- Sử dụng note để thêm ghi chú, giải thích cho các bước phức tạp hoặc quan trọng.
+- Thêm đánh số bước từng bước để dễ đọc luồng
+
+**Hướng dẫn cho ${diagramTypeInfo.name}:**
+${diagramTypeInfo.prompt}
+
+## Yêu cầu đầu ra:
+- Chỉ trả về code PlantUML trong code block, không thêm giải thích
+- Bắt đầu với @startuml và kết thúc với @enduml
+- Sử dụng ${outputLanguage === 'vi' ? 'tiếng Việt' : outputLanguage === 'en' ? 'English' : outputLanguage === 'zh' ? '中文' : outputLanguage === 'ja' ? '日本語' : outputLanguage === 'ko' ? '한국어' : outputLanguage === 'fr' ? 'Français' : outputLanguage === 'de' ? 'Deutsch' : outputLanguage === 'es' ? 'Español' : outputLanguage || 'tiếng Việt'} cho labels và mô tả
+- Bao gồm autonumber cho sequence diagrams
+- Tích hợp icons phù hợp
+- Sử dụng styling chuyên nghiệp với skinparam`;
+
+    const userPrompt = `Hãy tạo sơ đồ PlantUML ${diagramTypeInfo.name} dựa trên mô tả sau:
+
+"${description}"
+
+Yêu cầu:
+- Sử dụng autonumber để đánh số các bước
+- Tích hợp icons phù hợp (FontAwesome, Material Icons)
+- Styling chuyên nghiệp với skinparam
+- Sử dụng box để nhóm các thành phần liên quan
+- Thêm note để giải thích các bước quan trọng
+- Sử dụng ${outputLanguage === 'vi' ? 'tiếng Việt' : outputLanguage === 'en' ? 'English' : outputLanguage === 'zh' ? '中文' : outputLanguage === 'ja' ? '日本語' : outputLanguage === 'ko' ? '한국어' : outputLanguage === 'fr' ? 'Français' : outputLanguage === 'de' ? 'Deutsch' : outputLanguage === 'es' ? 'Español' : outputLanguage || 'tiếng Việt'} cho tất cả labels và mô tả
+
+Tạo code PlantUML hoàn chỉnh và chuyên nghiệp.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    try {
+      const startTime = Date.now();
+      const response = await this.callAPI(messages, customModel);
+      const processingTime = Date.now() - startTime;
+
+      let pumlCode = response.trim();
+      
+      // Extract PlantUML code from response
+      const pumlMatch = pumlCode.match(/```(?:plantuml|puml)?\s*([\s\S]*?)\s*```/i);
+      if (pumlMatch) {
+        pumlCode = pumlMatch[1].trim();
+      } else {
+        // If no code blocks found, try to clean up the response
+        pumlCode = pumlCode.replace(/^[^@]*/, '').replace(/[^@]*$/, '');
+      }
+      
+      // Ensure PlantUML structure
+      if (!pumlCode.includes('@startuml')) {
+        pumlCode = `@startuml\n${pumlCode}`;
+      }
+      if (!pumlCode.includes('@enduml')) {
+        pumlCode = `${pumlCode}\n@enduml`;
+      }
+      
+      // Validate that we have some diagram content
+      if (!pumlCode || pumlCode.length < 20) {
+        throw new Error("AI không trả về code PlantUML hợp lệ");
+      }
+
+      // Generate explanation
+      const explanation = await this.generateDiagramExplanation(pumlCode, diagramType, customModel);
+
+      const result: DiagramResult = {
+        pumlCode,
+        explanation,
+        model: customModel || this.config.model,
+        metadata: {
+          processingTime,
+          codeLength: pumlCode.length
+        }
+      };
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Lỗi không xác định khi tạo sơ đồ";
+      return {
+        pumlCode: "",
+        explanation: "",
+        model: customModel || this.config.model,
+        error: errorMessage,
+        metadata: {
+          codeLength: 0
+        }
+      };
+    }
+  }
+
+  private async generateDiagramExplanation(
+    pumlCode: string,
+    diagramType: DiagramTypeId,
+    customModel?: string
+  ): Promise<string> {
+    const systemPrompt = `Bạn là chuyên gia phân tích sơ đồ. Nhiệm vụ của bạn là giải thích sơ đồ PlantUML một cách ngắn gọn và dễ hiểu.
+
+Yêu cầu:
+- Giải thích logic kiến trúc trong sơ đồ
+- Mô tả các thành phần chính và vai trò của chúng
+- Giải thích luồng hoạt động (nếu có)
+- Sử dụng tiếng Việt
+- Tối đa 3-4 câu, ngắn gọn và dễ hiểu`;
+
+    const userPrompt = `Hãy giải thích ngắn gọn sơ đồ ${diagramType} PlantUML sau:
+
+\`\`\`plantuml
+${pumlCode}
+\`\`\`
+
+Giải thích logic kiến trúc và luồng hoạt động chính trong sơ đồ này.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    try {
+      return await this.callAPI(messages, customModel);
+    } catch (error) {
+      return "Không thể tạo giải thích cho sơ đồ này.";
+    }
+  }
+
   async generateDiagram(request: DiagramRequest): Promise<DiagramResult> {
     const { description, diagramType, outputFormat, outputLanguage, style, complexity, includeIcons, includeColors, includeNotes, model } = request;
     
