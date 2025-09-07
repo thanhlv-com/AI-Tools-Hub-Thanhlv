@@ -28,6 +28,8 @@
     "promptGeneratorDesc": "Tạo prompt AI có cấu trúc hoàn chỉnh",
     "capacityAnalysis": "Phân tích Dung lượng",
     "capacityAnalysisDesc": "Phân tích dung lượng cơ sở dữ liệu",
+    "diagram": "Tạo sơ đồ",
+    "diagramDesc": "Tạo sơ đồ chuyên nghiệp với AI",
     "settings": "Cài đặt",
     "settingsDesc": "Cấu hình server và API"
   },

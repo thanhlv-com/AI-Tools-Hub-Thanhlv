@@ -28,6 +28,8 @@
     "promptGeneratorDesc": "Generate structured AI prompts",
     "capacityAnalysis": "Capacity Analysis", 
     "capacityAnalysisDesc": "Database capacity analysis",
+    "diagram": "Diagram Generator",
+    "diagramDesc": "Create professional diagrams with AI",
     "settings": "Settings",
     "settingsDesc": "Server and API configuration"
   },

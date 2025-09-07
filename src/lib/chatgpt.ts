@@ -1,7 +1,9 @@
 import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
 import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/types/capacity";
+import { DiagramRequest, DiagramResult } from "@/types/diagram";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS } from "@/data/translation";
+import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
 
 export interface ChatGPTMessage {
   role: "system" | "user" | "assistant";
@@ -1622,6 +1624,209 @@ Total records to calculate for: ${recordCount.toLocaleString()}`;
       }
       
       throw new Error(`Lỗi khi tính toán dung lượng từ cấu trúc đã phân tích: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async generateDiagram(request: DiagramRequest): Promise<DiagramResult> {
+    const { description, diagramType, outputFormat, outputLanguage, style, complexity, includeIcons, includeColors, includeNotes, model } = request;
+    
+    const diagramTypeInfo = DIAGRAM_TYPES.find(type => type.id === diagramType);
+    const formatInfo = DIAGRAM_FORMATS.find(f => f.id === outputFormat);
+    const languageInfo = DIAGRAM_OUTPUT_LANGUAGES.find(l => l.code === outputLanguage);
+    const styleInfo = DIAGRAM_STYLES.find(s => s.id === style);
+    const complexityInfo = DIAGRAM_COMPLEXITIES.find(c => c.id === complexity);
+    
+    if (!diagramTypeInfo || !formatInfo || !languageInfo || !styleInfo || !complexityInfo) {
+      throw new Error("Thông tin loại sơ đồ, định dạng đầu ra, ngôn ngữ, phong cách hoặc độ phức tạp không hợp lệ");
+    }
+
+    // Check if the selected format is supported for this diagram type
+    if (!diagramTypeInfo.supportedFormats.includes(outputFormat)) {
+      throw new Error(`Định dạng ${formatInfo.name} không được hỗ trợ cho loại sơ đồ ${diagramTypeInfo.name}. Các định dạng được hỗ trợ: ${diagramTypeInfo.supportedFormats.map(f => DIAGRAM_FORMATS.find(fmt => fmt.id === f)?.name).join(', ')}`);
+    }
+
+    // Get format-specific instructions
+    const formatInstructions = this.getFormatInstructions(formatInfo);
+    
+    const systemPrompt = `Bạn là chuyên gia tạo sơ đồ đa định dạng. Nhiệm vụ của bạn là từ mô tả của người dùng, tạo ra code sơ đồ chính xác và đẹp mắt theo định dạng được yêu cầu.
+
+## THÔNG TIN YÊU CẦU:
+- Loại sơ đồ: ${diagramTypeInfo.name} (${diagramTypeInfo.description})
+- Định dạng đầu ra: ${formatInfo.name} (${formatInfo.description})
+- Ngôn ngữ nội dung: ${languageInfo.nativeName} (${languageInfo.name})
+- Phong cách: ${styleInfo.name} - ${styleInfo.description}
+- Độ phức tạp: ${complexityInfo.name} (${complexityInfo.level}) - ${complexityInfo.description}
+- Bao gồm icons: ${includeIcons ? 'Có' : 'Không'}
+- Bao gồm màu sắc: ${includeColors ? 'Có' : 'Không'}
+- Bao gồm ghi chú: ${includeNotes ? 'Có' : 'Không'}
+
+## HƯỚNG DẪN CHI TIẾT CHO LOẠI SƠ ĐỒ:
+${diagramTypeInfo.prompt}
+
+## HƯỚNG DẪN VỀ ĐỊNH DẠNG ${formatInfo.name.toUpperCase()}:
+${formatInstructions}
+
+## HƯỚNG DẪN VỀ PHONG CÁCH:
+${styleInfo.prompt}
+
+## HƯỚNG DẪN VỀ ĐỘ PHỨC TẠP:
+${complexityInfo.prompt}
+
+## YÊU CẦU NGÔN NGỮ:
+- **Ngôn ngữ nội dung**: Tất cả labels, text, và comments phải sử dụng ${languageInfo.nativeName}
+- **Unicode Support**: Sử dụng đúng ký tự Unicode cho ${languageInfo.nativeName}
+- **Thuật ngữ**: Sử dụng thuật ngữ kỹ thuật phù hợp trong ${languageInfo.nativeName}
+
+## XỬ LÝ YÊU CẦU BỔ SUNG:
+${includeIcons ? `- **Icons**: Thêm emoji/icons phù hợp vào các node và elements (${formatInfo.syntax === 'mermaid' ? 'Mermaid hỗ trợ emoji' : 'Sử dụng ký tự Unicode'})` : ''}
+${includeColors ? `- **Màu sắc**: ${formatInfo.syntax === 'mermaid' ? 'Sử dụng classDef để định nghĩa màu sắc' : 'Áp dụng màu sắc theo cú pháp ' + formatInfo.syntax}` : ''}
+${includeNotes ? '- **Ghi chú**: Thêm annotations và comments để giải thích các phần quan trọng' : ''}
+
+## CẤU TRÚC OUTPUT:
+\`\`\`${formatInfo.syntax}
+[${formatInfo.name.toUpperCase()} CODE HERE]
+\`\`\`
+
+## LƯU Ý QUAN TRỌNG:
+- CHỈ trả về code ${formatInfo.name} trong code block, không thêm text giải thích
+- Đảm bảo syntax hoàn toàn chính xác cho ${formatInfo.name}
+- Sử dụng ${languageInfo.nativeName} trong tất cả labels và text
+- Code phải render được ngay lập tức trong ${formatInfo.name} viewer/compiler
+- Tuân thủ strict syntax của ${formatInfo.syntax}`;
+
+    const userPrompt = `Hãy tạo ${diagramTypeInfo.name} theo định dạng ${formatInfo.name} dựa trên mô tả sau:
+
+"${description}"
+
+Yêu cầu:
+- Định dạng đầu ra: ${formatInfo.name} (${formatInfo.syntax})
+- Ngôn ngữ nội dung: ${languageInfo.nativeName}
+- Phù hợp với độ phức tạp: ${complexityInfo.name}
+- Áp dụng phong cách: ${styleInfo.name}
+${includeIcons ? '- Bao gồm icons/emoji phù hợp' : ''}
+${includeColors ? '- Sử dụng màu sắc để phân biệt các thành phần' : ''}
+${includeNotes ? '- Thêm ghi chú và annotations quan trọng' : ''}
+
+Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung bằng ${languageInfo.nativeName}.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    try {
+      const startTime = Date.now();
+      const response = await this.callAPI(messages, model);
+      const processingTime = Date.now() - startTime;
+
+      // Extract diagram code from response based on format
+      let diagramCode = response.trim();
+      
+      // Clean up response - extract content based on format
+      const formatSpecificMatch = diagramCode.match(new RegExp(`\`\`\`${formatInfo.syntax}\\s*([\\s\\S]*?)\\s*\`\`\``, 'i'));
+      if (formatSpecificMatch) {
+        diagramCode = formatSpecificMatch[1].trim();
+      } else {
+        // Try to find generic code block patterns
+        const codeMatch = diagramCode.match(/```\w*\s*([\s\S]*?)\s*```/);
+        if (codeMatch) {
+          diagramCode = codeMatch[1].trim();
+        } else {
+          // If no code blocks found, try to clean up the response
+          diagramCode = diagramCode.replace(/^[^@\w\n]*/, '').replace(/[^}]*$/, '');
+        }
+      }
+      
+      // Validate that we have some diagram content
+      if (!diagramCode || diagramCode.length < 10) {
+        throw new Error("AI không trả về code sơ đồ hợp lệ");
+      }
+
+      const result: DiagramResult = {
+        diagramCode,
+        metadata: {
+          processingTime,
+          codeLength: diagramCode.length
+        }
+      };
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Lỗi không xác định khi tạo sơ đồ";
+      return {
+        diagramCode: "",
+        error: errorMessage,
+        metadata: {
+          codeLength: 0
+        }
+      };
+    }
+  }
+
+  private getFormatInstructions(formatInfo: { id: string; name: string; syntax: string }): string {
+    switch (formatInfo.id) {
+      case 'mermaid':
+        return `
+**Mermaid Syntax Guidelines:**
+- Sử dụng cú pháp Mermaid chính xác và hiện đại
+- Hỗ trợ đầy đủ: flowchart, classDiagram, sequenceDiagram, stateDiagram, erDiagram, journey, timeline, gitgraph
+- Tương thích với Mermaid.js version mới nhất
+- Hỗ trợ Unicode và emoji trong labels
+- Sử dụng classDef cho styling và màu sắc
+- Cấu trúc: direction TB/LR/BT/RL cho layout`;
+
+      case 'plantuml':
+        return `
+**PlantUML Syntax Guidelines:**
+- Bắt đầu với @startuml và kết thúc với @enduml
+- Hỗ trợ mạnh mẽ cho UML diagrams: class, sequence, use case, activity, component, state
+- Sử dụng skinparam để customization
+- Hỗ trợ Unicode cho các ngôn ngữ quốc tế
+- Syntax chặt chẽ và chuẩn UML
+- Có thể nhúng notes và comments với note left/right/top/bottom`;
+
+      case 'graphviz':
+        return `
+**Graphviz DOT Syntax Guidelines:**
+- Bắt đầu với digraph hoặc graph
+- Sử dụng node attributes: [label="...", shape=box/circle/diamond]
+- Edge attributes: [label="...", style=solid/dashed/dotted]
+- Hỗ trợ subgraph để nhóm nodes
+- Ranking: same, min, max, source, sink
+- Layout engines: dot (hierarchical), neato (spring), fdp (force), circo (circular)`;
+
+      case 'drawio':
+        return `
+**Draw.io XML Guidelines:**
+- XML format tương thích với Draw.io/Diagrams.net
+- Sử dụng mxGraphModel structure
+- Các elements: mxCell, mxGeometry cho positioning
+- Styles: shape, fillColor, strokeColor, fontSize
+- Connectors: edgeStyle, startArrow, endArrow
+- Text labels với HTML formatting support`;
+
+      case 'ascii':
+        return `
+**ASCII Art Guidelines:**
+- Sử dụng các ký tự ASCII: | - + / \\ * o # =
+- Boxes: +---+ hoặc ┌───┐ (Unicode box drawing)
+- Arrows: -> <- => <=> ↑ ↓ ← →
+- Connections: | (vertical) - (horizontal) + (intersection)
+- Text alignment và spacing đều đặn
+- Tương thích với monospace fonts`;
+
+      case 'tikz':
+        return `
+**TikZ/LaTeX Guidelines:**
+- Bắt đầu với \\begin{tikzpicture} và \\end{tikzpicture}
+- Nodes: \\node[options] (name) at (x,y) {text};
+- Paths: \\draw[options] (start) -- (end);
+- Positioning: above, below, left, right, above right
+- Styles: rectangle, circle, ellipse, diamond
+- Libraries: positioning, shapes, arrows, decorations`;
+
+      default:
+        return `Tuân thủ cú pháp chuẩn của ${formatInfo.name}`;
     }
   }
 }

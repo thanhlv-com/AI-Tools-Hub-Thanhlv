@@ -3,6 +3,7 @@ import { ModelInfo, ChatGPTService } from "@/lib/chatgpt";
 import { DDLAnalysisHistory } from "@/types/history";
 import { TranslationHistory, TranslationPreference, TranslationPreferences } from "@/types/translation";
 import { CapacityAnalysisHistory } from "@/types/capacity";
+import { DiagramHistory } from "@/types/diagram";
 import { ApiKeyManager } from "@/lib/encryption";
 import { useTranslation } from 'react-i18next';
 
@@ -62,6 +63,12 @@ interface ConfigContextType {
   removeFromCapacityHistory: (id: string) => void;
   clearCapacityHistory: () => void;
   getCapacityHistoryById: (id: string) => CapacityAnalysisHistory | undefined;
+  // Diagram History management
+  diagramHistory: DiagramHistory[];
+  addToDiagramHistory: (item: Omit<DiagramHistory, 'id' | 'timestamp'>) => void;
+  removeFromDiagramHistory: (id: string) => void;
+  clearDiagramHistory: () => void;
+  getDiagramHistoryById: (id: string) => DiagramHistory | undefined;
 }
 
 const defaultConfig: ChatGPTConfig = {
@@ -92,6 +99,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [translationHistory, setTranslationHistory] = useState<TranslationHistory[]>([]);
   const [translationPreferences, setTranslationPreferences] = useState<TranslationPreferences>({});
   const [capacityHistory, setCapacityHistory] = useState<CapacityAnalysisHistory[]>([]);
+  const [diagramHistory, setDiagramHistory] = useState<DiagramHistory[]>([]);
   const [pageModels, setPageModels] = useState<{ [pageId: string]: string }>({});
 
   const changeLanguage = (language: string) => {
@@ -542,6 +550,62 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     return capacityHistory.find(item => item.id === id);
   };
 
+  // Diagram History management functions
+  const loadDiagramHistory = () => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-diagram-history');
+      if (saved) {
+        const parsedHistory = JSON.parse(saved);
+        setDiagramHistory(parsedHistory);
+      }
+    } catch (error) {
+      console.error('Error loading diagram history:', error);
+    }
+  };
+
+  const saveDiagramHistory = (history: DiagramHistory[]) => {
+    try {
+      localStorage.setItem('ddl-tool-diagram-history', JSON.stringify(history));
+    } catch (error) {
+      console.error('Error saving diagram history:', error);
+    }
+  };
+
+  const addToDiagramHistory = (item: Omit<DiagramHistory, 'id' | 'timestamp'>) => {
+    const newItem: DiagramHistory = {
+      ...item,
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      metadata: {
+        descriptionLength: item.description.length,
+        codeLength: item.diagramCode.length,
+      }
+    };
+    
+    const updatedHistory = [newItem, ...diagramHistory].slice(0, 100); // Keep max 100 items
+    setDiagramHistory(updatedHistory);
+    saveDiagramHistory(updatedHistory);
+  };
+
+  const removeFromDiagramHistory = (id: string) => {
+    const updatedHistory = diagramHistory.filter(item => item.id !== id);
+    setDiagramHistory(updatedHistory);
+    saveDiagramHistory(updatedHistory);
+  };
+
+  const clearDiagramHistory = () => {
+    setDiagramHistory([]);
+    try {
+      localStorage.removeItem('ddl-tool-diagram-history');
+    } catch (error) {
+      console.error('Error clearing diagram history:', error);
+    }
+  };
+
+  const getDiagramHistoryById = (id: string): DiagramHistory | undefined => {
+    return diagramHistory.find(item => item.id === id);
+  };
+
   // Load config and history on mount
   useEffect(() => {
     const initializeConfig = async () => {
@@ -553,6 +617,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     loadTranslationHistory();
     loadTranslationPreferences();
     loadCapacityHistory();
+    loadDiagramHistory();
     loadPageModels();
     
     // Load cached models from localStorage
@@ -602,7 +667,13 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       addToCapacityHistory,
       removeFromCapacityHistory,
       clearCapacityHistory,
-      getCapacityHistoryById
+      getCapacityHistoryById,
+      // Diagram history
+      diagramHistory,
+      addToDiagramHistory,
+      removeFromDiagramHistory,
+      clearDiagramHistory,
+      getDiagramHistoryById
     }}>
       {children}
     </ConfigContext.Provider>

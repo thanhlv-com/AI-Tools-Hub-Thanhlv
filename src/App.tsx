@@ -10,6 +10,7 @@ import DDLCompare from "./pages/DDLCompare";
 import Translation from "./pages/Translation";
 import PromptGeneration from "./pages/PromptGeneration";
 import CapacityAnalysis from "./pages/CapacityAnalysis";
+import Diagram from "./pages/Diagram";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/translation" element={<Translation />} />
               <Route path="/prompt-generation" element={<PromptGeneration />} />
               <Route path="/capacity-analysis" element={<CapacityAnalysis />} />
+              <Route path="/diagram" element={<Diagram />} />
               <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

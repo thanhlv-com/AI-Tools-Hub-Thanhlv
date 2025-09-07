@@ -13,6 +13,7 @@ import {
   Languages,
   Wand2,
   Calculator,
+  Shapes,
   Zap
 } from "lucide-react";
 
@@ -40,6 +41,12 @@ const getNavigation = (t: (key: string) => string) => [
     href: "/capacity-analysis",
     icon: Calculator,
     description: t('nav.capacityAnalysisDesc')
+  },
+  {
+    name: t('nav.diagram'),
+    href: "/diagram",
+    icon: Shapes,
+    description: t('nav.diagramDesc')
   },
   {
     name: t('nav.settings'),
