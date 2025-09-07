@@ -1,0 +1,594 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công", 
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép!",
+    "clear": "Xóa",
+    "search": "Tìm kiếm", 
+    "filter": "Lọc",
+    "export": "Xuất",
+    "import": "Nhập",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "close": "Đóng",
+    "select": "Chọn",
+    "poweredBy": "Được hỗ trợ bởi ChatGPT"
+  },
+  "nav": {
+    "appTitle": "Trung tâm Công cụ AI",
+    "ddlCompare": "So sánh DDL", 
+    "ddlCompareDesc": "So sánh và tạo migration DDL",
+    "translation": "Dịch thuật",
+    "translationDesc": "Dịch thuật đa ngôn ngữ với AI", 
+    "promptGenerator": "Tạo Prompt",
+    "promptGeneratorDesc": "Tạo prompt AI có cấu trúc hoàn chỉnh",
+    "capacityAnalysis": "Phân tích Dung lượng",
+    "capacityAnalysisDesc": "Phân tích dung lượng cơ sở dữ liệu",
+    "settings": "Cài đặt",
+    "settingsDesc": "Cấu hình server và API"
+  },
+  "ddl": {
+    "title": "So sánh Schema DDL",
+    "description": "So sánh hai schema DDL và tạo script migration sử dụng AI",
+    "currentDDL": "Schema DDL Hiện tại",
+    "currentDDLPlaceholder": "Dán schema DDL hiện tại của bạn vào đây...",
+    "targetDDL": "Schema DDL Đích",
+    "targetDDLPlaceholder": "Dán schema DDL đích của bạn vào đây...", 
+    "databaseType": "Loại Cơ sở Dữ liệu",
+    "selectDatabase": "Chọn loại cơ sở dữ liệu",
+    "analyze": "Phân tích Schema",
+    "analyzing": "Đang phân tích schema...",
+    "result": "Script Migration",
+    "noResult": "Chưa có script migration nào được tạo. Vui lòng cung cấp schema DDL và nhấn 'Phân tích Schema'.",
+    "copyScript": "Sao chép Script", 
+    "scriptCopied": "Script migration đã được sao chép vào clipboard!",
+    "error": "Lỗi phân tích schema. Vui lòng kiểm tra cấu hình và thử lại.",
+    "missingFields": "Vui lòng điền đầy đủ cả hai schema DDL và chọn loại cơ sở dữ liệu.",
+    "history": "Lịch sử Phân tích",
+    "noHistory": "Chưa có lịch sử phân tích nào.",
+    "loadFromHistory": "Tải từ Lịch sử"
+  },
+  "translation": {
+    "title": "Dịch thuật AI",
+    "description": "Dịch văn bản sang nhiều ngôn ngữ với các phong cách khác nhau sử dụng AI", 
+    "sourceText": "Văn bản Gốc",
+    "sourceTextPlaceholder": "Nhập văn bản cần dịch...",
+    "sourceLanguage": "Ngôn ngữ Gốc",
+    "targetLanguages": "Ngôn ngữ Đích",
+    "translationStyle": "Phong cách Dịch thuật", 
+    "selectLanguages": "Chọn ngôn ngữ",
+    "selectStyle": "Chọn phong cách dịch thuật",
+    "translate": "Dịch",
+    "translating": "Đang dịch...",
+    "results": "Kết quả Dịch thuật",
+    "noResults": "Chưa có kết quả dịch thuật nào. Nhập văn bản và chọn ngôn ngữ đích.", 
+    "characterCount": "{{count}} ký tự",
+    "copyTranslation": "Sao chép Bản dịch",
+    "translationCopied": "Bản dịch đã được sao chép vào clipboard!",
+    "swapLanguages": "Hoán đổi Ngôn ngữ",
+    "clearText": "Xóa Văn bản",
+    "error": "Lỗi dịch thuật. Vui lòng kiểm tra cấu hình và thử lại.",
+    "missingFields": "Vui lòng nhập văn bản cần dịch và chọn ngôn ngữ đích.",
+    "history": "Lịch sử Dịch thuật", 
+    "noHistory": "Chưa có lịch sử dịch thuật nào.",
+    "loadFromHistory": "Tải từ Lịch sử",
+    "autoDetect": "Tự động Nhận dạng",
+    "missingText": "Thiếu văn bản",
+    "missingTextDesc": "Vui lòng nhập văn bản cần dịch.",
+    "duplicateLanguage": "Ngôn ngữ trùng lặp",
+    "duplicateLanguageDesc": "Ngôn ngữ nguồn và đích không được giống nhau.",
+    "noApiKey": "Chưa cấu hình API Key",
+    "noApiKeyDesc": "Vui lòng vào Settings để nhập ChatGPT API Key.",
+    "successCount": "Đã dịch thành công {{count}}/{{total}} ngôn ngữ bằng {{model}}",
+    "translationError": "Lỗi dịch thuật",
+    "cannotSwap": "Không thể đổi chỗ",
+    "cannotSwapDesc": "Không thể đổi chỗ khi chọn tự động nhận dạng làm ngôn ngữ nguồn.",
+    "retryTranslation": "Dịch lại",
+    "retrySuccess": "Dịch lại thành công",
+    "retryFailed": "Dịch lại thất bại",
+    "preferences": "Tùy chọn Dịch thuật",
+    "advancedSettings": "Cài đặt Nâng cao",
+    "proficiency": "Mức độ Thành thạo",
+    "emoticons": "Biểu tượng cảm xúc",
+    "selectProficiency": "Chọn mức độ thành thạo",
+    "selectEmoticons": "Chọn kiểu biểu tượng cảm xúc",
+    "translateButton": "Dịch văn bản",
+    "modelSummary": "Model & Tóm tắt",
+    "aiModel": "Model AI",
+    "model": "Model",
+    "examples": "Ví dụ",
+    "exampleText1": "Xin chào, hôm nay bạn thế nào?",
+    "exampleText2": "Đây là văn bản thử nghiệm",
+    "exampleText3": "Bonjour, comment allez-vous?",
+    "exampleText4": "こんにちは、元気ですか？",
+    "configureApiKey": "Chưa cấu hình API Key",
+    "configureApiKeyDesc": "Vui lòng vào trang Settings để nhập ChatGPT API Key trước khi sử dụng.",
+    "configuration": "Cấu hình",
+    "sourceLabel": "Nguồn",
+    "targetLabel": "Đích ({{count}})",
+    "styleLabel": "Phong cách",
+    "proficiencyLabel": "Trình độ",
+    "emoticonLabel": "Xử lý Emoticon",
+    "currentConfig": "Cấu hình hiện tại",
+    "translationSummary": "Tóm tắt dịch thuật",
+    "timeLabel": "Thời gian",
+    "closeButton": "Đóng",
+    "translationConfig": "Cấu hình dịch thuật",
+    "translationConfigDesc": "Tùy chỉnh ngôn ngữ, phong cách và model AI cho dịch thuật",
+    "translationHistory": "Lịch sử Dịch thuật",
+    "translationResults": "Bản dịch",
+    "translationResultsDesc": "Bản dịch sẽ xuất hiện ở đây...",
+    "loadedFromHistory": "Đã tải từ lịch sử",
+    "loadedFromHistoryDesc": "Đã tải dữ liệu từ: {{title}}",
+    "preferenceConfig": "Cấu hình ưa thích",
+    "copyAll": "Copy tất cả"
+  },
+  "settings": {
+    "title": "Cài đặt Cấu hình",
+    "description": "Cấu hình ChatGPT API và các cài đặt khác",
+    "chatgptConfig": "Cấu hình ChatGPT",
+    "apiKey": "API Key", 
+    "apiKeyPlaceholder": "Nhập ChatGPT API key của bạn...",
+    "serverUrl": "URL Server",
+    "serverUrlPlaceholder": "https://api.openai.com/v1",
+    "defaultModel": "Model Mặc định",
+    "selectModel": "Chọn model mặc định",
+    "testConnection": "Kiểm tra Kết nối",
+    "testing": "Đang kiểm tra kết nối...",
+    "connectionSuccess": "Kết nối thành công!",
+    "connectionError": "Kết nối thất bại. Vui lòng kiểm tra cài đặt.",
+    "saveConfig": "Lưu Cấu hình", 
+    "configSaved": "Cấu hình đã được lưu thành công!",
+    "language": "Ngôn ngữ",
+    "selectLanguage": "Chọn ngôn ngữ"
+  },
+  "models": {
+    "gpt-4": "GPT-4",
+    "gpt-4-turbo": "GPT-4 Turbo",
+    "gpt-4o": "GPT-4o", 
+    "gpt-4o-mini": "GPT-4o Mini",
+    "gpt-3.5-turbo": "GPT-3.5 Turbo"
+  },
+  "languages": {
+    "auto": "Tự động Nhận dạng",
+    "en": "Tiếng Anh",
+    "vi": "Tiếng Việt",
+    "zh": "Tiếng Trung (Giản thể)", 
+    "zh-TW": "Tiếng Trung (Phồn thể)",
+    "ja": "Tiếng Nhật",
+    "ko": "Tiếng Hàn",
+    "th": "Tiếng Thái",
+    "id": "Tiếng Indonesia", 
+    "ms": "Tiếng Malaysia",
+    "tl": "Tiếng Filipino",
+    "fr": "Tiếng Pháp",
+    "de": "Tiếng Đức",
+    "es": "Tiếng Tây Ban Nha",
+    "it": "Tiếng Ý", 
+    "pt": "Tiếng Bồ Đào Nha",
+    "ru": "Tiếng Nga",
+    "ar": "Tiếng Ả Rập",
+    "hi": "Tiếng Hindi",
+    "bn": "Tiếng Bengal",
+    "ur": "Tiếng Urdu",
+    "tr": "Tiếng Thổ Nhĩ Kỳ",
+    "pl": "Tiếng Ba Lan", 
+    "nl": "Tiếng Hà Lan",
+    "sv": "Tiếng Thụy Điển",
+    "da": "Tiếng Đan Mạch",
+    "no": "Tiếng Na Uy", 
+    "fi": "Tiếng Phần Lan",
+    "he": "Tiếng Do Thái"
+  },
+  "translationStyles": {
+    "natural": "Tự nhiên",
+    "formal": "Trang trọng",
+    "casual": "Thân mật",
+    "literal": "Theo nghĩa đen", 
+    "creative": "Sáng tạo",
+    "technical": "Kỹ thuật", 
+    "poetic": "Thơ ca",
+    "commercial": "Thương mại",
+    "academic": "Học thuật",
+    "news": "Tin tức"
+  },
+  "translationProficiencies": {
+    "beginner": "Người mới bắt đầu",
+    "elementary": "Sơ cấp",
+    "intermediate": "Trung cấp",
+    "advanced": "Nâng cao",
+    "native": "Bản ngữ",
+    "child-friendly": "Dành cho trẻ em"
+  },
+  "emoticonOptions": {
+    "keep-original": "Giữ nguyên",
+    "add-contextual": "Thêm theo ngữ cảnh",
+    "remove-all": "Loại bỏ tất cả",
+    "localize": "Địa phương hóa",
+    "enhance-emotional": "Tăng cường cảm xúc",
+    "minimal-subtle": "Tối giản tinh tế",
+    "youth-friendly": "Thân thiện trẻ trung",
+    "professional-warm": "Chuyên nghiệp ấm áp",
+    "kawaii-cute": "Dễ thương Kawaii",
+    "text-emoticons": "Emoticon văn bản",
+    "gender-neutral": "Trung tính giới tính",
+    "seasonal-themed": "Theo chủ đề mùa"
+  },
+  "notFound": {
+    "title": "Không tìm thấy trang",
+    "description": "Trang bạn tìm kiếm không tồn tại",
+    "pathNotFound": "Đường dẫn {{path}} không được tìm thấy.",
+    "backHome": "Về trang chủ"
+  },
+  "prompts": {
+    "title": "Prompt Generation",
+    "description": "Tạo prompt chi tiết hoặc prompt chuyên dụng cho Claude AI",
+    "generate": "Tạo Prompt",
+    "generating": "Đang tạo...",
+    "result": "Prompt đã tạo",
+    "detailedPrompt": {
+      "title": "Tạo Prompt Chi Tiết",
+      "description": "Nhập mô tả đơn giản, AI sẽ tạo prompt hoàn chỉnh theo định dạng bạn chọn",
+      "outputFormat": "Định dạng đầu ra:",
+      "plainText": "Plain Text",
+      "jsonPrompt": "JSON Prompt",
+      "plainTextDesc": "📝 Tạo prompt có cấu trúc chi tiết với các câu hỏi dẫn dắt",
+      "jsonDesc": "📋 Tạo JSON prompt có cấu trúc hoàn chỉnh với các fields bắt buộc",
+      "inputLabel": "Mô tả ngắn gọn về chủ đề bạn muốn tạo prompt:",
+      "inputPlaceholder": "Nhập mô tả ngắn gọn...\n\nVí dụ:\n- explain pod in k8s in detail\n- viết email marketing cho sản phẩm mới\n- phân tích dữ liệu bán hàng tháng\n- tạo function JavaScript sorting array\n- giải thích machine learning cho người mới",
+      "characterCount": "{{count}} ký tự",
+      "modelLabel": "Model AI",
+      "generateButton": "Tạo Prompt {{format}}",
+      "generatingText": "Đang tạo...",
+      "resultLabel": "{{format}} Prompt đã tạo:",
+      "resultDesc": "💡 {{format}} có thể sử dụng trực tiếp với AI systems hoặc copy các fields riêng lẻ",
+      "resultDescPlain": "💡 Prompt này có thể sử dụng trực tiếp với ChatGPT hoặc các AI khác"
+    },
+    "claudePrompt": {
+      "title": "Tạo Prompt cho Claude",
+      "description": "Nhập yêu cầu của bạn, AI sẽ tạo prompt tối ưu để gửi tới Claude",
+      "inputLabel": "Yêu cầu/Nhiệm vụ bạn muốn Claude thực hiện:",
+      "inputPlaceholder": "Nhập yêu cầu chi tiết...\n\nVí dụ:\n- Viết một function Python để xử lý dữ liệu CSV\n- Giải thích khái niệm machine learning cho người mới bắt đầu\n- Tạo một landing page HTML/CSS cho startup công nghệ\n- Phân tích và tối ưu hóa đoạn code JavaScript\n- Viết email chuyên nghiệp gửi khách hàng",
+      "generateButton": "Tạo Prompt cho Claude",
+      "resultLabel": "Prompt cho Claude đã tạo:",
+      "resultDesc": "🤖 Prompt này được tối ưu hóa để sử dụng với Claude AI. Bạn có thể copy và paste trực tiếp vào Claude."
+    },
+    "todoTasks": {
+      "title": "Tạo Todos & Tasks cho AI Agent",
+      "description": "Nhập yêu cầu đơn giản, AI sẽ chuyển thành danh sách todos và tasks cụ thể để AI agent có thể thực hiện một cách tự động và hiệu quả",
+      "inputLabel": "Yêu cầu/Nhiệm vụ cho AI Agent:",
+      "inputPlaceholder": "Nhập nhiệm vụ cần AI agent thực hiện...\n\nVí dụ:\n- Phân tích và cải thiện hiệu suất ứng dụng React\n- Tự động refactor code để tuân thủ best practices\n- Tạo test cases hoàn chỉnh cho API endpoints\n- Tối ưu hóa database queries và indexes\n- Implement CI/CD pipeline với automated testing",
+      "generateButton": "Tạo Todos & Tasks cho AI Agent",
+      "generatingText": "Đang tạo todos...",
+      "resultLabel": "Danh sách Todos & Tasks cho AI Agent:",
+      "resultDesc": "🤖 Danh sách này bao gồm các todos và tasks được tối ưu hóa cho AI agent. Mỗi task được mô tả chi tiết với hướng dẫn rõ ràng để AI có thể thực hiện tự động và chính xác."
+    },
+    "tabs": {
+      "detailed": "Chi tiết hoá Prompt",
+      "claude": "Prompt cho Claude",
+      "todos": "Tạo Todos & Tasks cho AI"
+    },
+    "common": {
+      "copy": "Copy",
+      "apiKeyWarning": "Chưa cấu hình API Key",
+      "apiKeyWarningDesc": "Vui lòng vào trang Settings để nhập ChatGPT API Key trước khi sử dụng.",
+      "copied": "Đã sao chép",
+      "copiedDesc": "Nội dung đã được sao chép vào clipboard.",
+      "missingInfo": "Thiếu thông tin",
+      "errorGenerating": "Lỗi tạo prompt chi tiết",
+      "errorGeneratingClaude": "Lỗi tạo prompt Claude",
+      "errorGeneratingTodo": "Lỗi tạo todos và tasks",
+      "unknownError": "Lỗi không xác định",
+      "successGenerated": "Prompt chi tiết đã được tạo",
+      "successGeneratedDesc": "Đã tạo thành công {{format}} prompt từ: \"{{input}}...\"",
+      "successGeneratedClaude": "Prompt cho Claude đã được tạo",
+      "successGeneratedClaudeDesc": "Đã tạo thành công prompt Claude từ: \"{{input}}...\"",
+      "successGeneratedTodo": "Todos và Tasks đã được tạo",
+      "successGeneratedTodoDesc": "Đã tạo thành công danh sách todos từ: \"{{input}}...\"",
+      "missingDetailedInput": "Vui lòng nhập mô tả để tạo prompt chi tiết.",
+      "missingClaudeInput": "Vui lòng nhập yêu cầu để tạo prompt cho Claude.",
+      "missingTodoInput": "Vui lòng nhập yêu cầu để tạo todos và tasks."
+    },
+    "examples": {
+      "title": "Thư viện Ví dụ",
+      "description": "3 ví dụ JSON prompt chi tiết cho các use case phổ biến",
+      "blogTitle": "Tạo nội dung Blog",
+      "blogDesc": "Prompt cho việc tạo bài viết blog chuyên nghiệp với SEO tối ưu",
+      "blogUseCase": "Content Marketing, Blogging, SEO",
+      "codeTitle": "Phân tích Code",
+      "codeDesc": "Prompt để review và phân tích code với các gợi ý cải thiện",
+      "codeUseCase": "Code Review, Debugging, Best Practices",
+      "translationTitle": "Dịch thuật và Viết lại",
+      "translationDesc": "Prompt cho dịch thuật chuyên nghiệp và viết lại nội dung",
+      "translationUseCase": "Translation, Content Adaptation, Localization",
+      "highlights": "Highlights:",
+      "goal": "Mục tiêu:",
+      "audience": "Đối tượng:",
+      "format": "Định dạng:",
+      "constraints": "Ràng buộc:",
+      "constraintsCount": "{{count}} điều kiện",
+      "loadToForm": "Tải vào Form",
+      "copyJson": "Đã copy JSON!",
+      "copyJsonDesc": "Ví dụ JSON đã được sao chép vào clipboard",
+      "copyError": "Lỗi copy",
+      "copyErrorDesc": "Không thể copy vào clipboard"
+    }
+  },
+  "capacity": {
+    "title": "Phân Tích Dung Lượng DDL",
+    "description": "AI tự động tính toán kích thước trung bình và tối đa của bản ghi, ước tính tổng dung lượng cơ sở dữ liệu",
+    "workflowMode": {
+      "title": "Chế độ phân tích",
+      "description": "Chọn phương pháp phân tích dung lượng phù hợp với nhu cầu của bạn",
+      "classic": {
+        "title": "Phân tích nhanh",
+        "description": "Phân tích một bước, nhanh chóng nhưng có thể ít chính xác hơn"
+      },
+      "threeStep": {
+        "title": "Phân tích 3 bước",
+        "description": "Phân tích cấu trúc → Chỉnh sửa → Tính toán chính xác cao"
+      }
+    },
+    "workflowProgress": {
+      "title": "Tiến trình phân tích 3 bước",
+      "steps": {
+        "ddlInput": "Nhập DDL",
+        "structureAnalysis": "Phân tích cấu trúc",
+        "finalCalculation": "Tính toán dung lượng"
+      },
+      "stepNumber": "Bước {{number}}",
+      "restart": "Bắt đầu lại"
+    },
+    "input": {
+      "title": "Thông tin DDL Schema",
+      "description": "AI sẽ tự động phân tích và tính toán kích thước trung bình và tối đa của bản ghi",
+      "databaseType": "Loại cơ sở dữ liệu",
+      "ddlSchema": "DDL Schema",
+      "ddlPlaceholder": "Nhập DDL schema (CREATE TABLE statements)...",
+      "recordCount": "Số lượng bản ghi dự kiến",
+      "recordCountHelper": "{{count}} bản ghi",
+      "recordCountHint": "Gợi ý: 1K = 1,000 | 1M = 1,000,000",
+      "recordCountWarningSmall": "⚠️ Số lượng bản ghi quá nhỏ có thể cho kết quả không chính xác",
+      "recordCountWarningLarge": "📊 Số lượng bản ghi rất lớn - thời gian phân tích có thể lâu hơn",
+      "analysisMethod": "Phương pháp phân tích",
+      "multiCall": "Nhiều lời gọi AI",
+      "singleCall": "Một lời gọi AI",
+      "multiCallDesc": "Phân tích chi tiết với nhiều lời gọi AI riêng biệt (chính xác hơn, mất nhiều thời gian hơn)",
+      "singleCallDesc": "Phân tích nhanh với một lời gọi AI duy nhất (nhanh hơn, ít chi tiết hơn)",
+      "multiCallNote": "🔄 Chế độ nhiều lời gọi sẽ tự động retry mỗi 5 giây cho đến khi thành công. Hệ thống sẽ không dừng lại cho đến khi hoàn thành phân tích."
+    },
+    "progress": {
+      "title": "Tiến trình phân tích",
+      "retryTitle": "Đang thử lại (lần {{count}})",
+      "retryBadge": "Retry",
+      "completed": "{{progress}}% hoàn thành",
+      "retryCount": "Đã thử lại {{count}} lần",
+      "retryNote": "🔄 Hệ thống đang tự động retry (mỗi 5 giây) cho đến khi thành công. Vui lòng kiên nhẫn...",
+      "preparing": "Đang chuẩn bị...",
+      "singleCallStep": "Đang phân tích với một lời gọi API..."
+    },
+    "buttons": {
+      "analyze": "Phân tích",
+      "analyzing": "Đang phân tích...",
+      "analyzeDetailed": "Phân tích chi tiết (nhiều lời gọi AI)",
+      "analyzeQuick": "Phân tích nhanh (một lời gọi AI)",
+      "analyzeStructure": "Phân tích cấu trúc DDL",
+      "analyzingStructure": "Đang phân tích cấu trúc...",
+      "calculateCapacity": "Tính toán dung lượng chính xác",
+      "calculating": "Đang tính toán...",
+      "history": "Lịch sử",
+      "showFieldDetails": "Hiện chi tiết field",
+      "hideFieldDetails": "Ẩn chi tiết field",
+      "showOverhead": "Hiện overhead",
+      "hideOverhead": "Ẩn overhead"
+    },
+    "threeStepWorkflow": {
+      "step1": {
+        "title": "Bước 1: Nhập DDL Schema",
+        "description": "Nhập DDL schema để bắt đầu phân tích cấu trúc database"
+      },
+      "step2": {
+        "title": "Bước 2: Xem lại và chỉnh sửa cấu trúc",
+        "description": "AI đã phân tích cấu trúc DDL. Bạn có thể xem lại và chỉnh sửa trước khi tính toán dung lượng",
+        "summary": {
+          "tables": "Bảng",
+          "fields": "Fields",
+          "confidence": "Độ tin cậy"
+        },
+        "fieldLabels": {
+          "averageSize": "Kích thước TB",
+          "maximumSize": "Kích thước Max",
+          "nullable": "Nullable",
+          "primaryKey": "PK"
+        },
+        "warnings": "⚠️ Cảnh báo",
+        "suggestions": "💡 Gợi ý"
+      }
+    },
+    "errors": {
+      "missingDDL": "Vui lòng nhập DDL schema.",
+      "invalidRecordCount": "Vui lòng nhập số lượng bản ghi hợp lệ.",
+      "missingApiKey": "Vui lòng vào Settings để nhập ChatGPT API Key.",
+      "invalidResult": "Kết quả phân tích không hợp lệ từ AI",
+      "unknownError": "Lỗi không xác định",
+      "jsonFormatError": "AI trả về kết quả không đúng định dạng. Hệ thống đã tự động retry mỗi 5 giây nhưng vẫn thất bại.",
+      "authError": "Lỗi xác thực API. Vui lòng kiểm tra API Key trong Settings.",
+      "rateLimitError": "Đã vượt quá giới hạn API. Hệ thống sẽ tự động retry mỗi 5 giây cho đến khi thành công.",
+      "timeoutError": "Kết nối bị timeout. Hệ thống tự động retry mỗi 5 giây cho đến khi thành công.",
+      "networkError": "Lỗi kết nối mạng. Hệ thống sẽ tự động retry mỗi 5 giây cho đến khi thành công.",
+      "serverError": "Server đang gặp sự cố. Hệ thống tự động retry mỗi 5 giây cho đến khi thành công.",
+      "temporaryError": "Lỗi tạm thời",
+      "analysisError": "Lỗi phân tích",
+      "structureAnalysisError": "Lỗi phân tích cấu trúc",
+      "calculationError": "Lỗi tính toán",
+      "noStructureAnalysis": "Chưa có phân tích cấu trúc",
+      "noStructureAnalysisDesc": "Vui lòng phân tích cấu trúc DDL trước.",
+      "retryHint": "Bạn có thể thử lại.",
+      "switchMethodHint": "Nếu vẫn gặp lỗi, hãy thử chuyển sang 'Một lời gọi AI' để tăng tỷ lệ thành công.",
+      "switchMethodTitle": "Gợi ý"
+    },
+    "success": {
+      "analysisComplete": "Phân tích hoàn tất",
+      "detailedAnalysisComplete": "Đã hoàn thành phân tích chi tiết với nhiều lời gọi AI.",
+      "quickAnalysisComplete": "Đã tính toán xong dung lượng cơ sở dữ liệu.",
+      "structureAnalysisComplete": "Phân tích cấu trúc hoàn tất",
+      "structureAnalysisDesc": "Đã phân tích {{tableCount}} bảng với {{fieldCount}} field. Bạn có thể xem lại và chỉnh sửa trước khi tính toán.",
+      "calculationComplete": "Tính toán hoàn tất",
+      "threeStepComplete": "Đã hoàn thành phân tích dung lượng 3 bước với độ chính xác cao.",
+      "loadedFromHistory": "Đã tải từ lịch sử",
+      "loadedFromHistoryDesc": "Đã tải dữ liệu từ: {{title}}",
+      "copied": "Đã sao chép",
+      "copiedDesc": "Nội dung {{format}} đã được sao chép vào clipboard."
+    },
+    "results": {
+      "title": "Báo cáo phân tích dung lượng",
+      "description": "Kích thước bản ghi và ước tính tổng dung lượng",
+      "recordSizeAnalysis": {
+        "title": "Phân tích kích thước bản ghi",
+        "averageSize": "Kích thước trung bình",
+        "maximumSize": "Kích thước tối đa"
+      },
+      "totalCapacity": {
+        "title": "Ʈc tính tổng dung lượng ({{recordCount}} bản ghi)",
+        "averageCase": "Trường hợp trung bình",
+        "maximumCase": "Trường hợp tối đa"
+      },
+      "indexSize": {
+        "title": "Dung lượng index ước tính"
+      },
+      "totalWithIndex": {
+        "title": "Tổng dung lượng (bao gồm index)",
+        "averageCase": "Trường hợp trung bình",
+        "maximumCase": "Trường hợp tối đa"
+      },
+      "tableBreakdown": {
+        "title": "Chi tiết theo bảng",
+        "recordSizeAverage": "Kích thước bản ghi TB",
+        "recordSizeMaximum": "Kích thước bản ghi tối đa",
+        "capacityAverage": "Dung lượng TB",
+        "capacityMaximum": "Dung lượng tối đa",
+        "recordCount": "{{count}} bản ghi"
+      },
+      "overhead": {
+        "title": "Row Overhead Analysis",
+        "nullBitmap": "Null Bitmap",
+        "rowHeader": "Row Header",
+        "alignment": "Alignment",
+        "totalOverhead": "Total Overhead"
+      },
+      "fieldDetails": {
+        "title": "Chi tiết từng field",
+        "averageSize": "TB",
+        "maximumSize": "Max",
+        "overhead": "Overhead"
+      },
+      "recommendations": {
+        "title": "Khuyến nghị tối ưu hóa"
+      },
+      "noResult": {
+        "title": "Nhập DDL schema để AI tự động phân tích",
+        "description": "Hệ thống sẽ tính toán kích thước trung bình và tối đa của bản ghi, sau đó ước tính tổng dung lượng cơ sở dữ liệu"
+      },
+      "errorDisplay": {
+        "title": "Lỗi phân tích"
+      }
+    },
+    "fieldAnalysisReport": {
+      "title": "Báo Cáo Chi Tiết Phân Tích Field",
+      "description": "Phân tích chi tiết dung lượng, hiệu quả lưu trữ và khuyến nghị tối ưu hóa cho từng field",
+      "summary": {
+        "totalDataSize": "Tổng dung lượng data",
+        "totalOverhead": "Tổng overhead",
+        "storageEfficiency": "Hiệu quả lưu trữ"
+      },
+      "tableHeaders": {
+        "field": "Field",
+        "dataType": "Data Type",
+        "averageSize": "Kích thước TB",
+        "maximumSize": "Kích thước Max",
+        "overhead": "Overhead",
+        "overheadPercent": "% Overhead",
+        "nullable": "Nullable",
+        "assessment": "Đánh giá"
+      },
+      "badges": {
+        "highOverhead": "High Overhead",
+        "largeField": "Large Field",
+        "variableSize": "Variable Size"
+      },
+      "optimizationRecommendations": {
+        "title": "Khuyến nghị tối ưu hóa fields",
+        "highOverheadRecommendation": "Field \"{{fieldName}}\" có overhead cao ({{percent}}%). Xem xét tối ưu hóa data type.",
+        "largeSizeRecommendation": "Field \"{{fieldName}}\" có kích thước lớn ({{size}}). Xem xét nén hoặc tách riêng.",
+        "variableSizeRecommendation": "Field \"{{fieldName}}\" có độ biến thiên kích thước cao. Xem xét sử dụng VARCHAR thay vì CHAR.",
+        "nullableFieldsRecommendation": "Bảng có nhiều nullable fields ({{nullableCount}}/{{totalCount}}). Xem xét sắp xếp lại thứ tự columns để tối ưu null bitmap.",
+        "overheadFieldsRecommendation": "{{highOverheadCount}}/{{totalCount}} fields có overhead cao. Xem xét review data types và padding."
+      },
+      "storageNotes": {
+        "title": "Ghi chú về lưu trữ"
+      },
+      "noFieldDetails": {
+        "title": "Chưa có chi tiết phân tích field",
+        "description": "Để xem phân tích chi tiết cho từng field, hãy sử dụng phương pháp \"Nhiều lời gọi AI\" trong phần cấu hình.",
+        "methodBenefit": "Phương pháp này sẽ cung cấp thông tin chi tiết về:",
+        "benefits": [
+          "Kích thước trung bình và tối đa của từng field",
+          "Phân tích overhead và hiệu quả lưu trữ",
+          "Khuyến nghị tối ưu hóa cho từng field",
+          "Thống kê nullable và data type"
+        ]
+      }
+    },
+    "export": {
+      "title": "Export Options",
+      "confluence": "Copy Confluence Wiki",
+      "summaryTable": "Copy Summary Table",
+      "fieldAnalysis": "Copy Field Analysis",
+      "detailedReport": "Copy Detailed Field Report",
+      "rawJson": "Copy Raw JSON",
+      "settings": {
+        "title": "Confluence Export Settings",
+        "includeFieldDetails": "Include Field Details",
+        "includeRecommendations": "Include Recommendations",
+        "includeOverheadAnalysis": "Include Overhead Analysis"
+      }
+    },
+    "history": {
+      "title": "Lịch sử phân tích dung lượng",
+      "description": "Xem lại và tái sử dụng các phân tích dung lượng DDL trước đây",
+      "itemCount": "{{count}} mục",
+      "searchPlaceholder": "Tìm kiếm trong lịch sử...",
+      "filterAll": "Tất cả",
+      "sortNewest": "Mới nhất",
+      "sortOldest": "Cũ nhất",
+      "export": "Export",
+      "clearAll": "Xóa tất cả",
+      "noHistory": {
+        "title": "Chưa có lịch sử phân tích dung lượng nào",
+        "description": "Thực hiện phân tích dung lượng DDL để bắt đầu xây dựng lịch sử"
+      },
+      "noResults": {
+        "title": "Không tìm thấy kết quả phù hợp",
+        "description": "Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc"
+      },
+      "item": {
+        "reload": "Tải lại",
+        "ddlSchema": "DDL Schema:",
+        "averageSize": "Kích thước TB",
+        "maximumSize": "Kích thước tối đa",
+        "totalCapacityAverage": "Tổng dung lượng TB",
+        "totalCapacityMaximum": "Tổng dung lượng Max",
+        "ddlLength": "DDL: {{length}} ký tự",
+        "tableCount": "{{count}} bảng",
+        "fieldCount": "{{count}} fields",
+        "recordCount": "{{count}} bản ghi",
+        "multiCall": "Nhiều lời gọi AI",
+        "singleCall": "Một lời gọi AI"
+      }
+    }
+  }
+}

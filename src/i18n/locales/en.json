@@ -1,0 +1,594 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "clear": "Clear",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "select": "Select",
+    "poweredBy": "Powered by ChatGPT"
+  },
+  "nav": {
+    "appTitle": "AI Tools Hub",
+    "ddlCompare": "DDL Compare",
+    "ddlCompareDesc": "Compare and generate DDL migrations",
+    "translation": "Translation", 
+    "translationDesc": "Multi-language AI translation",
+    "promptGenerator": "Prompt Generator",
+    "promptGeneratorDesc": "Generate structured AI prompts",
+    "capacityAnalysis": "Capacity Analysis", 
+    "capacityAnalysisDesc": "Database capacity analysis",
+    "settings": "Settings",
+    "settingsDesc": "Server and API configuration"
+  },
+  "ddl": {
+    "title": "DDL Schema Comparison",
+    "description": "Compare two DDL schemas and generate migration script using AI",
+    "currentDDL": "Current DDL Schema",
+    "currentDDLPlaceholder": "Paste your current DDL schema here...",
+    "targetDDL": "Target DDL Schema", 
+    "targetDDLPlaceholder": "Paste your target DDL schema here...",
+    "databaseType": "Database Type",
+    "selectDatabase": "Select database type",
+    "analyze": "Analyze Schemas",
+    "analyzing": "Analyzing schemas...",
+    "result": "Migration Script",
+    "noResult": "No migration script generated yet. Please provide DDL schemas and click 'Analyze Schemas'.",
+    "copyScript": "Copy Script",
+    "scriptCopied": "Migration script copied to clipboard!",
+    "error": "Error analyzing schemas. Please check your configuration and try again.",
+    "missingFields": "Please fill in both DDL schemas and select a database type.",
+    "history": "Analysis History",
+    "noHistory": "No analysis history yet.",
+    "loadFromHistory": "Load from History"
+  },
+  "translation": {
+    "title": "AI Translation", 
+    "description": "Translate text to multiple languages with different styles using AI",
+    "sourceText": "Source Text",
+    "sourceTextPlaceholder": "Enter text to translate...",
+    "sourceLanguage": "Source Language",
+    "targetLanguages": "Target Languages", 
+    "translationStyle": "Translation Style",
+    "selectLanguages": "Select languages",
+    "selectStyle": "Select translation style",
+    "translate": "Translate",
+    "translating": "Translating...",
+    "results": "Translation Results",
+    "noResults": "No translation results yet. Enter text and select target languages.",
+    "characterCount": "{{count}} characters",
+    "copyTranslation": "Copy Translation",
+    "translationCopied": "Translation copied to clipboard!",
+    "swapLanguages": "Swap Languages",
+    "clearText": "Clear Text",
+    "error": "Translation error. Please check your configuration and try again.",
+    "missingFields": "Please enter text to translate and select target languages.",
+    "history": "Translation History",
+    "noHistory": "No translation history yet.",
+    "loadFromHistory": "Load from History",
+    "autoDetect": "Auto Detect",
+    "missingText": "Missing text",
+    "missingTextDesc": "Please enter text to translate.",
+    "duplicateLanguage": "Duplicate languages",
+    "duplicateLanguageDesc": "Source and target languages cannot be the same.",
+    "noApiKey": "API Key not configured",
+    "noApiKeyDesc": "Please go to Settings to enter ChatGPT API Key.",
+    "successCount": "Successfully translated {{count}}/{{total}} languages using {{model}}",
+    "translationError": "Translation error",
+    "cannotSwap": "Cannot swap",
+    "cannotSwapDesc": "Cannot swap when auto-detect is selected as source language.",
+    "retryTranslation": "Retry translation",
+    "retrySuccess": "Retry successful",
+    "retryFailed": "Retry failed",
+    "preferences": "Translation Preferences",
+    "advancedSettings": "Advanced Settings",
+    "proficiency": "Proficiency Level",
+    "emoticons": "Emoticons",
+    "selectProficiency": "Select proficiency level",
+    "selectEmoticons": "Select emoticon style",
+    "translateButton": "Translate Text",
+    "modelSummary": "Model & Summary",
+    "aiModel": "AI Model",
+    "model": "Model",
+    "examples": "Examples",
+    "exampleText1": "Hello, how are you today?",
+    "exampleText2": "This is a test text",
+    "exampleText3": "Hello, how are you?",
+    "exampleText4": "Hello, how are you?",
+    "configureApiKey": "API Key not configured",
+    "configureApiKeyDesc": "Please go to Settings page to enter ChatGPT API Key before use.",
+    "configuration": "Configuration",
+    "sourceLabel": "Source",
+    "targetLabel": "Target ({{count}})",
+    "styleLabel": "Style",
+    "proficiencyLabel": "Proficiency",
+    "emoticonLabel": "Emoticons",
+    "currentConfig": "Current Configuration",
+    "translationSummary": "Translation Summary",
+    "timeLabel": "Time",
+    "closeButton": "Close",
+    "translationConfig": "Translation Configuration",
+    "translationConfigDesc": "Customize languages, styles and AI model for translation",
+    "translationHistory": "Translation History",
+    "translationResults": "Translations",
+    "translationResultsDesc": "Translation results will appear here...",
+    "loadedFromHistory": "Loaded from history",
+    "loadedFromHistoryDesc": "Loaded data from: {{title}}",
+    "preferenceConfig": "Preference Configuration",
+    "copyAll": "Copy all"
+  },
+  "settings": {
+    "title": "Configuration Settings",
+    "description": "Configure ChatGPT API and other settings",
+    "chatgptConfig": "ChatGPT Configuration", 
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Enter your ChatGPT API key...",
+    "serverUrl": "Server URL",
+    "serverUrlPlaceholder": "https://api.openai.com/v1",
+    "defaultModel": "Default Model",
+    "selectModel": "Select default model",
+    "testConnection": "Test Connection",
+    "testing": "Testing connection...",
+    "connectionSuccess": "Connection successful!",
+    "connectionError": "Connection failed. Please check your settings.",
+    "saveConfig": "Save Configuration",
+    "configSaved": "Configuration saved successfully!",
+    "language": "Language",
+    "selectLanguage": "Select language"
+  },
+  "models": {
+    "gpt-4": "GPT-4",
+    "gpt-4-turbo": "GPT-4 Turbo", 
+    "gpt-4o": "GPT-4o",
+    "gpt-4o-mini": "GPT-4o Mini",
+    "gpt-3.5-turbo": "GPT-3.5 Turbo"
+  },
+  "languages": {
+    "auto": "Auto Detect",
+    "en": "English",
+    "vi": "Vietnamese", 
+    "zh": "Chinese (Simplified)",
+    "zh-TW": "Chinese (Traditional)",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "th": "Thai",
+    "id": "Indonesian",
+    "ms": "Malay",
+    "tl": "Filipino",
+    "fr": "French",
+    "de": "German", 
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "ar": "Arabic",
+    "hi": "Hindi",
+    "bn": "Bengali",
+    "ur": "Urdu",
+    "tr": "Turkish",
+    "pl": "Polish",
+    "nl": "Dutch",
+    "sv": "Swedish",
+    "da": "Danish",
+    "no": "Norwegian",
+    "fi": "Finnish",
+    "he": "Hebrew"
+  },
+  "translationStyles": {
+    "natural": "Natural",
+    "formal": "Formal", 
+    "casual": "Casual",
+    "literal": "Literal",
+    "creative": "Creative",
+    "technical": "Technical",
+    "poetic": "Poetic", 
+    "commercial": "Commercial",
+    "academic": "Academic",
+    "news": "News"
+  },
+  "translationProficiencies": {
+    "beginner": "Beginner",
+    "elementary": "Elementary",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "native": "Native",
+    "child-friendly": "Child-friendly"
+  },
+  "emoticonOptions": {
+    "keep-original": "Keep Original",
+    "add-contextual": "Add Contextual",
+    "remove-all": "Remove All",
+    "localize": "Localize",
+    "enhance-emotional": "Enhance Emotional",
+    "minimal-subtle": "Minimal Subtle",
+    "youth-friendly": "Youth-friendly",
+    "professional-warm": "Professional Warm",
+    "kawaii-cute": "Kawaii Cute",
+    "text-emoticons": "Text Emoticons",
+    "gender-neutral": "Gender Neutral",
+    "seasonal-themed": "Seasonal Themed"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist",
+    "pathNotFound": "Path {{path}} was not found.",
+    "backHome": "Back to Home"
+  },
+  "prompts": {
+    "title": "Prompt Generation",
+    "description": "Generate detailed prompts or specialized prompts for Claude AI",
+    "generate": "Generate Prompt",
+    "generating": "Generating...",
+    "result": "Generated Prompt",
+    "detailedPrompt": {
+      "title": "Generate Detailed Prompt",
+      "description": "Enter a simple description, AI will generate a complete prompt in your chosen format",
+      "outputFormat": "Output Format:",
+      "plainText": "Plain Text",
+      "jsonPrompt": "JSON Prompt",
+      "plainTextDesc": "📝 Generate structured detailed prompt with guiding questions",
+      "jsonDesc": "📋 Generate JSON prompt with complete structure and required fields",
+      "inputLabel": "Brief description of the topic you want to create a prompt for:",
+      "inputPlaceholder": "Enter brief description...\n\nExamples:\n- explain pod in k8s in detail\n- write marketing email for new product\n- analyze monthly sales data\n- create JavaScript function for sorting array\n- explain machine learning for beginners",
+      "characterCount": "{{count}} characters",
+      "modelLabel": "AI Model",
+      "generateButton": "Generate {{format}} Prompt",
+      "generatingText": "Generating...",
+      "resultLabel": "Generated {{format}} Prompt:",
+      "resultDesc": "💡 This {{format}} can be used directly with AI systems or copy individual fields",
+      "resultDescPlain": "💡 This prompt can be used directly with ChatGPT or other AI"
+    },
+    "claudePrompt": {
+      "title": "Generate Prompt for Claude",
+      "description": "Enter your request, AI will generate an optimized prompt to send to Claude",
+      "inputLabel": "Request/Task you want Claude to perform:",
+      "inputPlaceholder": "Enter detailed request...\n\nExamples:\n- Write a Python function to process CSV data\n- Explain machine learning concepts for beginners\n- Create an HTML/CSS landing page for tech startup\n- Analyze and optimize JavaScript code snippet\n- Write professional email to customers",
+      "generateButton": "Generate Prompt for Claude",
+      "resultLabel": "Generated Prompt for Claude:",
+      "resultDesc": "🤖 This prompt is optimized for use with Claude AI. You can copy and paste it directly into Claude."
+    },
+    "todoTasks": {
+      "title": "Generate Todos & Tasks for AI Agent",
+      "description": "Enter a simple request, AI will convert it into specific todos and tasks that AI agents can execute automatically and efficiently",
+      "inputLabel": "Request/Task for AI Agent:",
+      "inputPlaceholder": "Enter task for AI agent to perform...\n\nExamples:\n- Analyze and improve React application performance\n- Automatically refactor code to follow best practices\n- Create complete test cases for API endpoints\n- Optimize database queries and indexes\n- Implement CI/CD pipeline with automated testing",
+      "generateButton": "Generate Todos & Tasks for AI Agent",
+      "generatingText": "Generating todos...",
+      "resultLabel": "Todos & Tasks List for AI Agent:",
+      "resultDesc": "🤖 This list includes todos and tasks optimized for AI agents. Each task is described in detail with clear instructions so AI can execute automatically and accurately."
+    },
+    "tabs": {
+      "detailed": "Detailed Prompt",
+      "claude": "Claude Prompt",
+      "todos": "AI Todos & Tasks"
+    },
+    "common": {
+      "copy": "Copy",
+      "apiKeyWarning": "API Key not configured",
+      "apiKeyWarningDesc": "Please go to Settings page to enter ChatGPT API Key before use.",
+      "copied": "Copied",
+      "copiedDesc": "Content has been copied to clipboard.",
+      "missingInfo": "Missing information",
+      "errorGenerating": "Error generating detailed prompt",
+      "errorGeneratingClaude": "Error generating Claude prompt",
+      "errorGeneratingTodo": "Error generating todos and tasks",
+      "unknownError": "Unknown error",
+      "successGenerated": "Detailed prompt has been generated",
+      "successGeneratedDesc": "Successfully generated {{format}} prompt from: \"{{input}}...\"",
+      "successGeneratedClaude": "Claude prompt has been generated",
+      "successGeneratedClaudeDesc": "Successfully generated Claude prompt from: \"{{input}}...\"",
+      "successGeneratedTodo": "Todos and Tasks have been generated",
+      "successGeneratedTodoDesc": "Successfully generated todos list from: \"{{input}}...\"",
+      "missingDetailedInput": "Please enter description to generate detailed prompt.",
+      "missingClaudeInput": "Please enter request to generate Claude prompt.",
+      "missingTodoInput": "Please enter request to generate todos and tasks."
+    },
+    "examples": {
+      "title": "Example Library",
+      "description": "3 detailed JSON prompt examples for common use cases",
+      "blogTitle": "Create Blog Content",
+      "blogDesc": "Prompt for creating professional blog posts with SEO optimization",
+      "blogUseCase": "Content Marketing, Blogging, SEO",
+      "codeTitle": "Code Analysis",
+      "codeDesc": "Prompt for reviewing and analyzing code with improvement suggestions",
+      "codeUseCase": "Code Review, Debugging, Best Practices",
+      "translationTitle": "Translation and Rewriting",
+      "translationDesc": "Prompt for professional translation and content rewriting",
+      "translationUseCase": "Translation, Content Adaptation, Localization",
+      "highlights": "Highlights:",
+      "goal": "Goal:",
+      "audience": "Audience:",
+      "format": "Format:",
+      "constraints": "Constraints:",
+      "constraintsCount": "{{count}} conditions",
+      "loadToForm": "Load to Form",
+      "copyJson": "Copied JSON!",
+      "copyJsonDesc": "JSON example has been copied to clipboard",
+      "copyError": "Copy error",
+      "copyErrorDesc": "Cannot copy to clipboard"
+    }
+  },
+  "capacity": {
+    "title": "DDL Capacity Analysis",
+    "description": "AI automatically calculates average and maximum record sizes, estimating total database capacity",
+    "workflowMode": {
+      "title": "Analysis Mode",
+      "description": "Choose the capacity analysis method that fits your needs",
+      "classic": {
+        "title": "Quick Analysis",
+        "description": "Single-step analysis, fast but may be less accurate"
+      },
+      "threeStep": {
+        "title": "3-Step Analysis",
+        "description": "Structure analysis → Edit → High-precision calculation"
+      }
+    },
+    "workflowProgress": {
+      "title": "3-Step Analysis Progress",
+      "steps": {
+        "ddlInput": "Input DDL",
+        "structureAnalysis": "Structure Analysis",
+        "finalCalculation": "Capacity Calculation"
+      },
+      "stepNumber": "Step {{number}}",
+      "restart": "Start Over"
+    },
+    "input": {
+      "title": "DDL Schema Information",
+      "description": "AI will automatically analyze and calculate average and maximum record sizes",
+      "databaseType": "Database Type",
+      "ddlSchema": "DDL Schema",
+      "ddlPlaceholder": "Enter DDL schema (CREATE TABLE statements)...",
+      "recordCount": "Expected Record Count",
+      "recordCountHelper": "{{count}} records",
+      "recordCountHint": "Hint: 1K = 1,000 | 1M = 1,000,000",
+      "recordCountWarningSmall": "⚠️ Very small record count may give inaccurate results",
+      "recordCountWarningLarge": "📊 Very large record count - analysis may take longer",
+      "analysisMethod": "Analysis Method",
+      "multiCall": "Multiple AI Calls",
+      "singleCall": "Single AI Call",
+      "multiCallDesc": "Detailed analysis with multiple separate AI calls (more accurate, takes more time)",
+      "singleCallDesc": "Quick analysis with single AI call (faster, less detailed)",
+      "multiCallNote": "🔄 Multi-call mode will automatically retry every 5 seconds until successful. The system will not stop until analysis is complete."
+    },
+    "progress": {
+      "title": "Analysis Progress",
+      "retryTitle": "Retrying (attempt {{count}})",
+      "retryBadge": "Retry",
+      "completed": "{{progress}}% complete",
+      "retryCount": "Retried {{count}} times",
+      "retryNote": "🔄 System is automatically retrying (every 5 seconds) until successful. Please be patient...",
+      "preparing": "Preparing...",
+      "singleCallStep": "Analyzing with single API call..."
+    },
+    "buttons": {
+      "analyze": "Analyze",
+      "analyzing": "Analyzing...",
+      "analyzeDetailed": "Detailed Analysis (Multiple AI Calls)",
+      "analyzeQuick": "Quick Analysis (Single AI Call)",
+      "analyzeStructure": "Analyze DDL Structure",
+      "analyzingStructure": "Analyzing structure...",
+      "calculateCapacity": "Calculate Accurate Capacity",
+      "calculating": "Calculating...",
+      "history": "History",
+      "showFieldDetails": "Show Field Details",
+      "hideFieldDetails": "Hide Field Details",
+      "showOverhead": "Show Overhead",
+      "hideOverhead": "Hide Overhead"
+    },
+    "threeStepWorkflow": {
+      "step1": {
+        "title": "Step 1: Input DDL Schema",
+        "description": "Enter DDL schema to start analyzing database structure"
+      },
+      "step2": {
+        "title": "Step 2: Review and Edit Structure",
+        "description": "AI has analyzed the DDL structure. You can review and edit before calculating capacity",
+        "summary": {
+          "tables": "Tables",
+          "fields": "Fields",
+          "confidence": "Confidence"
+        },
+        "fieldLabels": {
+          "averageSize": "Avg Size",
+          "maximumSize": "Max Size",
+          "nullable": "Nullable",
+          "primaryKey": "PK"
+        },
+        "warnings": "⚠️ Warnings",
+        "suggestions": "💡 Suggestions"
+      }
+    },
+    "errors": {
+      "missingDDL": "Please enter DDL schema.",
+      "invalidRecordCount": "Please enter a valid record count.",
+      "missingApiKey": "Please go to Settings to enter ChatGPT API Key.",
+      "invalidResult": "Invalid analysis result from AI",
+      "unknownError": "Unknown error",
+      "jsonFormatError": "AI returned incorrectly formatted result. System automatically retried every 5 seconds but still failed.",
+      "authError": "API authentication error. Please check API Key in Settings.",
+      "rateLimitError": "API rate limit exceeded. System will automatically retry every 5 seconds until successful.",
+      "timeoutError": "Connection timeout. System automatically retries every 5 seconds until successful.",
+      "networkError": "Network connection error. System will automatically retry every 5 seconds until successful.",
+      "serverError": "Server experiencing issues. System automatically retries every 5 seconds until successful.",
+      "temporaryError": "Temporary Error",
+      "analysisError": "Analysis Error",
+      "structureAnalysisError": "Structure Analysis Error",
+      "calculationError": "Calculation Error",
+      "noStructureAnalysis": "No Structure Analysis",
+      "noStructureAnalysisDesc": "Please analyze DDL structure first.",
+      "retryHint": "You can try again.",
+      "switchMethodHint": "If you still encounter errors, try switching to 'Single AI Call' to increase success rate.",
+      "switchMethodTitle": "Suggestion"
+    },
+    "success": {
+      "analysisComplete": "Analysis Complete",
+      "detailedAnalysisComplete": "Completed detailed analysis with multiple AI calls.",
+      "quickAnalysisComplete": "Finished calculating database capacity.",
+      "structureAnalysisComplete": "Structure Analysis Complete",
+      "structureAnalysisDesc": "Analyzed {{tableCount}} tables with {{fieldCount}} fields. You can review and edit before calculation.",
+      "calculationComplete": "Calculation Complete",
+      "threeStepComplete": "Completed 3-step capacity analysis with high precision.",
+      "loadedFromHistory": "Loaded from History",
+      "loadedFromHistoryDesc": "Loaded data from: {{title}}",
+      "copied": "Copied",
+      "copiedDesc": "{{format}} content has been copied to clipboard."
+    },
+    "results": {
+      "title": "Capacity Analysis Report",
+      "description": "Record size and total capacity estimation",
+      "recordSizeAnalysis": {
+        "title": "Record Size Analysis",
+        "averageSize": "Average Size",
+        "maximumSize": "Maximum Size"
+      },
+      "totalCapacity": {
+        "title": "Total Capacity Estimation ({{recordCount}} records)",
+        "averageCase": "Average Case",
+        "maximumCase": "Maximum Case"
+      },
+      "indexSize": {
+        "title": "Estimated Index Size"
+      },
+      "totalWithIndex": {
+        "title": "Total Capacity (including indexes)",
+        "averageCase": "Average Case",
+        "maximumCase": "Maximum Case"
+      },
+      "tableBreakdown": {
+        "title": "Table Breakdown",
+        "recordSizeAverage": "Average Record Size",
+        "recordSizeMaximum": "Maximum Record Size",
+        "capacityAverage": "Average Capacity",
+        "capacityMaximum": "Maximum Capacity",
+        "recordCount": "{{count}} records"
+      },
+      "overhead": {
+        "title": "Row Overhead Analysis",
+        "nullBitmap": "Null Bitmap",
+        "rowHeader": "Row Header",
+        "alignment": "Alignment",
+        "totalOverhead": "Total Overhead"
+      },
+      "fieldDetails": {
+        "title": "Field Details",
+        "averageSize": "Avg",
+        "maximumSize": "Max",
+        "overhead": "Overhead"
+      },
+      "recommendations": {
+        "title": "Optimization Recommendations"
+      },
+      "noResult": {
+        "title": "Enter DDL schema for AI automatic analysis",
+        "description": "System will calculate average and maximum record sizes, then estimate total database capacity"
+      },
+      "errorDisplay": {
+        "title": "Analysis Error"
+      }
+    },
+    "fieldAnalysisReport": {
+      "title": "Detailed Field Analysis Report",
+      "description": "Detailed capacity analysis, storage efficiency and optimization recommendations for each field",
+      "summary": {
+        "totalDataSize": "Total Data Size",
+        "totalOverhead": "Total Overhead",
+        "storageEfficiency": "Storage Efficiency"
+      },
+      "tableHeaders": {
+        "field": "Field",
+        "dataType": "Data Type",
+        "averageSize": "Average Size",
+        "maximumSize": "Maximum Size",
+        "overhead": "Overhead",
+        "overheadPercent": "% Overhead",
+        "nullable": "Nullable",
+        "assessment": "Assessment"
+      },
+      "badges": {
+        "highOverhead": "High Overhead",
+        "largeField": "Large Field",
+        "variableSize": "Variable Size"
+      },
+      "optimizationRecommendations": {
+        "title": "Field Optimization Recommendations",
+        "highOverheadRecommendation": "Field \"{{fieldName}}\" has high overhead ({{percent}}%). Consider optimizing data type.",
+        "largeSizeRecommendation": "Field \"{{fieldName}}\" has large size ({{size}}). Consider compression or separation.",
+        "variableSizeRecommendation": "Field \"{{fieldName}}\" has high size variation. Consider using VARCHAR instead of CHAR.",
+        "nullableFieldsRecommendation": "Table has many nullable fields ({{nullableCount}}/{{totalCount}}). Consider reordering columns to optimize null bitmap.",
+        "overheadFieldsRecommendation": "{{highOverheadCount}}/{{totalCount}} fields have high overhead. Consider reviewing data types and padding."
+      },
+      "storageNotes": {
+        "title": "Storage Notes"
+      },
+      "noFieldDetails": {
+        "title": "No Field Analysis Details",
+        "description": "To see detailed analysis for each field, use \"Multiple AI Calls\" method in configuration.",
+        "methodBenefit": "This method will provide detailed information about:",
+        "benefits": [
+          "Average and maximum size of each field",
+          "Overhead analysis and storage efficiency",
+          "Optimization recommendations for each field",
+          "Nullable and data type statistics"
+        ]
+      }
+    },
+    "export": {
+      "title": "Export Options",
+      "confluence": "Copy Confluence Wiki",
+      "summaryTable": "Copy Summary Table",
+      "fieldAnalysis": "Copy Field Analysis",
+      "detailedReport": "Copy Detailed Field Report",
+      "rawJson": "Copy Raw JSON",
+      "settings": {
+        "title": "Confluence Export Settings",
+        "includeFieldDetails": "Include Field Details",
+        "includeRecommendations": "Include Recommendations",
+        "includeOverheadAnalysis": "Include Overhead Analysis"
+      }
+    },
+    "history": {
+      "title": "Capacity Analysis History",
+      "description": "Review and reuse previous DDL capacity analyses",
+      "itemCount": "{{count}} items",
+      "searchPlaceholder": "Search in history...",
+      "filterAll": "All",
+      "sortNewest": "Newest",
+      "sortOldest": "Oldest",
+      "export": "Export",
+      "clearAll": "Clear All",
+      "noHistory": {
+        "title": "No capacity analysis history yet",
+        "description": "Perform DDL capacity analysis to start building history"
+      },
+      "noResults": {
+        "title": "No matching results found",
+        "description": "Try changing search keywords or filters"
+      },
+      "item": {
+        "reload": "Reload",
+        "ddlSchema": "DDL Schema:",
+        "averageSize": "Average Size",
+        "maximumSize": "Maximum Size",
+        "totalCapacityAverage": "Total Capacity Avg",
+        "totalCapacityMaximum": "Total Capacity Max",
+        "ddlLength": "DDL: {{length}} characters",
+        "tableCount": "{{count}} tables",
+        "fieldCount": "{{count}} fields",
+        "recordCount": "{{count}} records",
+        "multiCall": "Multiple AI Calls",
+        "singleCall": "Single AI Call"
+      }
+    }
+  }
+}
