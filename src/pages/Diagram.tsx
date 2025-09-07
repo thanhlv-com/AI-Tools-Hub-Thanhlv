@@ -15,6 +15,7 @@ import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
 import { DiagramRequest, DiagramResult, DiagramHistory as DiagramHistoryType } from "@/types/diagram";
+import { shouldAddStepIndexing } from "@/lib/diagramStepIndexing";
 import { 
   Shapes, 
   Play, 
@@ -32,7 +33,8 @@ import {
   Download,
   History,
   Lightbulb,
-  RefreshCw
+  RefreshCw,
+  Hash
 } from "lucide-react";
 
 const PAGE_ID = "diagram";
@@ -571,9 +573,17 @@ Ví dụ:
                   <Shapes className="w-5 h-5 text-green-500" />
                   <span>Kết quả sơ đồ</span>
                   {diagramResult && !diagramResult.error && (
-                    <Badge variant="outline" className="text-xs">
-                      {diagramResult.diagramCode.length} ký tự
-                    </Badge>
+                    <>
+                      <Badge variant="outline" className="text-xs">
+                        {diagramResult.diagramCode.length} ký tự
+                      </Badge>
+                      {shouldAddStepIndexing(diagramType) && (
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
+                          <Hash className="w-3 h-3 mr-1" />
+                          Bước được đánh số
+                        </Badge>
+                      )}
+                    </>
                   )}
                 </CardTitle>
                 {diagramResult && !diagramResult.error && (

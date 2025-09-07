@@ -4,6 +4,7 @@ import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/type
 import { DiagramRequest, DiagramResult } from "@/types/diagram";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS } from "@/data/translation";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
+import { addStepIndexing } from "./diagramStepIndexing";
 
 export interface ChatGPTMessage {
   role: "system" | "user" | "assistant";
@@ -1742,11 +1743,14 @@ Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung b�
         throw new Error("AI không trả về code sơ đồ hợp lệ");
       }
 
+      // Add step-by-step indexing for step-ordered diagrams
+      const indexedDiagramCode = addStepIndexing(diagramCode, diagramType, outputFormat);
+
       const result: DiagramResult = {
-        diagramCode,
+        diagramCode: indexedDiagramCode,
         metadata: {
           processingTime,
-          codeLength: diagramCode.length
+          codeLength: indexedDiagramCode.length
         }
       };
 
