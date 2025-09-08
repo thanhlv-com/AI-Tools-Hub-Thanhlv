@@ -20,8 +20,12 @@ export function LanguageSwitcher() {
   
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
-  const handleLanguageChange = (langCode: string) => {
-    changeLanguage(langCode);
+  const handleLanguageChange = async (langCode: string) => {
+    try {
+      await changeLanguage(langCode);
+    } catch (error) {
+      console.error('Error changing language:', error);
+    }
   };
 
   return (

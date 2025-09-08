@@ -102,9 +102,11 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [diagramHistory, setDiagramHistory] = useState<DiagramHistory[]>([]);
   const [pageModels, setPageModels] = useState<{ [pageId: string]: string }>({});
 
-  const changeLanguage = (language: string) => {
+  const changeLanguage = async (language: string) => {
     i18n.changeLanguage(language);
-    updateConfig({ language });
+    const updatedConfig = { ...config, language };
+    setConfig(updatedConfig);
+    await saveConfig(updatedConfig);
   };
 
   const loadConfig = async () => {
