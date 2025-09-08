@@ -1,4 +1,4 @@
-import { Language, TranslationStyle, TranslationProficiency, EmoticonOption } from "@/types/translation";
+import { Language, TranslationStyle, TranslationProficiency, EmoticonOption, EmoticonFrequency } from "@/types/translation";
 
 export const LANGUAGES: Language[] = [
   { code: "auto", name: "Tự động phát hiện", nativeName: "Auto-detect", flag: "🌐" },
@@ -185,6 +185,73 @@ export const EMOTICON_OPTIONS: EmoticonOption[] = [
     description: "Thêm emoticon/emoji phù hợp với mùa hiện tại hoặc dịp lễ đặc biệt",
     icon: "🌸",
     prompt: "Add emoticons and emojis that match the current season, holidays, or special occasions mentioned in or relevant to the text."
+  }
+];
+
+export const EMOTICON_FREQUENCIES: EmoticonFrequency[] = [
+  {
+    id: "never",
+    name: "Không bao giờ",
+    description: "Không thêm emoticon/emoji mới. Chỉ giữ nguyên những gì có sẵn từ văn bản gốc.",
+    icon: "🚫",
+    level: "0%",
+    prompt: "Không thêm bất kỳ biểu tượng cảm xúc hoặc emoji nào vào bản dịch. Chỉ giữ lại những biểu tượng hiện có từ văn bản gốc."
+  },
+  {
+    id: "very-rare",
+    name: "Rất hiếm",
+    description: "Chỉ thêm emoticon/emoji khi thực sự cần thiết để làm rõ nghĩa hoặc tránh hiểu lầm.",
+    icon: "⚪",
+    level: "5-10%",
+    prompt: "Chỉ thêm biểu tượng cảm xúc hoặc emoji khi thực sự cần thiết để làm rõ nội dung hoặc tránh hiểu lầm. Tối đa 1 biểu tượng cảm xúc cho mỗi đoạn văn."
+  },
+  {
+    id: "rare",
+    name: "Hiếm",
+    description: "Thêm emoticon/emoji một cách tiết chế, chỉ trong những trường hợp quan trọng nhất.",
+    icon: "🔵",
+    level: "10-20%",
+    prompt: "Thêm biểu tượng cảm xúc một cách thận trọng và hiếm khi, chỉ tập trung vào những khoảnh khắc hoặc khái niệm cảm xúc quan trọng nhất. Khoảng 1 biểu tượng cho mỗi 2-3 câu."
+  },
+  {
+    id: "occasional",
+    name: "Thỉnh thoảng",
+    description: "Thêm emoticon/emoji thỉnh thoảng để làm cho văn bản sinh động hơn nhưng vẫn giữ tính chuyên nghiệp.",
+    icon: "🟡",
+    level: "20-35%",
+    prompt: "Thỉnh thoảng thêm biểu tượng cảm xúc hoặc emoji phù hợp với ngữ cảnh để tăng cường biểu cảm mà vẫn giữ được tính chuyên nghiệp. Khoảng 1 biểu tượng cho mỗi câu khi phù hợp."
+  },
+  {
+    id: "moderate",
+    name: "Vừa phải",
+    description: "Cân bằng giữa việc thêm emoticon/emoji và giữ văn bản tự nhiên. Mức độ trung bình.",
+    icon: "🟠",
+    level: "35-50%",
+    prompt: "Sử dụng một lượng vừa phải các biểu tượng cảm xúc và emoji để làm cho văn bản trở nên biểu cảm và hấp dẫn nhưng vẫn tự nhiên và dễ đọc."
+  },
+  {
+    id: "frequent",
+    name: "Thường xuyên",
+    description: "Thêm emoticon/emoji khá thường xuyên để tạo ra văn bản sinh động và thân thiện.",
+    icon: "🟢",
+    level: "50-70%",
+    prompt: "Thường xuyên thêm biểu tượng cảm xúc và emoji để tạo nên văn bản sống động, thân thiện, ấm áp và dễ tiếp cận. Có thể thêm nhiều biểu tượng cảm xúc cho mỗi câu nếu thấy phù hợp."
+  },
+  {
+    id: "very-frequent",
+    name: "Rất thường xuyên",
+    description: "Sử dụng emoticon/emoji nhiều để tạo ra văn bản rất sinh động và cảm xúc phong phú.",
+    icon: "🔴",
+    level: "70-85%",
+    prompt: "Sử dụng biểu tượng cảm xúc và emoji thường xuyên để tạo ra văn bản giàu cảm xúc và giàu sức biểu cảm. Hãy đưa chúng vào hầu hết các cụm từ và khái niệm."
+  },
+  {
+    id: "maximum",
+    name: "Tối đa",
+    description: "Thêm emoticon/emoji bất cứ khi nào có thể để đạt được sự sinh động và cảm xúc tối đa.",
+    icon: "🌈",
+    level: "85-100%",
+    prompt: "Tận dụng tối đa việc sử dụng biểu tượng cảm xúc và emoji bất cứ khi nào có thể để tạo ra văn bản sống động, giàu cảm xúc và lôi cuốn. Sử dụng nhiều emoji cho mỗi khái niệm khi thích hợp."
   }
 ];
 

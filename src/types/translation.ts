@@ -30,6 +30,15 @@ export interface EmoticonOption {
   prompt: string;
 }
 
+export interface EmoticonFrequency {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  level: string;
+  prompt: string;
+}
+
 export interface TranslationRequest {
   text: string;
   sourceLanguage: string;
@@ -37,6 +46,7 @@ export interface TranslationRequest {
   style: string;
   proficiency?: string;
   emoticonOption?: string;
+  emoticonFrequency?: string;
   model?: string;
 }
 
@@ -47,6 +57,7 @@ export interface MultiTranslationRequest {
   style: string;
   proficiency?: string;
   emoticonOption?: string;
+  emoticonFrequency?: string;
   model?: string;
 }
 
@@ -88,6 +99,7 @@ export interface TranslationHistory {
   style: string;
   proficiency?: string;
   emoticonOption?: string;
+  emoticonFrequency?: string;
   model: string;
   metadata?: {
     sourceLength: number;
@@ -106,6 +118,7 @@ export interface TranslationPreference {
   style: string;
   proficiency?: string;
   emoticonOption?: string;
+  emoticonFrequency?: string;
   model?: string;
   timestamp: number;
 }

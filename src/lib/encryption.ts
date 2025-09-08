@@ -10,8 +10,6 @@ const ENCRYPTION_SECRET = 'ddl-tool-encryption-key-2025';
 async function generateEncryptionKey(): Promise<CryptoKey> {
   // Create a fingerprint from browser characteristics
   const fingerprint = [
-    navigator.userAgent,
-    navigator.language,
     new Date().getTimezoneOffset().toString(),
     ENCRYPTION_SECRET
   ].join('|');

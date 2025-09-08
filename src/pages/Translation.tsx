@@ -14,7 +14,7 @@ import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { TranslationHistory } from "@/components/TranslationHistory";
 import { TranslationPreferences } from "@/components/TranslationPreferences";
-import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS } from "@/data/translation";
+import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS, EMOTICON_FREQUENCIES } from "@/data/translation";
 import { MultiTranslationRequest, MultiTranslationResult, TranslationHistory as TranslationHistoryType, TranslationPreference } from "@/types/translation";
 import { 
   Languages, 
@@ -61,6 +61,13 @@ const getLocalizedEmoticonName = (emoticonId: string, t: (key: string) => string
   // Fallback to original name if translation doesn't exist
   const emoticon = EMOTICON_OPTIONS.find(e => e.id === emoticonId);
   return translatedName !== `emoticonOptions.${emoticonId}` ? translatedName : emoticon?.name || emoticonId;
+};
+
+const getLocalizedEmoticonFrequencyName = (frequencyId: string, t: (key: string) => string) => {
+  const translatedName = t(`emoticonFrequencies.${frequencyId}`);
+  // Fallback to original name if translation doesn't exist
+  const frequency = EMOTICON_FREQUENCIES.find(f => f.id === frequencyId);
+  return translatedName !== `emoticonFrequencies.${frequencyId}` ? translatedName : frequency?.name || frequencyId;
 };
 
 // Note: Options are now created dynamically inside the component with i18n support
@@ -129,6 +136,20 @@ export default function Translation() {
     searchText: `${getLocalizedEmoticonName(option.id, t)} ${option.description}`
   }));
 
+  const emoticonFrequencyOptions: SearchableSelectOption[] = EMOTICON_FREQUENCIES.map(frequency => ({
+    value: frequency.id,
+    label: (
+      <div className="flex items-center space-x-2">
+        <span>{frequency.icon}</span>
+        <span className="truncate">{getLocalizedEmoticonFrequencyName(frequency.id, t)}</span>
+        <Badge variant="outline" className="text-xs ml-1">
+          {frequency.level}
+        </Badge>
+      </div>
+    ),
+    searchText: `${getLocalizedEmoticonFrequencyName(frequency.id, t)} ${frequency.description} ${frequency.level}`
+  }));
+
   // Session-persisted state
   const [sourceText, setSourceText] = useFieldSession(PAGE_ID, "sourceText", "");
   const [sourceLanguage, setSourceLanguage] = useFieldSession(PAGE_ID, "sourceLanguage", "auto");
@@ -136,6 +157,7 @@ export default function Translation() {
   const [translationStyle, setTranslationStyle] = useFieldSession(PAGE_ID, "translationStyle", "natural");
   const [translationProficiency, setTranslationProficiency] = useFieldSession(PAGE_ID, "translationProficiency", "intermediate");
   const [emoticonOption, setEmoticonOption] = useFieldSession(PAGE_ID, "emoticonOption", "keep-original");
+  const [emoticonFrequency, setEmoticonFrequency] = useFieldSession(PAGE_ID, "emoticonFrequency", "moderate");
   const [translationResults, setTranslationResults] = useFieldSession(PAGE_ID, "translationResults", []);
   
   // Temporary state (not persisted)
@@ -215,6 +237,7 @@ export default function Translation() {
         style: translationStyle,
         proficiency: translationProficiency,
         emoticonOption,
+        emoticonFrequency,
         model: pageModel || undefined
       };
       
@@ -242,6 +265,7 @@ export default function Translation() {
         style: translationStyle,
         proficiency: translationProficiency,
         emoticonOption,
+        emoticonFrequency,
         model: modelToUse
       });
       
@@ -320,6 +344,7 @@ export default function Translation() {
         style: translationStyle,
         proficiency: translationProficiency,
         emoticonOption,
+        emoticonFrequency,
         model: pageModel || undefined
       };
 
@@ -380,6 +405,9 @@ export default function Translation() {
     if (historyItem.emoticonOption) {
       setEmoticonOption(historyItem.emoticonOption);
     }
+    if (historyItem.emoticonFrequency) {
+      setEmoticonFrequency(historyItem.emoticonFrequency);
+    }
     
     // Recreate translation results from history
     const results: MultiTranslationResult[] = historyItem.targetLanguages.map(langCode => ({
@@ -404,6 +432,9 @@ export default function Translation() {
     setTranslationStyle(preference.style);
     if (preference.emoticonOption) {
       setEmoticonOption(preference.emoticonOption);
+    }
+    if (preference.emoticonFrequency) {
+      setEmoticonFrequency(preference.emoticonFrequency);
     }
     
     // Clear current results since we're changing settings
@@ -477,9 +508,18 @@ export default function Translation() {
     };
   };
 
+  const getEmoticonFrequencyInfo = (id: string) => {
+    const frequency = EMOTICON_FREQUENCIES.find(frequency => frequency.id === id) || EMOTICON_FREQUENCIES[4]; // default to moderate
+    return {
+      ...frequency,
+      name: getLocalizedEmoticonFrequencyName(id, t)
+    };
+  };
+
   const currentStyle = getStyleInfo(translationStyle);
   const currentProficiency = getProficiencyInfo(translationProficiency);
   const currentEmoticonOption = getEmoticonInfo(emoticonOption);
+  const currentEmoticonFrequency = getEmoticonFrequencyInfo(emoticonFrequency);
 
   return (
     <div className="relative">
@@ -658,6 +698,29 @@ export default function Translation() {
                       <span className="font-medium">{currentEmoticonOption.name}</span>
                     </div>
                     <span>{currentEmoticonOption.description}</span>
+                  </div>
+                </div>
+
+                {/* Emoticon Frequency */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Tần suất Emoticon</Label>
+                  <SearchableSelect
+                    value={emoticonFrequency}
+                    onValueChange={setEmoticonFrequency}
+                    options={emoticonFrequencyOptions}
+                    placeholder="Chọn tần suất emoticon"
+                    searchPlaceholder={t('common.search')}
+                    className="h-9"
+                  />
+                  <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span>{currentEmoticonFrequency.icon}</span>
+                      <span className="font-medium">{currentEmoticonFrequency.name}</span>
+                      <Badge variant="secondary" className="text-xs ml-1">
+                        {currentEmoticonFrequency.level}
+                      </Badge>
+                    </div>
+                    <span>{currentEmoticonFrequency.description}</span>
                   </div>
                 </div>
               </div>
@@ -1031,6 +1094,7 @@ ${t('translation.examples')}:
                   targetLanguages,
                   style: translationStyle,
                   emoticonOption,
+                  emoticonFrequency,
                   model: getPageModel(PAGE_ID) || undefined
                 }}
                 className="h-full"

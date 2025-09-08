@@ -2,7 +2,7 @@ import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
 import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/types/capacity";
 import { DiagramRequest, DiagramResult } from "@/types/diagram";
-import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS } from "@/data/translation";
+import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS, EMOTICON_FREQUENCIES } from "@/data/translation";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
 import { addStepIndexing } from "./diagramStepIndexing";
 
@@ -355,13 +355,14 @@ Hãy tạo migration script để chuyển đổi từ DDL hiện tại sang DDL
   }
 
   async translateText(request: TranslationRequest): Promise<string> {
-    const { text, sourceLanguage, targetLanguage, style, proficiency, emoticonOption, model } = request;
+    const { text, sourceLanguage, targetLanguage, style, proficiency, emoticonOption, emoticonFrequency, model } = request;
     
     const sourceLang = LANGUAGES.find(lang => lang.code === sourceLanguage);
     const targetLang = LANGUAGES.find(lang => lang.code === targetLanguage);
     const translationStyle = TRANSLATION_STYLES.find(s => s.id === style);
     const translationProficiency = proficiency ? TRANSLATION_PROFICIENCIES.find(p => p.id === proficiency) : null;
     const emoticonPreference = emoticonOption ? EMOTICON_OPTIONS.find(e => e.id === emoticonOption) : null;
+    const emoticonFrequencyPreference = emoticonFrequency ? EMOTICON_FREQUENCIES.find(f => f.id === emoticonFrequency) : null;
     
     if (!sourceLang || !targetLang || !translationStyle) {
       throw new Error("Invalid language or style selection");
@@ -377,7 +378,9 @@ Yêu cầu dịch thuật:
 - Trình độ đầu ra: ${translationProficiency.name} (${translationProficiency.level})
 - Mô tả trình độ: ${translationProficiency.description}` : ''}${emoticonPreference ? `
 - Xử lý Emoticon/Emoji: ${emoticonPreference.name}
-- Mô tả xử lý emoticon: ${emoticonPreference.description}` : ''}
+- Mô tả xử lý emoticon: ${emoticonPreference.description}` : ''}${emoticonFrequencyPreference ? `
+- Tần suất Emoticon: ${emoticonFrequencyPreference.name} (${emoticonFrequencyPreference.level})
+- Mô tả tần suất sử dụng Emoticon : ${emoticonFrequencyPreference.description}` : ''}
 
 Hướng dẫn chi tiết về phong cách:
 ${translationStyle.prompt}${translationProficiency ? `
@@ -386,7 +389,10 @@ Hướng dẫn chi tiết về trình độ đầu ra:
 ${translationProficiency.prompt}` : ''}${emoticonPreference ? `
 
 Hướng dẫn chi tiết về xử lý emoticon/emoji:
-${emoticonPreference.prompt}` : ''}
+${emoticonPreference.prompt}` : ''}${emoticonFrequencyPreference ? `
+
+Hướng dẫn chi tiết về tần suất emoticon/emoji:
+${emoticonFrequencyPreference.prompt}` : ''}
 
 Lưu ý quan trọng:
 - Chỉ trả về bản dịch cuối cùng, không thêm giải thích
@@ -395,7 +401,8 @@ Lưu ý quan trọng:
 - Đảm bảo bản dịch phù hợp với văn hóa của ngôn ngữ đích
 - Nếu ngôn ngữ nguồn là "auto", hãy tự động phát hiện ngôn ngữ${translationProficiency ? `
 - Điều chỉnh độ phức tạp của ngôn ngữ theo trình độ đã chọn: ${translationProficiency.name}` : ''}${emoticonPreference ? `
-- Xử lý emoticon/emoji theo hướng dẫn: ${emoticonPreference.name}` : ''}`;  
+- Xử lý emoticon/emoji theo hướng dẫn: ${emoticonPreference.name}` : ''}${emoticonFrequencyPreference ? `
+- Áp dụng tần suất emoticon/emoji: ${emoticonFrequencyPreference.name} (${emoticonFrequencyPreference.level})` : ''}`;  
 
     const userPrompt = `Hãy dịch văn bản sau:
 
@@ -410,7 +417,7 @@ ${text}`;
   }
 
   async translateToMultipleLanguages(request: MultiTranslationRequest): Promise<MultiTranslationResult[]> {
-    const { text, sourceLanguage, targetLanguages, style, proficiency, emoticonOption, model } = request;
+    const { text, sourceLanguage, targetLanguages, style, proficiency, emoticonOption, emoticonFrequency, model } = request;
     
     const sourceLang = LANGUAGES.find(lang => lang.code === sourceLanguage);
     const translationStyle = TRANSLATION_STYLES.find(s => s.id === style);
@@ -438,6 +445,7 @@ ${text}`;
           style,
           proficiency,
           emoticonOption,
+          emoticonFrequency,
           model
         };
 
