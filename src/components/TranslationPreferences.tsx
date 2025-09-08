@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,7 @@ const emoticonOptions: SearchableSelectOption[] = EMOTICON_OPTIONS.map(option =>
 }));
 
 export function TranslationPreferences({ onApplyPreference, currentSettings, className = "" }: TranslationPreferencesProps) {
+  const { t } = useTranslation();
   const { translationPreferences, addTranslationPreference, updateTranslationPreference, removeTranslationPreference, getPageModel } = useConfig();
   const { toast } = useToast();
   
@@ -125,8 +127,8 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
   const handleCreatePreference = () => {
     if (!newPreference.name.trim()) {
       toast({
-        title: "Tên không được để trống",
-        description: "Vui lòng nhập tên cho cấu hình.",
+        title: t('translationPreferences.nameRequired'),
+        description: t('translationPreferences.nameRequiredDesc'),
         variant: "destructive"
       });
       return;
@@ -155,13 +157,13 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
       setIsCreating(false);
 
       toast({
-        title: "Đã lưu cấu hình",
-        description: `Cấu hình "${newPreference.name}" đã được lưu thành công.`,
+        title: t('translationPreferences.configurationSaved'),
+        description: t('translationPreferences.configurationSavedDesc', { name: newPreference.name }),
       });
     } catch (error) {
       toast({
-        title: "Lỗi lưu cấu hình",
-        description: "Không thể lưu cấu hình. Vui lòng thử lại.",
+        title: t('translationPreferences.saveError'),
+        description: t('translationPreferences.saveErrorDesc'),
         variant: "destructive"
       });
     }
@@ -172,8 +174,8 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
 
     const timestamp = new Date().toLocaleString("vi-VN");
     setNewPreference({
-      name: `Cấu hình ${timestamp}`,
-      description: "Tự động lưu từ cài đặt hiện tại",
+      name: t('translationPreferences.autoSaveTimestamp', { timestamp }),
+      description: t('translationPreferences.autoSaveDesc'),
       sourceLanguage: currentSettings.sourceLanguage,
       targetLanguages: currentSettings.targetLanguages,
       style: currentSettings.style,
@@ -187,8 +189,8 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
     if (onApplyPreference) {
       onApplyPreference(preference);
       toast({
-        title: "Đã áp dụng cấu hình",
-        description: `Cấu hình "${preference.name}" đã được áp dụng.`,
+        title: t('translationPreferences.configurationApplied'),
+        description: t('translationPreferences.configurationAppliedDesc', { name: preference.name }),
       });
     }
   };
@@ -197,8 +199,8 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
     const preference = translationPreferences[id];
     removeTranslationPreference(id);
     toast({
-      title: "Đã xóa cấu hình",
-      description: `Cấu hình "${preference?.name}" đã được xóa.`,
+      title: t('translationPreferences.configurationDeleted'),
+      description: t('translationPreferences.configurationDeletedDesc', { name: preference?.name }),
     });
   };
 
@@ -234,14 +236,14 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-3">
             <Settings className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold">Cấu hình ưa thích</h2>
+            <h2 className="text-xl font-semibold">{t('translationPreferences.title')}</h2>
           </div>
           <Badge variant="secondary" className="px-3 py-1">
-            {preferences.length} cấu hình
+            {t('translationPreferences.itemCount', { count: preferences.length })}
           </Badge>
         </div>
         <p className="text-muted-foreground mb-4">
-          Lưu và quản lý các cấu hình dịch thuật thường dùng của bạn
+          {t('translationPreferences.description')}
         </p>
         
         <div className="flex gap-2">
@@ -251,7 +253,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
             disabled={isCreating}
           >
             <Plus className="w-4 h-4" />
-            <span>Tạo mới</span>
+            <span>{t('translationPreferences.createNew')}</span>
           </Button>
           {currentSettings && (
             <Button 
@@ -260,7 +262,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
               className="flex items-center space-x-2"
             >
               <Save className="w-4 h-4" />
-              <span>Lưu hiện tại</span>
+              <span>{t('translationPreferences.saveFromCurrent')}</span>
             </Button>
           )}
         </div>
@@ -278,7 +280,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                   <CardTitle className="flex items-center justify-between">
                     <span className="flex items-center space-x-2">
                       <Plus className="w-5 h-5" />
-                      <span>Tạo cấu hình mới</span>
+                      <span>{t('translationPreferences.createNewPreference')}</span>
                     </span>
                     <Button
                       variant="ghost"
@@ -293,21 +295,21 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="pref-name">Tên cấu hình *</Label>
+                      <Label htmlFor="pref-name">{t('translationPreferences.preferenceNameLabel')}</Label>
                       <Input
                         id="pref-name"
                         value={newPreference.name}
                         onChange={(e) => setNewPreference(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Ví dụ: Dịch kỹ thuật EN→VI"
+                        placeholder={t('translationPreferences.preferenceNamePlaceholder')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="pref-desc">Mô tả</Label>
+                      <Label htmlFor="pref-desc">{t('translationPreferences.preferenceDescLabel')}</Label>
                       <Input
                         id="pref-desc"
                         value={newPreference.description}
                         onChange={(e) => setNewPreference(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Mô tả ngắn gọn về cấu hình"
+                        placeholder={t('translationPreferences.preferenceDescPlaceholder')}
                       />
                     </div>
                   </div>
@@ -317,25 +319,25 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                     <div className="space-y-4">
                       <h4 className="font-medium flex items-center space-x-2">
                         <Globe className="w-4 h-4" />
-                        <span>Ngôn ngữ</span>
+                        <span>{t('translationPreferences.languageSettings')}</span>
                       </h4>
                       
                       {/* Source Language */}
                       <div className="space-y-2">
-                        <Label>Ngôn ngữ nguồn</Label>
+                        <Label>{t('translationPreferences.sourceLanguageLabel')}</Label>
                         <SearchableSelect
                           value={newPreference.sourceLanguage}
                           onValueChange={(value) => setNewPreference(prev => ({ ...prev, sourceLanguage: value }))}
                           options={languageOptions}
-                          placeholder="Chọn ngôn ngữ nguồn..."
-                          searchPlaceholder="Tìm kiếm ngôn ngữ..."
+                          placeholder={t('translationPreferences.sourceLanguagePlaceholder')}
+                          searchPlaceholder={t('common.search')}
                         />
                       </div>
 
                       {/* Target Languages */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Label>Ngôn ngữ đích ({newPreference.targetLanguages.length})</Label>
+                          <Label>{t('translationPreferences.targetLanguagesLabel', { count: newPreference.targetLanguages.length })}</Label>
                           <Button
                             variant="outline"
                             size="sm"
@@ -359,8 +361,8 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                                   targetLanguages: updateTargetLanguage(prev.targetLanguages, index, value) 
                                 }))}
                                 options={targetLanguageOptions}
-                                placeholder="Chọn ngôn ngữ..."
-                                searchPlaceholder="Tìm kiếm..."
+                                placeholder={t('translationPreferences.targetLanguagePlaceholder')}
+                                searchPlaceholder={t('common.search')}
                                 className="flex-1"
                               />
                               <Button
@@ -384,36 +386,36 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                     <div className="space-y-4">
                       <h4 className="font-medium flex items-center space-x-2">
                         <Wand2 className="w-4 h-4" />
-                        <span>Cấu hình AI</span>
+                        <span>{t('translationPreferences.aiSettings')}</span>
                       </h4>
 
                       {/* Translation Style */}
                       <div className="space-y-2">
-                        <Label>Phong cách dịch</Label>
+                        <Label>{t('translationPreferences.translationStyleLabel')}</Label>
                         <SearchableSelect
                           value={newPreference.style}
                           onValueChange={(value) => setNewPreference(prev => ({ ...prev, style: value }))}
                           options={styleOptions}
-                          placeholder="Chọn phong cách dịch..."
-                          searchPlaceholder="Tìm kiếm phong cách..."
+                          placeholder={t('translationPreferences.translationStylePlaceholder')}
+                          searchPlaceholder={t('common.search')}
                         />
                       </div>
 
                       {/* Emoticon Options */}
                       <div className="space-y-2">
-                        <Label>Xử lý Emoticon</Label>
+                        <Label>{t('translationPreferences.emoticonProcessingLabel')}</Label>
                         <SearchableSelect
                           value={newPreference.emoticonOption}
                           onValueChange={(value) => setNewPreference(prev => ({ ...prev, emoticonOption: value }))}
                           options={emoticonOptions}
-                          placeholder="Chọn xử lý emoticon..."
-                          searchPlaceholder="Tìm kiếm..."
+                          placeholder={t('translationPreferences.emoticonProcessingPlaceholder')}
+                          searchPlaceholder={t('common.search')}
                         />
                       </div>
 
                       {/* Model Selection */}
                       <div className="space-y-2">
-                        <Label>Model (tuỳ chọn)</Label>
+                        <Label>{t('translationPreferences.modelLabel')}</Label>
                         <ModelSelector 
                           pageId={PAGE_ID}
                           label=""
@@ -430,14 +432,14 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                       variant="outline"
                       onClick={() => setIsCreating(false)}
                     >
-                      Hủy
+                      {t('translationPreferences.cancel')}
                     </Button>
                     <Button
                       onClick={handleCreatePreference}
                       disabled={!newPreference.name.trim()}
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      Lưu cấu hình
+                      {t('translationPreferences.saveConfiguration')}
                     </Button>
                   </div>
                 </CardContent>
@@ -448,8 +450,8 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
             {preferences.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">Chưa có cấu hình nào</p>
-                <p className="text-sm">Tạo cấu hình đầu tiên để bắt đầu sử dụng</p>
+                <p className="text-lg font-medium mb-2">{t('translationPreferences.noConfigurations')}</p>
+                <p className="text-sm">{t('translationPreferences.noConfigurationsDesc')}</p>
               </div>
             ) : (
               preferences.map((preference) => {
@@ -481,7 +483,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                           
                           <div className="flex items-center flex-wrap gap-2 text-sm">
                             <Badge variant="outline" className="text-xs">
-                              {sourceInfo.flag} {sourceInfo.name} → {preference.targetLanguages.length} ngôn ngữ
+                              {sourceInfo.flag} {sourceInfo.name} → {preference.targetLanguages.length} {t('translation.targetLanguages')}
                             </Badge>
                             <Badge variant="outline" className="text-xs">
                               {styleInfo.icon} {styleInfo.name}
@@ -505,7 +507,7 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                             className="h-8 px-3"
                           >
                             <Star className="w-4 h-4 mr-1" />
-                            Áp dụng
+                            {t('translationPreferences.apply')}
                           </Button>
                           <Button
                             variant="ghost"
@@ -525,15 +527,15 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                             <div>
                               <h5 className="font-medium mb-2 flex items-center space-x-1">
                                 <Globe className="w-4 h-4" />
-                                <span>Chi tiết ngôn ngữ</span>
+                                <span>{t('translationPreferences.languageDetails')}</span>
                               </h5>
                               <div className="space-y-2 pl-5">
                                 <div>
-                                  <span className="text-muted-foreground">Nguồn: </span>
+                                  <span className="text-muted-foreground">{t('translationPreferences.sourceDetail')}</span>
                                   <span>{sourceInfo.flag} {sourceInfo.name}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">Đích: </span>
+                                  <span className="text-muted-foreground">{t('translationPreferences.targetDetail')}</span>
                                   <div className="flex flex-wrap gap-1 mt-1">
                                     {preference.targetLanguages.map((code) => {
                                       const langInfo = getLanguageInfo(code);
@@ -550,23 +552,23 @@ export function TranslationPreferences({ onApplyPreference, currentSettings, cla
                             <div>
                               <h5 className="font-medium mb-2 flex items-center space-x-1">
                                 <Wand2 className="w-4 h-4" />
-                                <span>Cấu hình AI</span>
+                                <span>{t('translationPreferences.aiConfig')}</span>
                               </h5>
                               <div className="space-y-2 pl-5">
                                 <div>
-                                  <span className="text-muted-foreground">Phong cách: </span>
+                                  <span className="text-muted-foreground">{t('translationPreferences.styleDetail')}</span>
                                   <span>{styleInfo.icon} {styleInfo.name}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">Emoticon: </span>
+                                  <span className="text-muted-foreground">{t('translationPreferences.emoticonDetail')}</span>
                                   <span>{emoticonInfo.icon} {emoticonInfo.name}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">Model: </span>
-                                  <span>{preference.model || "Mặc định"}</span>
+                                  <span className="text-muted-foreground">{t('translationPreferences.modelDetail')}</span>
+                                  <span>{preference.model || t('translationPreferences.defaultModel')}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">Tạo: </span>
+                                  <span className="text-muted-foreground">{t('translationPreferences.createdDetail')}</span>
                                   <span>{new Date(preference.timestamp).toLocaleString("vi-VN")}</span>
                                 </div>
                               </div>

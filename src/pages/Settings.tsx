@@ -306,16 +306,16 @@ export default function Settings() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Zap className="w-5 h-5 text-primary" />
-            <span>Tham số Model</span>
+            <span>{t('settingsHardcoded.modelParameters')}</span>
           </CardTitle>
           <CardDescription>
-            Điều chỉnh các tham số để tối ưu hóa kết quả phân tích DDL
+            {t('settingsHardcoded.modelParametersDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="maxTokens">Max Tokens</Label>
+              <Label htmlFor="maxTokens">{t('settingsHardcoded.maxTokens')}</Label>
               <Input
                 id="maxTokens"
                 type="number"
@@ -325,10 +325,10 @@ export default function Settings() {
                 max="8000"
                 className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
-              <p className="text-xs text-muted-foreground">Số token tối đa cho response</p>
+              <p className="text-xs text-muted-foreground">{t('settingsHardcoded.maxTokensDesc')}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="temperature">Temperature</Label>
+              <Label htmlFor="temperature">{t('settingsHardcoded.temperature')}</Label>
               <Input
                 id="temperature"
                 type="number"
@@ -339,7 +339,7 @@ export default function Settings() {
                 onChange={(e) => handleLocalConfigUpdate({ temperature: e.target.value })}
                 className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
               />
-              <p className="text-xs text-muted-foreground">Mức độ sáng tạo (0.0 - 2.0)</p>
+              <p className="text-xs text-muted-foreground">{t('settingsHardcoded.temperatureDesc')}</p>
             </div>
           </div>
         </CardContent>
@@ -350,20 +350,20 @@ export default function Settings() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <RefreshCw className="w-5 h-5 text-primary" />
-            <span>Quản lý Models</span>
+            <span>{t('settingsHardcoded.modelManagement')}</span>
           </CardTitle>
           <CardDescription>
-            Tải, lưu trữ và xác minh tính khả dụng của các models AI
+            {t('settingsHardcoded.modelManagementDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Models đã lưu trong cache</Label>
+              <Label className="text-sm font-medium">{t('settingsHardcoded.cachedModels')}</Label>
               <div className="p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Số lượng models: 
+                    {t('settingsHardcoded.modelCount')}
                   </span>
                   <Badge variant="secondary">
                     {availableModels.length}
@@ -371,16 +371,16 @@ export default function Settings() {
                 </div>
                 {availableModels.length > 0 && (
                   <div className="mt-2 text-xs text-muted-foreground">
-                    Cập nhật lần cuối: {localStorage.getItem('ddl-tool-available-models') ? 
+                    {t('settingsHardcoded.lastUpdated')}{localStorage.getItem('ddl-tool-available-models') ? 
                       new Date(JSON.parse(localStorage.getItem('ddl-tool-available-models') || '[]')[0]?.created * 1000 || Date.now()).toLocaleString('vi-VN') 
-                      : 'Chưa có'}
+                      : t('settingsHardcoded.noUpdate')}
                   </div>
                 )}
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Thao tác</Label>
+              <Label className="text-sm font-medium">{t('settingsHardcoded.actions')}</Label>
               <div className="flex flex-col space-y-2">
                 <Button
                   variant="outline"
@@ -390,7 +390,7 @@ export default function Settings() {
                   className="justify-start"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${loadingModels ? 'animate-spin' : ''}`} />
-                  {loadingModels ? "Đang tải..." : "Tải lại Models"}
+                  {loadingModels ? t('settingsHardcoded.loading') : t('settingsHardcoded.reloadModels')}
                 </Button>
                 
                 <Button
@@ -403,9 +403,9 @@ export default function Settings() {
                   <Shield className={`w-4 h-4 mr-2 ${verifyingModels ? 'animate-spin' : ''}`} />
                   {verifyingModels 
                     ? verificationProgress 
-                      ? `Testing ${verificationProgress.current}/${verificationProgress.total}...`
-                      : "Đang xác minh..."
-                    : "Xác minh Models (API Test)"
+                      ? t('settingsHardcoded.testing', { current: verificationProgress.current, total: verificationProgress.total })
+                      : t('settingsHardcoded.verifying')
+                    : t('settingsHardcoded.verifyModels')
                   }
                 </Button>
               </div>
@@ -415,14 +415,14 @@ export default function Settings() {
           {/* Model Verification Results */}
           {modelVerificationResult && (
             <div className="space-y-3 pt-4 border-t border-border">
-              <Label className="text-sm font-medium">Kết quả xác minh</Label>
+              <Label className="text-sm font-medium">{t('settingsHardcoded.verificationResults')}</Label>
               
               {modelVerificationResult.invalidModels.length > 0 ? (
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-2">
-                      <p><strong>Models thất bại API test và đã bị xóa:</strong></p>
+                      <p><strong>{t('settingsHardcoded.failedModels')}</strong></p>
                       <div className="flex flex-wrap gap-1">
                         {modelVerificationResult.invalidModels.map((modelId, index) => (
                           <Badge key={index} variant="destructive" className="text-xs">
@@ -432,7 +432,7 @@ export default function Settings() {
                         ))}
                       </div>
                       <p className="text-xs mt-2">
-                        Các models này không thể thực hiện API calls và có thể không được hỗ trợ hoặc bị hạn chế quyền truy cập.
+                        {t('settingsHardcoded.failedModelsDesc')}
                       </p>
                     </div>
                   </AlertDescription>
@@ -441,8 +441,8 @@ export default function Settings() {
                 <Alert>
                   <CheckCircle2 className="h-4 w-4" />
                   <AlertDescription>
-                    <p>Tất cả {modelVerificationResult.validModels.length} models đều đã pass API test thành công!</p>
-                    <p className="text-xs mt-1">Các models này có thể sử dụng bình thường cho dịch thuật và phân tích DDL.</p>
+                    <p>{t('settingsHardcoded.allModelsValid', { count: modelVerificationResult.validModels.length })}</p>
+                    <p className="text-xs mt-1">{t('settingsHardcoded.allModelsValidDesc')}</p>
                   </AlertDescription>
                 </Alert>
               )}
@@ -453,13 +453,13 @@ export default function Settings() {
             <div className="flex items-start space-x-2">
               <SettingsIcon className="w-4 h-4 text-muted-foreground mt-0.5" />
               <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-1">Hướng dẫn:</p>
+                <p className="font-medium mb-1">{t('settingsHardcoded.instructions')}</p>
                 <ul className="space-y-1 text-xs">
-                  <li>• <strong>Tải lại Models:</strong> Lấy danh sách models mới từ server và lưu vào localStorage</li>
-                  <li>• <strong>Xác minh Models (API Test):</strong> Thực hiện API calls thực tế để test từng model</li>
-                  <li>• Models không pass API test sẽ tự động bị xóa khỏi cache</li>
-                  <li>• Quá trình xác minh có thể mất vài phút và sử dụng một ít API tokens</li>
-                  <li>• Nên xác minh models định kỳ để đảm bảo chúng hoạt động chính xác</li>
+                  <li>• <strong>{t('settingsHardcoded.reloadModels')}:</strong> {t('settingsHardcoded.reloadModelsInstr')}</li>
+                  <li>• <strong>{t('settingsHardcoded.verifyModels')}:</strong> {t('settingsHardcoded.verifyModelsInstr')}</li>
+                  <li>• {t('settingsHardcoded.autoRemoveInstr')}</li>
+                  <li>• {t('settingsHardcoded.verificationTimeInstr')}</li>
+                  <li>• {t('settingsHardcoded.periodicVerificationInstr')}</li>
                 </ul>
               </div>
             </div>
@@ -472,20 +472,20 @@ export default function Settings() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Clock className="w-5 h-5 text-primary" />
-            <span>Cấu hình Request Queue</span>
+            <span>{t('settingsHardcoded.queueConfig')}</span>
           </CardTitle>
           <CardDescription>
-            Điều khiển hàng đợi yêu cầu API để tránh rate limiting và quản lý tài nguyên
+            {t('settingsHardcoded.queueConfigDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="queue-enabled" className="text-base">
-                Bật Queue System
+                {t('settingsHardcoded.enableQueue')}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Kích hoạt hàng đợi tuần tự cho các yêu cầu API
+                {t('settingsHardcoded.enableQueueDesc')}
               </p>
             </div>
             <Switch
@@ -498,7 +498,7 @@ export default function Settings() {
           {localConfig.queue.enabled && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="delayMs">Độ trễ giữa các request (ms)</Label>
+                <Label htmlFor="delayMs">{t('settingsHardcoded.delayBetweenRequests')}</Label>
                 <Input
                   id="delayMs"
                   type="number"
@@ -510,11 +510,11 @@ export default function Settings() {
                   className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Thời gian chờ giữa các request API (0-5000ms)
+                  {t('settingsHardcoded.delayBetweenRequestsDesc')}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="maxConcurrent">Số request đồng thời tối đa</Label>
+                <Label htmlFor="maxConcurrent">{t('settingsHardcoded.maxConcurrentRequests')}</Label>
                 <Input
                   id="maxConcurrent"
                   type="number"
@@ -525,7 +525,7 @@ export default function Settings() {
                   className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 focus-visible:ring-blue-500/20"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Số lượng request có thể chạy song song (1-10)
+                  {t('settingsHardcoded.maxConcurrentRequestsDesc')}
                 </p>
               </div>
             </div>
@@ -535,11 +535,11 @@ export default function Settings() {
             <div className="flex items-start space-x-2">
               <SettingsIcon className="w-4 h-4 text-muted-foreground mt-0.5" />
               <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-1">Khuyến nghị cấu hình:</p>
+                <p className="font-medium mb-1">{t('settingsHardcoded.recommendedConfig')}</p>
                 <ul className="space-y-1 text-xs">
-                  <li>• <strong>OpenAI API:</strong> Delay 500ms, Max 1 concurrent</li>
-                  <li>• <strong>Local/Self-hosted:</strong> Delay 100ms, Max 3-5 concurrent</li>
-                  <li>• <strong>Rate-limited APIs:</strong> Delay 1000ms+, Max 1 concurrent</li>
+                  <li>• <strong>{t('settingsHardcoded.openaiConfig')}</strong></li>
+                  <li>• <strong>{t('settingsHardcoded.localConfig')}</strong></li>
+                  <li>• <strong>{t('settingsHardcoded.rateLimitedConfig')}</strong></li>
                 </ul>
               </div>
             </div>
@@ -553,12 +553,12 @@ export default function Settings() {
           {hasUnsavedChanges ? (
             <Badge variant="destructive" className="flex items-center">
               <AlertTriangle className="w-3 h-3 mr-1" />
-              Có thay đổi chưa lưu
+              {t('settingsHardcoded.unsavedChanges')}
             </Badge>
           ) : (
             <Badge variant="secondary" className="bg-gradient-to-r from-primary/10 to-primary-glow/10 flex items-center">
               <CheckCircle2 className="w-3 h-3 mr-1 text-primary" />
-              Đã lưu
+              {t('settingsHardcoded.saved')}
             </Badge>
           )}
         </div>
@@ -570,7 +570,7 @@ export default function Settings() {
             className="transition-all"
           >
             <TestTube className="w-4 h-4 mr-2" />
-            {testing ? "Đang kiểm tra..." : "Test Connection"}
+            {testing ? t('settingsHardcoded.testing') : t('settingsHardcoded.testConnection')}
           </Button>
           {hasUnsavedChanges && (
             <Button
@@ -579,7 +579,7 @@ export default function Settings() {
               className="transition-all"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Hoàn tác
+              {t('settingsHardcoded.undo')}
             </Button>
           )}
           <Button 
@@ -590,12 +590,12 @@ export default function Settings() {
             {saving ? (
               <>
                 <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-background border-t-foreground" />
-                Đang lưu...
+                {t('settingsHardcoded.saving')}
               </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                {hasUnsavedChanges ? "Lưu thay đổi" : "Đã lưu"}
+                {hasUnsavedChanges ? t('settingsHardcoded.saveChanges') : t('settingsHardcoded.saved')}
               </>
             )}
           </Button>
