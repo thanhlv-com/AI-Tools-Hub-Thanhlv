@@ -361,13 +361,12 @@ Hãy tạo migration script để chuyển đổi từ DDL hiện tại sang DDL
     const targetLang = LANGUAGES.find(lang => lang.code === targetLanguage);
     const translationStyle = TRANSLATION_STYLES.find(s => s.id === style);
     const translationProficiency = proficiency ? TRANSLATION_PROFICIENCIES.find(p => p.id === proficiency) : null;
-    const emoticonPreference = emoticonOption ? EMOTICON_OPTIONS.find(e => e.id === emoticonOption) : null;
-    const emoticonFrequencyPreference = emoticonFrequency ? EMOTICON_FREQUENCIES.find(f => f.id === emoticonFrequency) : null;
     
     if (!sourceLang || !targetLang || !translationStyle) {
       throw new Error("Invalid language or style selection");
     }
 
+    // Step 1: Basic translation (without emoticons)
     const systemPrompt = `Bạn là một chuyên gia dịch thuật đa ngôn ngữ chuyên nghiệp. Nhiệm vụ của bạn là dịch văn bản với chất lượng cao nhất.
 
 Yêu cầu dịch thuật:
@@ -376,23 +375,13 @@ Yêu cầu dịch thuật:
 - Phong cách dịch: ${translationStyle.name}
 - Mô tả phong cách: ${translationStyle.description}${translationProficiency ? `
 - Trình độ đầu ra: ${translationProficiency.name} (${translationProficiency.level})
-- Mô tả trình độ: ${translationProficiency.description}` : ''}${emoticonPreference ? `
-- Xử lý Emoticon/Emoji: ${emoticonPreference.name}
-- Mô tả xử lý emoticon: ${emoticonPreference.description}` : ''}${emoticonFrequencyPreference ? `
-- Tần suất Emoticon: ${emoticonFrequencyPreference.name} (${emoticonFrequencyPreference.level})
-- Mô tả tần suất sử dụng Emoticon : ${emoticonFrequencyPreference.description}` : ''}
+- Mô tả trình độ: ${translationProficiency.description}` : ''}
 
 Hướng dẫn chi tiết về phong cách:
 ${translationStyle.prompt}${translationProficiency ? `
 
 Hướng dẫn chi tiết về trình độ đầu ra:
-${translationProficiency.prompt}` : ''}${emoticonPreference ? `
-
-Hướng dẫn chi tiết về xử lý emoticon/emoji:
-${emoticonPreference.prompt}` : ''}${emoticonFrequencyPreference ? `
-
-Hướng dẫn chi tiết về tần suất emoticon/emoji:
-${emoticonFrequencyPreference.prompt}` : ''}
+${translationProficiency.prompt}` : ''}
 
 Lưu ý quan trọng:
 - Chỉ trả về bản dịch cuối cùng, không thêm giải thích
@@ -400,13 +389,73 @@ Lưu ý quan trọng:
 - Nếu có từ khóa chuyên ngành, hãy dịch phù hợp với ngữ cảnh
 - Đảm bảo bản dịch phù hợp với văn hóa của ngôn ngữ đích
 - Nếu ngôn ngữ nguồn là "auto", hãy tự động phát hiện ngôn ngữ${translationProficiency ? `
-- Điều chỉnh độ phức tạp của ngôn ngữ theo trình độ đã chọn: ${translationProficiency.name}` : ''}${emoticonPreference ? `
-- Xử lý emoticon/emoji theo hướng dẫn: ${emoticonPreference.name}` : ''}${emoticonFrequencyPreference ? `
-- Áp dụng tần suất emoticon/emoji: ${emoticonFrequencyPreference.name} (${emoticonFrequencyPreference.level})` : ''}`;  
+- Điều chỉnh độ phức tạp của ngôn ngữ theo trình độ đã chọn: ${translationProficiency.name}` : ''}
+- KHÔNG thêm emoticons hoặc emoji trong bước này`;
 
     const userPrompt = `Hãy dịch văn bản sau:
 
 ${text}`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const basicTranslation = await this.callAPI(messages, model);
+
+    // Step 2: Enhance with emoticons if requested
+    if (emoticonOption && emoticonOption !== 'keep-original') {
+      return await this.enhanceWithEmoticons(basicTranslation, targetLanguage, emoticonOption, emoticonFrequency, model);
+    }
+
+    return basicTranslation;
+  }
+
+  async enhanceWithEmoticons(
+    translatedText: string,
+    targetLanguage: string,
+    emoticonOption: string,
+    emoticonFrequency?: string,
+    model?: string
+  ): Promise<string> {
+    const emoticonPreference = EMOTICON_OPTIONS.find(e => e.id === emoticonOption);
+    const emoticonFrequencyPreference = emoticonFrequency ? EMOTICON_FREQUENCIES.find(f => f.id === emoticonFrequency) : null;
+    
+    if (!emoticonPreference) {
+      return translatedText; // Return original if no valid emoticon preference
+    }
+
+    const targetLang = LANGUAGES.find(lang => lang.code === targetLanguage);
+    
+    const systemPrompt = `Bạn là chuyên gia tối ưu hóa văn bản với emoticons và emoji. Nhiệm vụ của bạn là thêm emoticons/emoji phù hợp vào văn bản đã dịch để tăng tính thu hút và cảm xúc.
+
+Thông tin ngôn ngữ đích: ${targetLang?.name} (${targetLang?.nativeName})
+
+Yêu cầu về emoticons:
+- Loại emoticon: ${emoticonPreference.name}
+- Mô tả: ${emoticonPreference.description}${emoticonFrequencyPreference ? `
+- Tần suất sử dụng: ${emoticonFrequencyPreference.name} (${emoticonFrequencyPreference.level})
+- Mô tả tần suất: ${emoticonFrequencyPreference.description}` : ''}
+
+Hướng dẫn chi tiết:
+${emoticonPreference.prompt}${emoticonFrequencyPreference ? `
+
+Hướng dẫn về tần suất:
+${emoticonFrequencyPreference.prompt}` : ''}
+
+Nguyên tắc quan trọng:
+- CHỈ thêm emoticons/emoji, KHÔNG thay đổi nội dung văn bản gốc
+- Giữ nguyên ý nghĩa và thông điệp của văn bản
+- Đặt emoticons ở vị trí tự nhiên và phù hợp
+- Đảm bảo emoticons phù hợp với văn hóa của ngôn ngữ đích
+- Trả về văn bản hoàn chỉnh với emoticons đã được thêm vào
+- KHÔNG thêm giải thích hay nhận xét gì thêm`;
+
+    const userPrompt = `Hãy thêm emoticons/emoji phù hợp vào văn bản sau:
+
+${translatedText}
+
+Thêm emoticons theo yêu cầu đã chỉ định để tăng tính thu hút và cảm xúc cho văn bản.`;
 
     const messages: ChatGPTMessage[] = [
       { role: "system", content: systemPrompt },
@@ -438,6 +487,7 @@ ${text}`;
           };
         }
 
+        // Use the updated translateText method which includes the two-step process
         const singleRequest: TranslationRequest = {
           text,
           sourceLanguage,
