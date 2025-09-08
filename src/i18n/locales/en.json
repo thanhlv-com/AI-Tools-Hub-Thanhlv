@@ -234,6 +234,18 @@
     "native": "Native",
     "child-friendly": "Child-friendly"
   },
+  "translationStyleDescriptions": {
+    "natural": "Translate naturally and fluently, suitable for everyday contexts. Prioritizes flow and readability. 😊",
+    "formal": "Translate in a formal, polite style, suitable for work, academic, or official texts. 🎩",
+    "casual": "Translate in a friendly, casual style, suitable for everyday conversations or personal messages. 😄",
+    "literal": "Translate as close to the original meaning as possible, preserving structure and every word. Suitable for technical documents. 📝",
+    "creative": "Translate creatively and flexibly, adapting expressions to fit the target culture. Suitable for marketing content. 🎨",
+    "technical": "Translate specialized technical content, preserving professional terminology with high accuracy. Suitable for IT and scientific documents. ⚙️",
+    "poetic": "Translate literature and poetry, focusing on rhythm, rhyme, and emotion. Suitable for artistic works. 🎭",
+    "commercial": "Translate for commercial purposes, marketing, and sales. Focus on persuasiveness and customer appeal. 💼",
+    "academic": "Translate in an academic, scientific style, using precise terminology and clear logical structure. 🎓",
+    "news": "Translate in journalistic style, neutral, objective, concise, and easy to understand for the general public. 📰"
+  },
   "emoticonOptions": {
     "keep-original": "Keep Original",
     "add-contextual": "Add Contextual",
@@ -247,6 +259,40 @@
     "text-emoticons": "Text Emoticons",
     "gender-neutral": "Gender Neutral",
     "seasonal-themed": "Seasonal Themed"
+  },
+  "emoticonOptionDescriptions": {
+    "keep-original": "Keep all existing emoticons/emojis from the original text without adding or changing them 🔄",
+    "add-contextual": "Add emoticons/emojis that match the content and emotions of the text to increase liveliness 😊✨",
+    "remove-all": "Remove all emoticons/emojis to create clean, formal text 🚫",
+    "localize": "Replace emoticons/emojis with symbols appropriate for the target language culture 🌍",
+    "enhance-emotional": "Add many emoticons/emojis to highlight and amplify emotions in the text 💫❤️",
+    "minimal-subtle": "Only add a few subtle emoticons/emojis, suitable for gentle style ✨",
+    "youth-friendly": "Use trendy, modern emoticons/emojis suitable for young people 🤩🔥",
+    "professional-warm": "Balance professionalism and friendliness with moderate emoticons/emojis 🤝😊",
+    "kawaii-cute": "Use Japanese kawaii-style emoticons/emojis, focusing on cuteness 🥰💖",
+    "text-emoticons": "Convert emojis to ASCII text emoticons like :) ^_^ ¯\\_(ツ)_/¯ :-)",
+    "gender-neutral": "Prioritize gender-neutral and inclusive emoticons/emojis 🙂👥",
+    "seasonal-themed": "Add emoticons/emojis appropriate for the current season or special occasions 🌸🎄"
+  },
+  "emoticonFrequencies": {
+    "never": "Never",
+    "very-rare": "Very Rare",
+    "rare": "Rare",
+    "occasional": "Occasional",
+    "moderate": "Moderate",
+    "frequent": "Frequent",
+    "very-frequent": "Very Frequent",
+    "maximum": "Maximum"
+  },
+  "emoticonFrequencyDescriptions": {
+    "never": "Don't add new emoticons/emojis. Only keep what's already in the original text. 🚫",
+    "very-rare": "Only add emoticons/emojis when really necessary to clarify meaning or avoid misunderstanding. ⚪",
+    "rare": "Add emoticons/emojis sparingly, only in the most important cases. 🔵",
+    "occasional": "Add emoticons/emojis occasionally to make text more lively while maintaining professionalism. 🟡",
+    "moderate": "Balance between adding emoticons/emojis and keeping text natural. Moderate level. 🟠",
+    "frequent": "Add emoticons/emojis fairly often to create lively and friendly text. 🟢",
+    "very-frequent": "Use emoticons/emojis frequently to create very lively text with rich emotions. 🔴",
+    "maximum": "Add emoticons/emojis whenever possible to achieve maximum liveliness and emotion. 🌈✨"
   },
   "notFound": {
     "title": "Page Not Found",

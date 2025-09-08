@@ -234,6 +234,18 @@
     "native": "Bản ngữ",
     "child-friendly": "Dành cho trẻ em"
   },
+  "translationStyleDescriptions": {
+    "natural": "Dịch tự nhiên, dễ hiểu, phù hợp với ngữ cảnh hàng ngày. Ưu tiên sự trôi chảy và dễ đọc. 😊",
+    "formal": "Dịch theo phong cách trang trọng, lịch sự, phù hợp cho văn bản công việc, học thuật hoặc chính thức. 🎩",
+    "casual": "Dịch theo phong cách thân mật, gần gũi, phù hợp cho cuộc trò chuyện hàng ngày hoặc tin nhắn cá nhân. 😄",
+    "literal": "Dịch sát nghĩa nguyên bản nhất có thể, giữ nguyên cấu trúc và từng từ. Phù hợp cho tài liệu kỹ thuật. 📝",
+    "creative": "Dịch với sự sáng tạo, linh hoạt, có thể thay đổi cách diễn đạt để phù hợp văn hóa đích. Phù hợp cho nội dung marketing. 🎨",
+    "technical": "Dịch chuyên ngành kỹ thuật, giữ nguyên thuật ngữ chuyên môn, độ chính xác cao. Phù hợp cho tài liệu IT, khoa học. ⚙️",
+    "poetic": "Dịch văn học, thơ ca, chú trọng nhịp điệu, vần luật, và cảm xúc. Phù hợp cho tác phẩm nghệ thuật. 🎭",
+    "commercial": "Dịch cho mục đích thương mại, marketing, bán hàng. Tập trung vào tính thuyết phục và thu hút khách hàng. 💼",
+    "academic": "Dịch theo phong cách học thuật, khoa học, sử dụng thuật ngữ chính xác và cấu trúc logic rõ ràng. 🎓",
+    "news": "Dịch theo phong cách báo chí, trung lập, khách quan, súc tích và dễ hiểu cho đại chúng. 📰"
+  },
   "emoticonOptions": {
     "keep-original": "Giữ nguyên",
     "add-contextual": "Thêm theo ngữ cảnh",
@@ -247,6 +259,40 @@
     "text-emoticons": "Emoticon văn bản",
     "gender-neutral": "Trung tính giới tính",
     "seasonal-themed": "Theo chủ đề mùa"
+  },
+  "emoticonOptionDescriptions": {
+    "keep-original": "Giữ nguyên tất cả emoticon/emoji từ văn bản gốc, không thêm hoặc thay đổi 🔄",
+    "add-contextual": "Thêm emoticon/emoji phù hợp với nội dung và cảm xúc của văn bản để tăng tính sinh động 😊✨",
+    "remove-all": "Loại bỏ tất cả emoticon/emoji để tạo ra văn bản thuần túy, trang trọng 🚫",
+    "localize": "Thay thế emoticon/emoji bằng các biểu tượng phù hợp với văn hóa của ngôn ngữ đích 🌍",
+    "enhance-emotional": "Thêm nhiều emoticon/emoji để làm nổi bật và khuếch đại cảm xúc trong văn bản 💫❤️",
+    "minimal-subtle": "Chỉ thêm một số ít emoticon/emoji tinh tế, phù hợp với phong cách nhẹ nhàng ✨",
+    "youth-friendly": "Sử dụng emoticon/emoji phong cách trẻ trung, hiện đại, phù hợp với giới trẻ 🤩🔥",
+    "professional-warm": "Cân bằng giữa tính chuyên nghiệp và sự thân thiện với emoticon/emoji vừa phải 🤝😊",
+    "kawaii-cute": "Sử dụng emoticon/emoji theo phong cách kawaii Nhật Bản, tập trung vào sự dễ thương 🥰💖",
+    "text-emoticons": "Chuyển đổi emoji thành emoticon văn bản ASCII như :) ^_^ ¯\\_(ツ)_/¯ :-)",
+    "gender-neutral": "Ưu tiên sử dụng emoticon/emoji không phân biệt giới tính và bao trùm 🙂👥",
+    "seasonal-themed": "Thêm emoticon/emoji phù hợp với mùa hiện tại hoặc dịp lễ đặc biệt 🌸🎄"
+  },
+  "emoticonFrequencies": {
+    "never": "Không bao giờ",
+    "very-rare": "Rất hiếm",
+    "rare": "Hiếm",
+    "occasional": "Thỉnh thoảng",
+    "moderate": "Vừa phải",
+    "frequent": "Thường xuyên",
+    "very-frequent": "Rất thường xuyên",
+    "maximum": "Tối đa"
+  },
+  "emoticonFrequencyDescriptions": {
+    "never": "Không thêm emoticon/emoji mới. Chỉ giữ nguyên những gì có sẵn từ văn bản gốc. 🚫",
+    "very-rare": "Chỉ thêm emoticon/emoji khi thực sự cần thiết để làm rõ nghĩa hoặc tránh hiểu lầm. ⚪",
+    "rare": "Thêm emoticon/emoji một cách tiết chế, chỉ trong những trường hợp quan trọng nhất. 🔵",
+    "occasional": "Thêm emoticon/emoji thỉnh thoảng để làm cho văn bản sinh động hơn nhưng vẫn giữ tính chuyên nghiệp. 🟡",
+    "moderate": "Cân bằng giữa việc thêm emoticon/emoji và giữ văn bản tự nhiên. Mức độ trung bình. 🟠",
+    "frequent": "Thêm emoticon/emoji khá thường xuyên để tạo ra văn bản sinh động và thân thiện. 🟢",
+    "very-frequent": "Sử dụng emoticon/emoji nhiều để tạo ra văn bản rất sinh động và cảm xúc phong phú. 🔴",
+    "maximum": "Thêm emoticon/emoji bất cứ khi nào có thể để đạt được sự sinh động và cảm xúc tối đa. 🌈✨"
   },
   "notFound": {
     "title": "Không tìm thấy trang",
