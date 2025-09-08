@@ -384,7 +384,7 @@ Hướng dẫn chi tiết về trình độ đầu ra:
 ${translationProficiency.prompt}` : ''}
 
 Lưu ý quan trọng:
-- Chỉ trả về bản dịch cuối cùng, không thêm giải thích
+- Chỉ trả về bản dịch cuối cùng, không thêm giải thích, không nhận xét hay chú thích
 - Giữ nguyên định dạng của văn bản gốc (xuống dòng, dấu câu, etc.)
 - Nếu có từ khóa chuyên ngành, hãy dịch phù hợp với ngữ cảnh
 - Đảm bảo bản dịch phù hợp với văn hóa của ngôn ngữ đích
