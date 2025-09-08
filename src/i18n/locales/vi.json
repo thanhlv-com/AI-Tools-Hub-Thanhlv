@@ -127,7 +127,35 @@
     "loadedFromHistory": "Đã tải từ lịch sử",
     "loadedFromHistoryDesc": "Đã tải dữ liệu từ: {{title}}",
     "preferenceConfig": "Cấu hình ưa thích",
-    "copyAll": "Copy tất cả"
+    "copyAll": "Copy tất cả",
+    "emoticonFrequencyLabel": "Tần suất Emoticon",
+    "selectEmoticonFrequency": "Chọn tần suất emoticon"
+  },
+  "translationHistory": {
+    "title": "Lịch sử dịch thuật",
+    "description": "Xem lại và tái sử dụng các bản dịch trước đây",
+    "itemCount": "{{count}} mục",
+    "searchPlaceholder": "Tìm kiếm trong lịch sử dịch thuật...",
+    "filterAll": "Tất cả phong cách",
+    "sortNewest": "Mới nhất",
+    "sortOldest": "Cũ nhất",
+    "export": "Export",
+    "clearAll": "Xóa tất cả",
+    "noHistory": {
+      "title": "Chưa có lịch sử dịch thuật nào",
+      "description": "Thực hiện dịch thuật để bắt đầu xây dựng lịch sử"
+    },
+    "noResults": {
+      "title": "Không tìm thấy kết quả phù hợp",
+      "description": "Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc"
+    },
+    "item": {
+      "reload": "Tải lại",
+      "sourceText": "Văn bản nguồn ({{flag}} {{name}})",
+      "translations": "Bản dịch ({{count}} ngôn ngữ)",
+      "languageCount": "{{count}} ngôn ngữ",
+      "sourceLength": "Nguồn: {{length}} ký tự"
+    }
   },
   "settings": {
     "title": "Cài đặt Cấu hình",

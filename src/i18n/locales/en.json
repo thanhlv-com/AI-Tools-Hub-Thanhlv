@@ -127,7 +127,35 @@
     "loadedFromHistory": "Loaded from history",
     "loadedFromHistoryDesc": "Loaded data from: {{title}}",
     "preferenceConfig": "Preference Configuration",
-    "copyAll": "Copy all"
+    "copyAll": "Copy all",
+    "emoticonFrequencyLabel": "Emoticon Frequency",
+    "selectEmoticonFrequency": "Select emoticon frequency"
+  },
+  "translationHistory": {
+    "title": "Translation History",
+    "description": "Review and reuse previous translations",
+    "itemCount": "{{count}} items",
+    "searchPlaceholder": "Search in translation history...",
+    "filterAll": "All styles",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "export": "Export",
+    "clearAll": "Clear all",
+    "noHistory": {
+      "title": "No translation history yet",
+      "description": "Perform translations to start building history"
+    },
+    "noResults": {
+      "title": "No matching results found",
+      "description": "Try changing search keywords or filters"
+    },
+    "item": {
+      "reload": "Reload",
+      "sourceText": "Source text ({{flag}} {{name}})",
+      "translations": "Translations ({{count}} languages)",
+      "languageCount": "{{count}} languages",
+      "sourceLength": "Source: {{length}} characters"
+    }
   },
   "settings": {
     "title": "Configuration Settings",

@@ -703,12 +703,12 @@ export default function Translation() {
 
                 {/* Emoticon Frequency */}
                 <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Tần suất Emoticon</Label>
+                  <Label className="text-sm text-muted-foreground">{t('translation.emoticonFrequencyLabel')}</Label>
                   <SearchableSelect
                     value={emoticonFrequency}
                     onValueChange={setEmoticonFrequency}
                     options={emoticonFrequencyOptions}
-                    placeholder="Chọn tần suất emoticon"
+                    placeholder={t('translation.selectEmoticonFrequency')}
                     searchPlaceholder={t('common.search')}
                     className="h-9"
                   />

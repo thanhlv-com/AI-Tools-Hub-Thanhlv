@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ interface TranslationHistoryProps {
 }
 
 export function TranslationHistory({ onLoadFromHistory, className = "" }: TranslationHistoryProps) {
+  const { t } = useTranslation();
   const { translationHistory, removeFromTranslationHistory, clearTranslationHistory } = useConfig();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStyle, setFilterStyle] = useState<string>("all");
@@ -95,14 +97,14 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-3">
             <History className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold">Lịch sử dịch thuật</h2>
+            <h2 className="text-xl font-semibold">{t('translation.history')}</h2>
           </div>
           <Badge variant="secondary" className="px-3 py-1">
-            {translationHistory.length} mục
+            {t('translationHistory.itemCount', { count: translationHistory.length })}
           </Badge>
         </div>
         <p className="text-muted-foreground">
-          Xem lại và tái sử dụng các bản dịch trước đây
+          {t('translationHistory.description')}
         </p>
       </div>
       
@@ -113,7 +115,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
             <div className="flex-1 relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Tìm kiếm trong lịch sử dịch thuật..."
+                placeholder={t('translationHistory.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8"
@@ -124,7 +126,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả phong cách</SelectItem>
+                <SelectItem value="all">{t('translationHistory.filterAll')}</SelectItem>
                 {TRANSLATION_STYLES.map((style) => (
                   <SelectItem key={style.id} value={style.id}>
                     <div className="flex items-center space-x-2">
@@ -145,8 +147,8 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Mới nhất</SelectItem>
-                  <SelectItem value="oldest">Cũ nhất</SelectItem>
+                  <SelectItem value="newest">{t('translationHistory.sortNewest')}</SelectItem>
+                  <SelectItem value="oldest">{t('translationHistory.sortOldest')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -159,7 +161,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                 disabled={translationHistory.length === 0}
               >
                 <Download className="w-4 h-4 mr-1" />
-                Export
+                {t('translationHistory.export')}
               </Button>
               <Button
                 variant="destructive"
@@ -168,7 +170,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                 disabled={translationHistory.length === 0}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
-                Xóa tất cả
+                {t('translationHistory.clearAll')}
               </Button>
             </div>
           </div>
@@ -184,14 +186,14 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
               {translationHistory.length === 0 ? (
                 <div>
                   <History className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>Chưa có lịch sử dịch thuật nào</p>
-                  <p className="text-sm">Thực hiện dịch thuật để bắt đầu xây dựng lịch sử</p>
+                  <p>{t('translationHistory.noHistory.title')}</p>
+                  <p className="text-sm">{t('translationHistory.noHistory.description')}</p>
                 </div>
               ) : (
                 <div>
                   <Search className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>Không tìm thấy kết quả phù hợp</p>
-                  <p className="text-sm">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
+                  <p>{t('translationHistory.noResults.title')}</p>
+                  <p className="text-sm">{t('translationHistory.noResults.description')}</p>
                 </div>
               )}
             </div>
@@ -222,7 +224,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                             </div>
                             <div className="flex items-center space-x-1">
                               <Globe className="w-3 h-3" />
-                              <span>{sourceInfo.flag} → {item.targetLanguages.length} ngôn ngữ</span>
+                              <span>{sourceInfo.flag} → {t('translationHistory.item.languageCount', { count: item.targetLanguages.length })}</span>
                             </div>
                             <div className="flex items-center space-x-1">
                               <CheckCircle2 className="w-3 h-3 text-green-500" />
@@ -244,7 +246,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                             className="h-9 px-3 text-sm"
                           >
                             <RefreshCw className="w-4 h-4 mr-2" />
-                            Tải lại
+                            {t('translationHistory.item.reload')}
                           </Button>
                           <Button
                             variant="ghost"
@@ -262,7 +264,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                         <div>
                           <div className="flex items-center space-x-1 mb-1">
                             <FileText className="w-3 h-3 text-blue-500" />
-                            <span className="font-medium">Văn bản nguồn ({sourceInfo.flag} {sourceInfo.name}):</span>
+                            <span className="font-medium">{t('translationHistory.item.sourceText', { flag: sourceInfo.flag, name: sourceInfo.name })}:</span>
                           </div>
                           <p className="text-muted-foreground font-mono bg-muted/30 p-2 rounded text-[10px]">
                             {truncateText(item.sourceText)}
@@ -273,7 +275,7 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                         <div>
                           <div className="flex items-center space-x-1 mb-2">
                             <LanguagesIcon className="w-3 h-3 text-green-500" />
-                            <span className="font-medium">Bản dịch ({item.targetLanguages.length} ngôn ngữ):</span>
+                            <span className="font-medium">{t('translationHistory.item.translations', { count: item.targetLanguages.length })}:</span>
                           </div>
                           <div className="space-y-2 max-h-32 overflow-y-auto">
                             {item.targetLanguages.map((langCode) => {
@@ -310,10 +312,10 @@ export function TranslationHistory({ onLoadFromHistory, className = "" }: Transl
                         {item.metadata && (
                           <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
                             <Badge variant="secondary" className="text-[10px]">
-                              Nguồn: {item.metadata.sourceLength} ký tự
+                              {t('translationHistory.item.sourceLength', { length: item.metadata.sourceLength })}
                             </Badge>
                             <Badge variant="secondary" className="text-[10px]">
-                              {item.metadata.totalTranslations} ngôn ngữ
+                              {t('translationHistory.item.languageCount', { count: item.metadata.totalTranslations })}
                             </Badge>
                             {item.metadata.successfulTranslations > 0 && (
                               <Badge variant="secondary" className="text-[10px] text-green-600">
