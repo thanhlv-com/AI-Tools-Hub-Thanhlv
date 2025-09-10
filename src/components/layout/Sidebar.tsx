@@ -14,6 +14,7 @@ import {
   Wand2,
   Calculator,
   Shapes,
+  FileText,
   Zap
 } from "lucide-react";
 
@@ -47,6 +48,12 @@ const getNavigation = (t: (key: string) => string) => [
     href: "/diagram",
     icon: Shapes,
     description: t('nav.diagramDesc')
+  },
+  {
+    name: t('nav.confluenceTemplate'),
+    href: "/confluence-template",
+    icon: FileText,
+    description: t('nav.confluenceTemplateDesc')
   },
   {
     name: t('nav.settings'),

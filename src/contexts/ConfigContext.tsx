@@ -4,6 +4,7 @@ import { DDLAnalysisHistory } from "@/types/history";
 import { TranslationHistory, TranslationPreference, TranslationPreferences } from "@/types/translation";
 import { CapacityAnalysisHistory } from "@/types/capacity";
 import { DiagramHistory } from "@/types/diagram";
+import { ConfluenceHistory } from "@/types/confluence";
 import { ApiKeyManager } from "@/lib/encryption";
 import { useTranslation } from 'react-i18next';
 
@@ -69,6 +70,14 @@ interface ConfigContextType {
   removeFromDiagramHistory: (id: string) => void;
   clearDiagramHistory: () => void;
   getDiagramHistoryById: (id: string) => DiagramHistory | undefined;
+  // Confluence History management
+  confluenceHistory: ConfluenceHistory[];
+  addToConfluenceHistory: (item: Omit<ConfluenceHistory, 'id'>) => void;
+  removeFromConfluenceHistory: (id: string) => void;
+  clearConfluenceHistory: () => void;
+  getConfluenceHistoryById: (id: string) => ConfluenceHistory | undefined;
+  // Generic history getter that combines all histories
+  getHistory: () => (DDLAnalysisHistory | TranslationHistory | CapacityAnalysisHistory | DiagramHistory | ConfluenceHistory)[];
 }
 
 const defaultConfig: ChatGPTConfig = {
@@ -100,6 +109,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [translationPreferences, setTranslationPreferences] = useState<TranslationPreferences>({});
   const [capacityHistory, setCapacityHistory] = useState<CapacityAnalysisHistory[]>([]);
   const [diagramHistory, setDiagramHistory] = useState<DiagramHistory[]>([]);
+  const [confluenceHistory, setConfluenceHistory] = useState<ConfluenceHistory[]>([]);
   const [pageModels, setPageModels] = useState<{ [pageId: string]: string }>({});
 
   const changeLanguage = async (language: string) => {
@@ -608,6 +618,74 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     return diagramHistory.find(item => item.id === id);
   };
 
+  // Confluence History management functions
+  const saveConfluenceHistory = (history: ConfluenceHistory[]) => {
+    try {
+      localStorage.setItem('ddl-tool-confluence-history', JSON.stringify(history));
+    } catch (error) {
+      console.error('Error saving confluence history:', error);
+    }
+  };
+
+  const loadConfluenceHistory = () => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-confluence-history');
+      if (saved) {
+        setConfluenceHistory(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Error loading confluence history:', error);
+    }
+  };
+
+  const addToConfluenceHistory = (item: Omit<ConfluenceHistory, 'id'>) => {
+    const newItem: ConfluenceHistory = {
+      ...item,
+      id: crypto.randomUUID()
+    };
+    
+    const updatedHistory = [newItem, ...confluenceHistory.slice(0, 99)]; // Keep latest 100
+    setConfluenceHistory(updatedHistory);
+    saveConfluenceHistory(updatedHistory);
+  };
+
+  const removeFromConfluenceHistory = (id: string) => {
+    const updatedHistory = confluenceHistory.filter(item => item.id !== id);
+    setConfluenceHistory(updatedHistory);
+    saveConfluenceHistory(updatedHistory);
+  };
+
+  const clearConfluenceHistory = () => {
+    setConfluenceHistory([]);
+    try {
+      localStorage.removeItem('ddl-tool-confluence-history');
+    } catch (error) {
+      console.error('Error clearing confluence history:', error);
+    }
+  };
+
+  const getConfluenceHistoryById = (id: string): ConfluenceHistory | undefined => {
+    return confluenceHistory.find(item => item.id === id);
+  };
+
+  // Generic history getter that combines all histories
+  const getHistory = () => {
+    const allHistory: (DDLAnalysisHistory | TranslationHistory | CapacityAnalysisHistory | DiagramHistory | ConfluenceHistory)[] = [
+      ...history,
+      ...translationHistory,
+      ...capacityHistory,
+      ...diagramHistory,
+      ...confluenceHistory
+    ];
+    
+    // Sort by createdAt or timestamp (most recent first)
+    return allHistory.sort((a, b) => {
+      const aTime = 'createdAt' in a ? new Date(a.createdAt).getTime() : 'timestamp' in a ? a.timestamp : 0;
+      const bTime = 'createdAt' in b ? new Date(b.createdAt).getTime() : 'timestamp' in b ? b.timestamp : 0;
+      return bTime - aTime;
+    });
+  };
+
   // Load config and history on mount
   useEffect(() => {
     const initializeConfig = async () => {
@@ -620,6 +698,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     loadTranslationPreferences();
     loadCapacityHistory();
     loadDiagramHistory();
+    loadConfluenceHistory();
     loadPageModels();
     
     // Load cached models from localStorage
@@ -675,7 +754,15 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       addToDiagramHistory,
       removeFromDiagramHistory,
       clearDiagramHistory,
-      getDiagramHistoryById
+      getDiagramHistoryById,
+      // Confluence history
+      confluenceHistory,
+      addToConfluenceHistory,
+      removeFromConfluenceHistory,
+      clearConfluenceHistory,
+      getConfluenceHistoryById,
+      // Generic history getter
+      getHistory
     }}>
       {children}
     </ConfigContext.Provider>

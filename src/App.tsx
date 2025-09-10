@@ -11,6 +11,7 @@ import Translation from "./pages/Translation";
 import PromptGeneration from "./pages/PromptGeneration";
 import CapacityAnalysis from "./pages/CapacityAnalysis";
 import Diagram from "./pages/Diagram";
+import ConfluenceTemplate from "./pages/ConfluenceTemplate";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/prompt-generation" element={<PromptGeneration />} />
               <Route path="/capacity-analysis" element={<CapacityAnalysis />} />
               <Route path="/diagram" element={<Diagram />} />
+              <Route path="/confluence-template" element={<ConfluenceTemplate />} />
               <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

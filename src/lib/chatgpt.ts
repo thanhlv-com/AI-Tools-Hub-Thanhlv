@@ -2,8 +2,10 @@ import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
 import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/types/capacity";
 import { DiagramRequest, DiagramResult } from "@/types/diagram";
+import { ConfluenceTemplateRequest, ConfluenceTemplateResult } from "@/types/confluence";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS, EMOTICON_FREQUENCIES } from "@/data/translation";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
+import { TEMPLATE_TYPES, TEMPLATE_STYLES, TEMPLATE_TONES } from "@/data/confluence";
 import { addStepIndexing } from "./diagramStepIndexing";
 
 export interface ChatGPTMessage {
@@ -60,7 +62,7 @@ class RequestQueue {
     this.queueConfig = queueConfig;
   }
 
-  updateConfig(queueConfig: QueueConfig) {
+  updateCclaudeonfig(queueConfig: QueueConfig) {
     this.queueConfig = queueConfig;
   }
 
@@ -2066,6 +2068,121 @@ Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung b�
 
       default:
         return `Tuân thủ cú pháp chuẩn của ${formatInfo.name}`;
+    }
+  }
+
+  async generateConfluenceTemplate(request: ConfluenceTemplateRequest, customModel?: string): Promise<ConfluenceTemplateResult> {
+    const { 
+      title, 
+      description, 
+      purpose, 
+      targetAudience, 
+      contentStructure, 
+      templateType, 
+      includeTableOfContents, 
+      includeMacros,
+      languages = [],
+      style,
+      tone
+    } = request;
+
+    const templateTypeInfo = TEMPLATE_TYPES.find(t => t.id === templateType);
+    const styleInfo = TEMPLATE_STYLES.find(s => s.id === style);
+    const toneInfo = TEMPLATE_TONES.find(t => t.id === tone);
+
+    if (!templateTypeInfo || !styleInfo || !toneInfo) {
+      throw new Error("Invalid template type, style, or tone selection");
+    }
+
+    const languageInfo = languages.length > 0 
+      ? languages.map(lang => LANGUAGES.find(l => l.code === lang)).filter(Boolean)
+      : [];
+
+    const systemPrompt = `Bạn là chuyên gia tạo template Confluence wiki chuyên nghiệp. Nhiệm vụ của bạn là tạo ra template wiki chất lượng cao và hữu ích.
+
+Thông tin template:
+- Loại template: ${templateTypeInfo.name}
+- Mô tả loại: ${templateTypeInfo.description}
+- Phong cách: ${styleInfo.name} - ${styleInfo.description}
+- Giọng điệu: ${toneInfo.name} - ${toneInfo.description}
+- Mục đích: ${purpose}
+- Đối tượng mục tiêu: ${targetAudience}${languageInfo.length > 0 ? `
+- Ngôn ngữ: ${languageInfo.map(l => `${l?.name} (${l?.nativeName})`).join(', ')}` : ''}
+
+Yêu cầu về cấu trúc nội dung:
+${contentStructure.map(item => `- ${item}`).join('\n')}
+
+Yêu cầu định dạng:
+- ${includeTableOfContents ? 'Bao gồm mục lục (Table of Contents)' : 'Không cần mục lục'}
+- ${includeMacros ? 'Sử dụng Confluence macros phù hợp' : 'Sử dụng định dạng markdown cơ bản'}
+
+Hướng dẫn tạo template:
+1. Tạo tiêu đề và mô tả rõ ràng cho template
+2. Tạo cấu trúc nội dung theo yêu cầu
+3. Sử dụng placeholder text hướng dẫn người dùng
+4. Bao gồm các section placeholder phù hợp với loại template
+5. Thêm hướng dẫn sử dụng và gợi ý cho người dùng${includeMacros ? `
+6. Sử dụng các Confluence macros phù hợp như: {info}, {tip}, {warning}, {code}, {expand}, {toc}, {children}, {panel}` : ''}${languageInfo.length > 0 ? `
+7. Hỗ trợ đa ngôn ngữ với các section cho từng ngôn ngữ được chọn` : ''}
+
+Trả về kết quả dưới dạng JSON với format:
+{
+  "title": "Tiêu đề template",
+  "content": "Nội dung template hoàn chỉnh với Confluence markup",
+  "macros": ["danh sách các macro được sử dụng"],
+  "tableOfContents": ["danh sách các heading chính"],
+  "metadata": {
+    "templateType": "${templateType}",
+    "createdAt": "timestamp hiện tại ISO",
+    "languages": ${JSON.stringify(languages)},
+    "style": "${style}",
+    "tone": "${tone}"
+  }
+}`;
+
+    const userPrompt = `Hãy tạo template Confluence wiki với thông tin sau:
+
+Tiêu đề: ${title}
+Mô tả: ${description}
+
+Yêu cầu chi tiết:
+- Tạo template phù hợp với loại "${templateTypeInfo.name}"
+- Áp dụng phong cách "${styleInfo.name}" và giọng điệu "${toneInfo.name}"
+- Bao gồm tất cả các section từ cấu trúc đã yêu cầu
+- Template phải dễ sử dụng và có hướng dẫn rõ ràng
+- Phù hợp với đối tượng: ${targetAudience}${languageInfo.length > 0 ? `
+- Hỗ trợ các ngôn ngữ: ${languageInfo.map(l => l?.name).join(', ')}` : ''}
+
+Hãy tạo template hoàn chỉnh và trả về theo format JSON đã yêu cầu.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await this.callAPI(messages, customModel);
+    
+    try {
+      const result: ConfluenceTemplateResult = JSON.parse(response);
+      
+      // Validate the response structure
+      if (!result.title || !result.content || !result.metadata) {
+        throw new Error("Invalid response structure from AI");
+      }
+      
+      // Ensure metadata has required fields
+      result.metadata = {
+        ...result.metadata,
+        templateType,
+        createdAt: new Date().toISOString(),
+        languages: languages.length > 0 ? languages : undefined,
+        style,
+        tone
+      };
+      
+      return result;
+    } catch (parseError) {
+      throw new Error(`Failed to parse AI response as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
     }
   }
 }
