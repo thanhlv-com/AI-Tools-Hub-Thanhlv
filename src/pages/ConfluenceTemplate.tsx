@@ -10,11 +10,12 @@ import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/s
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
-import { ConfluenceTemplateRequest, ConfluenceTemplateResult, ConfluenceHistory } from "@/types/confluence";
+import { ConfluenceTemplateRequest, ConfluenceTemplateResult, ConfluenceHistory, AITemplateCreationRequest, AITemplateCreationResult } from "@/types/confluence";
 import { TEMPLATE_TYPES, TEMPLATE_STYLES, TEMPLATE_TONES } from "@/data/confluence";
 import { LANGUAGES } from "@/data/translation";
 import { 
@@ -37,7 +38,11 @@ import {
   BookOpen,
   Layout,
   Palette,
-  Volume2
+  Volume2,
+  Wand2,
+  Sparkles,
+  Bot,
+  Lightbulb
 } from "lucide-react";
 
 const PAGE_ID = "confluence-template";
@@ -66,6 +71,16 @@ export default function ConfluenceTemplate() {
   const [result, setResult] = useState<ConfluenceTemplateResult | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  
+  // AI Template Creation state
+  const [showAIDialog, setShowAIDialog] = useState(false);
+  const [aiDescription, setAiDescription] = useState("");
+  const [aiContext, setAiContext] = useState("");
+  const [aiRequirements, setAiRequirements] = useState("");
+  const [aiTargetAudience, setAiTargetAudience] = useState("");
+  const [aiPreferredLanguages, setAiPreferredLanguages] = useState<string[]>([]);
+  const [isCreatingFromAI, setIsCreatingFromAI] = useState(false);
+  const [aiResult, setAiResult] = useState<AITemplateCreationResult | null>(null);
 
   // Create options for SearchableSelect components
   const templateTypeOptions: SearchableSelectOption[] = TEMPLATE_TYPES.map(type => ({
@@ -108,6 +123,95 @@ export default function ConfluenceTemplate() {
     if (templateTypeInfo) {
       setContentStructure(templateTypeInfo.defaultStructure);
     }
+  };
+
+  // AI Template Creation functions
+  const createTemplateFromAI = async () => {
+    if (!aiDescription.trim()) {
+      toast({
+        title: "Missing Description",
+        description: "Please provide a description of what template you want to create.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreatingFromAI(true);
+    try {
+      const chatGPTService = new ChatGPTService(queueConfig);
+      const pageModel = getPageModel(PAGE_ID);
+
+      const request: AITemplateCreationRequest = {
+        description: aiDescription.trim(),
+        context: aiContext.trim() || undefined,
+        requirements: aiRequirements.trim() || undefined,
+        targetAudience: aiTargetAudience.trim() || undefined,
+        preferredLanguages: aiPreferredLanguages.length > 0 ? aiPreferredLanguages : undefined
+      };
+
+      const aiTemplateResult = await chatGPTService.createTemplateFromAI(request, pageModel);
+      setAiResult(aiTemplateResult);
+
+      toast({
+        title: "AI Template Configuration Created",
+        description: "AI has analyzed your requirements and created a template configuration!",
+      });
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast({
+        title: "AI Creation Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingFromAI(false);
+    }
+  };
+
+  const applyAIResult = () => {
+    if (!aiResult) return;
+
+    // Apply AI result to form fields
+    setTitle(aiResult.title);
+    setDescription(aiResult.description);
+    setPurpose(aiResult.purpose);
+    setTargetAudience(aiResult.targetAudience);
+    setTemplateType(aiResult.templateType);
+    setStyle(aiResult.style);
+    setTone(aiResult.tone);
+    setContentStructure(aiResult.contentStructure);
+    setIncludeTableOfContents(aiResult.includeTableOfContents);
+    setIncludeMacros(aiResult.includeMacros);
+    
+    if (aiResult.languages && aiResult.languages.length > 0) {
+      setSelectedLanguages(aiResult.languages);
+    }
+
+    // Close AI dialog
+    setShowAIDialog(false);
+    
+    // Reset AI form
+    setAiDescription("");
+    setAiContext("");
+    setAiRequirements("");
+    setAiTargetAudience("");
+    setAiPreferredLanguages([]);
+    setAiResult(null);
+
+    toast({
+      title: "Template Configuration Applied",
+      description: "AI template configuration has been applied to the form.",
+    });
+  };
+
+  const resetAIForm = () => {
+    setAiDescription("");
+    setAiContext("");
+    setAiRequirements("");
+    setAiTargetAudience("");
+    setAiPreferredLanguages([]);
+    setAiResult(null);
   };
 
   const generateTemplate = async () => {
@@ -288,6 +392,15 @@ export default function ConfluenceTemplate() {
         </div>
         
         <div className="flex items-center gap-2">
+          <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Sparkles className="w-4 h-4 mr-2" />
+                {t('confluenceTemplate.createFromAI', 'Create from AI')}
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+          
           <Button
             variant="outline"
             size="sm"
@@ -700,6 +813,211 @@ export default function ConfluenceTemplate() {
           )}
         </div>
       </div>
+
+      {/* AI Template Creation Dialog */}
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-primary" />
+            {t('confluenceTemplate.createFromAI', 'Create Template from AI')}
+          </DialogTitle>
+          <DialogDescription>
+            {t('confluenceTemplate.aiDescription', 'Describe what kind of template you need and AI will create the configuration for you.')}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* AI Input Form */}
+          {!aiResult && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="ai-description">
+                  {t('confluenceTemplate.aiTemplateDescription', 'What kind of template do you need?')} <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="ai-description"
+                  value={aiDescription}
+                  onChange={(e) => setAiDescription(e.target.value)}
+                  placeholder={t('confluenceTemplate.aiDescriptionPlaceholder', 'Describe the template you want to create, its purpose, and how it will be used...')}
+                  rows={4}
+                  className="resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ai-context">
+                    {t('confluenceTemplate.aiContext', 'Context (Optional)')}
+                  </Label>
+                  <Textarea
+                    id="ai-context"
+                    value={aiContext}
+                    onChange={(e) => setAiContext(e.target.value)}
+                    placeholder={t('confluenceTemplate.aiContextPlaceholder', 'Provide context about your organization, project, or use case...')}
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="ai-requirements">
+                    {t('confluenceTemplate.aiRequirements', 'Specific Requirements (Optional)')}
+                  </Label>
+                  <Textarea
+                    id="ai-requirements"
+                    value={aiRequirements}
+                    onChange={(e) => setAiRequirements(e.target.value)}
+                    placeholder={t('confluenceTemplate.aiRequirementsPlaceholder', 'Any specific sections, features, or requirements for the template...')}
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ai-target-audience">
+                  {t('confluenceTemplate.aiTargetAudience', 'Target Audience (Optional)')}
+                </Label>
+                <Input
+                  id="ai-target-audience"
+                  value={aiTargetAudience}
+                  onChange={(e) => setAiTargetAudience(e.target.value)}
+                  placeholder={t('confluenceTemplate.aiTargetAudiencePlaceholder', 'Who will be using this template?')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  {t('confluenceTemplate.aiPreferredLanguages', 'Preferred Languages (Optional)')}
+                </Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {(aiPreferredLanguages || []).map((langCode) => {
+                    const language = LANGUAGES.find(l => l.code === langCode);
+                    return (
+                      <Badge key={langCode} variant="secondary">
+                        {language?.name}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-1 ml-2"
+                          onClick={() => setAiPreferredLanguages((aiPreferredLanguages || []).filter(l => l !== langCode))}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+                <SearchableSelect
+                  options={languageOptions}
+                  value=""
+                  onValueChange={(value) => {
+                    if (value && !(aiPreferredLanguages || []).includes(value)) {
+                      setAiPreferredLanguages([...(aiPreferredLanguages || []), value]);
+                    }
+                  }}
+                  placeholder={t('confluenceTemplate.selectLanguage', 'Select language to add')}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowAIDialog(false)}>
+                  {t('common.cancel', 'Cancel')}
+                </Button>
+                <Button onClick={createTemplateFromAI} disabled={isCreatingFromAI}>
+                  {isCreatingFromAI ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      {t('confluenceTemplate.aiCreating', 'Analyzing...')}
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      {t('confluenceTemplate.aiCreate', 'Create Configuration')}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* AI Result Display */}
+          {aiResult && (
+            <div className="space-y-4">
+              <div className="bg-secondary p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">{t('confluenceTemplate.aiResultTitle', 'AI Template Configuration')}</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('confluenceTemplate.title', 'Title')}</div>
+                    <div className="text-sm">{aiResult.title}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('confluenceTemplate.templateType', 'Template Type')}</div>
+                    <div className="text-sm">{TEMPLATE_TYPES.find(t => t.id === aiResult.templateType)?.name}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('confluenceTemplate.style', 'Style')}</div>
+                    <div className="text-sm">{TEMPLATE_STYLES.find(s => s.id === aiResult.style)?.name}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('confluenceTemplate.tone', 'Tone')}</div>
+                    <div className="text-sm">{TEMPLATE_TONES.find(t => t.id === aiResult.tone)?.name}</div>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">{t('confluenceTemplate.description', 'Description')}</div>
+                  <div className="text-sm">{aiResult.description}</div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">{t('confluenceTemplate.contentStructure', 'Content Structure')}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {aiResult.contentStructure.map((section, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {section}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">{t('confluenceTemplate.aiReasoning', 'AI Reasoning')}</div>
+                  <div className="text-sm bg-background p-3 rounded border">{aiResult.reasoning}</div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={aiResult.includeTableOfContents ? "default" : "secondary"}>
+                    {aiResult.includeTableOfContents ? '✓' : '✗'} {t('confluenceTemplate.includeTableOfContents', 'Table of Contents')}
+                  </Badge>
+                  <Badge variant={aiResult.includeMacros ? "default" : "secondary"}>
+                    {aiResult.includeMacros ? '✓' : '✗'} {t('confluenceTemplate.includeMacros', 'Confluence Macros')}
+                  </Badge>
+                  {aiResult.languages && aiResult.languages.length > 0 && (
+                    <Badge variant="outline">
+                      🌐 {aiResult.languages.length} {t('confluenceTemplate.languages', 'Languages')}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={resetAIForm}>
+                  {t('confluenceTemplate.aiStartOver', 'Start Over')}
+                </Button>
+                <Button onClick={applyAIResult}>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  {t('confluenceTemplate.aiApply', 'Apply Configuration')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </DialogContent>
 
       {/* Preview Modal */}
       {showPreview && result && (

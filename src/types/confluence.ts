@@ -56,3 +56,26 @@ export interface TemplateTone {
   name: string;
   description: string;
 }
+
+export interface AITemplateCreationRequest {
+  description: string;
+  context?: string;
+  requirements?: string;
+  targetAudience?: string;
+  preferredLanguages?: string[];
+}
+
+export interface AITemplateCreationResult {
+  title: string;
+  description: string;
+  purpose: string;
+  targetAudience: string;
+  templateType: string;
+  style: string;
+  tone: string;
+  contentStructure: string[];
+  includeTableOfContents: boolean;
+  includeMacros: boolean;
+  languages?: string[];
+  reasoning: string;
+}

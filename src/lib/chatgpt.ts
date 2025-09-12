@@ -2,7 +2,7 @@ import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
 import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/types/capacity";
 import { DiagramRequest, DiagramResult } from "@/types/diagram";
-import { ConfluenceTemplateRequest, ConfluenceTemplateResult } from "@/types/confluence";
+import { ConfluenceTemplateRequest, ConfluenceTemplateResult, AITemplateCreationRequest, AITemplateCreationResult } from "@/types/confluence";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS, EMOTICON_FREQUENCIES } from "@/data/translation";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
 import { TEMPLATE_TYPES, TEMPLATE_STYLES, TEMPLATE_TONES } from "@/data/confluence";
@@ -2068,6 +2068,106 @@ Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung b�
 
       default:
         return `Tuân thủ cú pháp chuẩn của ${formatInfo.name}`;
+    }
+  }
+
+  async createTemplateFromAI(request: AITemplateCreationRequest, customModel?: string): Promise<AITemplateCreationResult> {
+    const { 
+      description, 
+      context, 
+      requirements, 
+      targetAudience, 
+      preferredLanguages = [] 
+    } = request;
+
+    const languageInfo = preferredLanguages.length > 0 
+      ? preferredLanguages.map(lang => LANGUAGES.find(l => l.code === lang)).filter(Boolean)
+      : [];
+
+    const availableTemplateTypes = TEMPLATE_TYPES.map(t => `${t.id}: ${t.name} - ${t.description}`).join('\n');
+    const availableStyles = TEMPLATE_STYLES.map(s => `${s.id}: ${s.name} - ${s.description}`).join('\n');
+    const availableTones = TEMPLATE_TONES.map(t => `${t.id}: ${t.name} - ${t.description}`).join('\n');
+
+    const systemPrompt = `Bạn là chuyên gia phân tích và thiết kế template Confluence wiki. Nhiệm vụ của bạn là hiểu yêu cầu của người dùng và tạo ra cấu hình template phù hợp nhất.
+
+Các loại template có sẵn:
+${availableTemplateTypes}
+
+Các phong cách có sẵn:
+${availableStyles}
+
+Các giọng điệu có sẵn:
+${availableTones}
+
+Hướng dẫn phân tích:
+1. Phân tích mô tả của người dùng để hiểu mục đích và nhu cầu
+2. Xác định loại template phù hợp nhất từ danh sách có sẵn
+3. Chọn phong cách và giọng điệu phù hợp với đối tượng mục tiêu
+4. Tạo cấu trúc nội dung chi tiết và logic
+5. Đưa ra khuyến nghị về việc sử dụng table of contents và macros
+6. Đề xuất ngôn ngữ nếu có thông tin về đối tượng quốc tế
+
+Trả về kết quả dưới dạng JSON với format:
+{
+  "title": "Tiêu đề template được đề xuất",
+  "description": "Mô tả chi tiết về template này",
+  "purpose": "Mục đích sử dụng template",
+  "targetAudience": "Đối tượng mục tiêu sử dụng",
+  "templateType": "ID của loại template phù hợp",
+  "style": "ID của phong cách phù hợp",
+  "tone": "ID của giọng điệu phù hợp",
+  "contentStructure": ["Danh sách các section theo thứ tự logic"],
+  "includeTableOfContents": true/false,
+  "includeMacros": true/false,
+  "languages": ["danh sách mã ngôn ngữ nếu có"],
+  "reasoning": "Giải thích tại sao chọn các cấu hình này"
+}`;
+
+    const userPrompt = `Hãy phân tích yêu cầu sau và tạo cấu hình template Confluence phù hợp:
+
+Mô tả yêu cầu: ${description}${context ? `
+
+Bối cảnh sử dụng: ${context}` : ''}${requirements ? `
+
+Yêu cầu cụ thể: ${requirements}` : ''}${targetAudience ? `
+
+Đối tượng mục tiêu: ${targetAudience}` : ''}${languageInfo.length > 0 ? `
+
+Ngôn ngữ ưu tiên: ${languageInfo.map(l => `${l?.name} (${l?.code})`).join(', ')}` : ''}
+
+Hãy phân tích kỹ lưỡng và đưa ra cấu hình template tối ưu nhất, bao gồm cả lý do lựa chọn.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await this.callAPI(messages, customModel);
+    
+    try {
+      const result: AITemplateCreationResult = JSON.parse(response);
+      
+      // Validate the response structure and required fields
+      if (!result.title || !result.templateType || !result.style || !result.tone || !result.contentStructure) {
+        throw new Error("Invalid response structure from AI - missing required fields");
+      }
+
+      // Validate that the selected IDs exist in our data
+      const templateTypeExists = TEMPLATE_TYPES.some(t => t.id === result.templateType);
+      const styleExists = TEMPLATE_STYLES.some(s => s.id === result.style);
+      const toneExists = TEMPLATE_TONES.some(t => t.id === result.tone);
+
+      if (!templateTypeExists || !styleExists || !toneExists) {
+        throw new Error("Invalid template configuration - unknown type, style, or tone ID");
+      }
+
+      // Ensure arrays are properly initialized
+      result.contentStructure = result.contentStructure || [];
+      result.languages = result.languages || undefined;
+      
+      return result;
+    } catch (parseError) {
+      throw new Error(`Failed to parse AI response as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
     }
   }
 

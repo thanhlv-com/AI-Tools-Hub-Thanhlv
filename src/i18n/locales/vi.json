@@ -810,6 +810,24 @@
     "type": "Loại",
     "macros": "Macros được sử dụng",
     "tableOfContents": "Mục lục",
-    "templatePreview": "Xem trước Template"
+    "templatePreview": "Xem trước Template",
+    "createFromAI": "Tạo từ AI",
+    "aiDescription": "Mô tả loại template bạn cần và AI sẽ tạo cấu hình cho bạn.",
+    "aiTemplateDescription": "Bạn cần loại template nào?",
+    "aiDescriptionPlaceholder": "Mô tả template bạn muốn tạo, mục đích và cách sử dụng...",
+    "aiContext": "Bối cảnh (Tùy chọn)",
+    "aiContextPlaceholder": "Cung cấp bối cảnh về tổ chức, dự án hoặc trường hợp sử dụng...",
+    "aiRequirements": "Yêu cầu cụ thể (Tùy chọn)",
+    "aiRequirementsPlaceholder": "Các phần, tính năng hoặc yêu cầu cụ thể cho template...",
+    "aiTargetAudience": "Đối tượng mục tiêu (Tùy chọn)",
+    "aiTargetAudiencePlaceholder": "Ai sẽ sử dụng template này?",
+    "aiPreferredLanguages": "Ngôn ngữ ưu tiên (Tùy chọn)",
+    "aiCreating": "Đang phân tích...",
+    "aiCreate": "Tạo cấu hình",
+    "aiResultTitle": "Cấu hình Template AI",
+    "aiReasoning": "Lý do AI",
+    "aiStartOver": "Bắt đầu lại",
+    "aiApply": "Áp dụng cấu hình",
+    "languages": "Ngôn ngữ"
   }
 }

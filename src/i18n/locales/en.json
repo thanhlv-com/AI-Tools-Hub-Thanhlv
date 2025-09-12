@@ -810,6 +810,24 @@
     "type": "Type",
     "macros": "Macros Used",
     "tableOfContents": "Table of Contents",
-    "templatePreview": "Template Preview"
+    "templatePreview": "Template Preview",
+    "createFromAI": "Create from AI",
+    "aiDescription": "Describe what kind of template you need and AI will create the configuration for you.",
+    "aiTemplateDescription": "What kind of template do you need?",
+    "aiDescriptionPlaceholder": "Describe the template you want to create, its purpose, and how it will be used...",
+    "aiContext": "Context (Optional)",
+    "aiContextPlaceholder": "Provide context about your organization, project, or use case...",
+    "aiRequirements": "Specific Requirements (Optional)",
+    "aiRequirementsPlaceholder": "Any specific sections, features, or requirements for the template...",
+    "aiTargetAudience": "Target Audience (Optional)",
+    "aiTargetAudiencePlaceholder": "Who will be using this template?",
+    "aiPreferredLanguages": "Preferred Languages (Optional)",
+    "aiCreating": "Analyzing...",
+    "aiCreate": "Create Configuration",
+    "aiResultTitle": "AI Template Configuration",
+    "aiReasoning": "AI Reasoning",
+    "aiStartOver": "Start Over",
+    "aiApply": "Apply Configuration",
+    "languages": "Languages"
   }
 }
