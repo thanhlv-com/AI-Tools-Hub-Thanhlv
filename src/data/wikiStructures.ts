@@ -531,6 +531,192 @@ Tài liệu phải bao gồm đầy đủ các phần sau theo đúng thứ tự
 - Clear and scannable format
 - Essential information only
 - Easy to read in under 5 minutes`
+  },
+  {
+    id: "deployment-checklist",
+    name: "Deployment Checklist",
+    description: "Comprehensive deployment checklist for software releases",
+    icon: "🚀",
+    sections: [
+      {
+        title: "Schedule",
+        emoji: "📅",
+        description: "Deployment timeline and scheduling information",
+        requirements: ["Deployment date and time", "Time zone specifications", "Duration estimates", "Maintenance windows"]
+      },
+      {
+        title: "Scope & Detail Tasks",
+        emoji: "🎯",
+        description: "Deployment scope and detailed task breakdown",
+        requirements: ["Task list with titles", "Assigned PICs (Person In Charge)", "Task descriptions", "Dependencies and prerequisites"]
+      },
+      {
+        title: "Pre-Release Checklist",
+        emoji: "✅",
+        description: "Tasks to complete before deployment",
+        requirements: ["Communication and notifications", "Code reviews and approvals", "Testing completion", "Documentation updates"]
+      },
+      {
+        title: "Release Steps",
+        emoji: "🔄",
+        description: "Step-by-step deployment process",
+        requirements: ["Sequential deployment steps", "Configuration changes", "System updates", "Verification checkpoints"]
+      },
+      {
+        title: "Post-Release Verification",
+        emoji: "🔍",
+        description: "Verification and validation after deployment",
+        requirements: ["System health checks", "Functional testing", "Performance monitoring", "User acceptance validation"]
+      },
+      {
+        title: "Rollback Plan",
+        emoji: "⏪",
+        description: "Rollback procedures if issues occur",
+        requirements: ["Rollback triggers", "Rollback steps", "Recovery procedures", "Verification after rollback"]
+      },
+      {
+        title: "Monitoring & Support",
+        emoji: "📊",
+        description: "Post-deployment monitoring and support",
+        requirements: ["Monitoring channels", "Alert configurations", "Support contacts", "Escalation procedures"]
+      }
+    ],
+    prompt: `Bạn là Release Manager chuyên nghiệp. Hãy tạo một deployment checklist toàn diện và chi tiết cho việc triển khai phần mềm với rất nhiều bảng (tables) để theo dõi và quản lý.
+
+## YÊU CẦU CẤU TRÚC DEPLOYMENT CHECKLIST (SỬ DỤNG NHIỀU TABLES):
+
+1. **Schedule** 📅
+   - **Deployment Timeline Table**:
+     | Phase | Start Time | End Time | Duration | Owner | Notes |
+     |-------|------------|----------|----------|-------|-------|
+   - **Time Zone Reference Table**:
+     | Location | Time Zone | Local Time | UTC Offset |
+     |----------|-----------|------------|------------|
+   - **Maintenance Window Table**:
+     | System/Service | Downtime Start | Downtime End | Impact Level | Users Affected |
+     |----------------|----------------|--------------|--------------|----------------|
+
+2. **Scope & Detail Tasks** 🎯
+   - **Main Tasks Table**:
+     | # | Task Title | PIC | Priority | Dependencies | Estimated Time | Status | Notes |
+     |---|------------|-----|----------|--------------|---------------|--------|-------|
+   - **Dependencies Matrix Table**:
+     | Task ID | Depends On | Blocking | Critical Path | Risk Level |
+     |---------|------------|----------|---------------|------------|
+   - **Resource Requirements Table**:
+     | Task | Required Skills | Tools/Access | Environment | Team Size |
+     |------|----------------|--------------|-------------|-----------|
+
+3. **Pre-Release Checklist** ✅
+   - **Communication Checklist Table**:
+     | Action | Target Audience | Channel | Responsible | Deadline | Status |
+     |--------|----------------|---------|-------------|----------|--------|
+   - **Code Review Status Table**:
+     | Component | Reviewers | PR Link | Status | Issues | Resolution |
+     |-----------|-----------|---------|--------|--------|------------|
+   - **Testing Completion Table**:
+     | Test Type | Coverage | Pass Rate | Issues Found | Resolution Status | Sign-off |
+     |-----------|----------|-----------|--------------|------------------|----------|
+   - **Documentation Updates Table**:
+     | Document | Owner | Status | Review Date | Approval | Version |
+     |----------|-------|--------|-------------|----------|---------|
+
+4. **Release Steps** 🔄
+   - **Deployment Steps Table**:
+     | Step # | Action | Command/Process | Expected Result | Verification | Owner | Time Limit |
+     |--------|--------|-----------------|-----------------|--------------|-------|------------|
+   - **Configuration Changes Table**:
+     | Service | Config File | Parameter | Old Value | New Value | Backup Location |
+     |---------|-------------|-----------|-----------|-----------|-----------------|
+   - **Database Migration Table**:
+     | Migration | Version | Tables Affected | Downtime | Rollback Script | Verification Query |
+     |-----------|---------|-----------------|----------|-----------------|-------------------|
+   - **Go/No-Go Decision Matrix**:
+     | Checkpoint | Criteria | Current Status | Decision | Responsible | Action If No-Go |
+     |------------|----------|----------------|----------|-------------|-----------------|
+
+5. **Post-Release Verification** 🔍
+   - **System Health Checks Table**:
+     | System/Service | Health Endpoint | Expected Response | Actual Status | Check Time | Issues |
+     |----------------|-----------------|-------------------|---------------|------------|--------|
+   - **Functional Testing Table**:
+     | Feature | Test Case | Expected Result | Actual Result | Pass/Fail | Notes |
+     |---------|-----------|-----------------|---------------|-----------|-------|
+   - **Performance Monitoring Table**:
+     | Metric | Baseline | Current | Threshold | Status | Action Required |
+     |--------|----------|---------|-----------|--------|-----------------|
+   - **User Acceptance Table**:
+     | Feature | User Group | Feedback | Rating | Issues | Resolution |
+     |---------|------------|----------|--------|--------|------------|
+
+6. **Rollback Plan** ⏪
+   - **Rollback Triggers Table**:
+     | Trigger Condition | Severity | Decision Maker | Auto/Manual | Time Limit |
+     |-------------------|----------|----------------|-------------|------------|
+   - **Rollback Steps Table**:
+     | Step # | Action | Command | Expected Time | Verification | Owner |
+     |--------|--------|---------|---------------|--------------|-------|
+   - **Recovery Procedures Table**:
+     | Component | Recovery Method | Data Loss Risk | Recovery Time | Verification Steps |
+     |-----------|-----------------|----------------|---------------|-------------------|
+
+7. **Monitoring & Support** 📊
+   - **Monitoring Channels Table**:
+     | System | Dashboard URL | Alert Channel | Threshold | Escalation Path |
+     |--------|---------------|---------------|-----------|-----------------|
+   - **Support Contacts Table**:
+     | Role | Name | Primary Contact | Secondary Contact | Availability | Expertise |
+     |------|------|-----------------|-------------------|--------------|-----------|
+   - **Alert Configuration Table**:
+     | Alert Type | Condition | Notification | Recipients | Severity | Response SLA |
+     |------------|-----------|--------------|------------|----------|--------------|
+   - **Escalation Matrix Table**:
+     | Issue Level | Response Time | Contact Person | Backup Contact | Authority Level |
+     |-------------|---------------|----------------|----------------|-----------------|
+
+## ADDITIONAL TABLES REQUIREMENTS:
+
+8. **Risk Assessment Tables** ⚠️
+   - **Risk Register Table**:
+     | Risk ID | Description | Probability | Impact | Risk Level | Mitigation | Owner |
+     |---------|-------------|-------------|--------|------------|------------|-------|
+   - **Contingency Plans Table**:
+     | Scenario | Trigger | Response Plan | Resources Needed | Timeline | Success Criteria |
+     |----------|---------|---------------|------------------|----------|------------------|
+
+9. **Resource & Environment Tables** 🔧
+   - **Environment Checklist Table**:
+     | Environment | Status | Last Updated | Config Version | Access Verified | Issues |
+     |-------------|--------|--------------|----------------|-----------------|--------|
+   - **Infrastructure Status Table**:
+     | Component | Current Version | Target Version | Capacity | Health Status | Notes |
+     |-----------|-----------------|----------------|----------|---------------|-------|
+
+10. **Post-Deployment Review Tables** 📋
+    - **Lessons Learned Table**:
+      | Issue/Success | Description | Impact | Root Cause | Action Items | Owner |
+      |---------------|-------------|--------|------------|--------------|-------|
+    - **Metrics Summary Table**:
+      | KPI | Target | Actual | Variance | Status | Comments |
+      |-----|--------|--------|----------|--------|----------|
+
+## CRITICAL TABLE FORMAT REQUIREMENTS:
+- **TẤT CẢ tables phải có markdown format chuẩn với | separators**
+- **Mỗi section phải có ít nhất 2-3 tables chi tiết**
+- **Tables phải có header row với alignment indicators (|:--|:--:|--:|)**
+- **Status columns sử dụng emojis: ✅ ❌ ⏳ ⚠️ 🔄**
+- **Include clickable links trong tables cho tools và documentation**
+- **Tables phải có empty rows để teams có thể fill in thông tin thực tế**
+- **Sử dụng color coding cho priority levels: 🔴 High, 🟡 Medium, 🟢 Low**
+
+## STYLE REQUIREMENTS:
+- **MỖI SECTION PHẢI BẮT ĐẦU VỚI MỘT TABLE TỔNG QUAN**
+- Professional và actionable language
+- Specific người chịu trách nhiệm cho mỗi task
+- Clear success/failure criteria với measurable metrics
+- Include emergency contacts và procedures trong tables
+- Risk mitigation strategies được document trong table format
+- **TABLES PHẢI CHIẾM ÍT NHẤT 70% NỘI DUNG CỦA TÀI LIỆU**`
   }
 ];
 
