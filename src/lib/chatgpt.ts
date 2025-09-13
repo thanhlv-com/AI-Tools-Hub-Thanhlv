@@ -4,6 +4,7 @@ import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/type
 import { DiagramRequest, DiagramResult } from "@/types/diagram";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS, EMOTICON_FREQUENCIES } from "@/data/translation";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
+import { getWikiStructureById, getDefaultWikiStructure } from "@/data/wikiStructures";
 import { addStepIndexing } from "./diagramStepIndexing";
 
 export interface ChatGPTMessage {
@@ -2067,5 +2068,71 @@ Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung b�
       default:
         return `Tuân thủ cú pháp chuẩn của ${formatInfo.name}`;
     }
+  }
+
+  async generateWikiDocument(projectDescription: string, structureId?: string, format: string = "markdown", outputLanguage: string = "vi", customModel?: string): Promise<string> {
+    // Get the wiki structure
+    const structure = structureId 
+      ? getWikiStructureById(structureId) || getDefaultWikiStructure()
+      : getDefaultWikiStructure();
+
+    // Determine format-specific instructions
+    const formatInstructions = format === "confluence" 
+      ? "- Sử dụng Confluence wiki markup syntax (h1., h2., *bold*, _italic_, {code}, {panel}, {info}, etc.)\n- Phù hợp để paste trực tiếp vào Confluence\n- Sử dụng Confluence macro syntax khi cần thiết"
+      : "- Sử dụng markdown format chuẩn (## headings, **bold**, *italic*, ```code blocks```, etc.)\n- Phù hợp cho GitHub, GitLab, và các platform markdown khác";
+
+    // Determine language-specific instructions
+    const getLanguageInstructions = (langCode: string) => {
+      const languageMap: { [key: string]: string } = {
+        'vi': 'Viết toàn bộ nội dung bằng tiếng Việt',
+        'en': 'Write all content in English',
+        'zh': 'Write all content in Chinese (中文)',
+        'ja': 'Write all content in Japanese (日本語)',
+        'ko': 'Write all content in Korean (한국어)',
+        'fr': 'Write all content in French (Français)',
+        'de': 'Write all content in German (Deutsch)',
+        'es': 'Write all content in Spanish (Español)',
+        'pt': 'Write all content in Portuguese (Português)',
+        'ru': 'Write all content in Russian (Русский)',
+        'it': 'Write all content in Italian (Italiano)',
+        'th': 'Write all content in Thai (ไทย)',
+        'id': 'Write all content in Indonesian (Bahasa Indonesia)',
+        'ms': 'Write all content in Malay (Bahasa Melayu)',
+        'ar': 'Write all content in Arabic (العربية)',
+        'hi': 'Write all content in Hindi (हिन्दी)',
+        'nl': 'Write all content in Dutch (Nederlands)',
+        'sv': 'Write all content in Swedish (Svenska)',
+        'no': 'Write all content in Norwegian (Norsk)',
+        'da': 'Write all content in Danish (Dansk)',
+        'fi': 'Write all content in Finnish (Suomi)',
+        'pl': 'Write all content in Polish (Polski)',
+        'tr': 'Write all content in Turkish (Türkçe)',
+        'he': 'Write all content in Hebrew (עברית)'
+      };
+      return languageMap[langCode] || 'Write all content in Vietnamese';
+    };
+
+    const languageInstructions = getLanguageInstructions(outputLanguage);
+
+    const userPrompt = `Hãy tạo một tài liệu wiki đầy đủ cho dự án/tính năng sau:
+
+"${projectDescription}"
+
+Yêu cầu:
+- Sử dụng cấu trúc ${structure.name}
+${formatInstructions}
+- ${languageInstructions}
+- Thêm emoticons để tăng tính thu hút
+- Nội dung chi tiết, thực tế và có giá trị
+- Phù hợp cho môi trường doanh nghiệp
+
+Hãy tạo một tài liệu wiki hoàn chỉnh và chuyên nghiệp.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: structure.prompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    return await this.callAPI(messages, customModel);
   }
 }

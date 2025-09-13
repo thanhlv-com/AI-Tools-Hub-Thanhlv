@@ -14,6 +14,7 @@ import {
   Wand2,
   Calculator,
   Shapes,
+  BookOpen,
   Zap
 } from "lucide-react";
 
@@ -47,6 +48,12 @@ const getNavigation = (t: (key: string) => string) => [
     href: "/diagram",
     icon: Shapes,
     description: t('nav.diagramDesc')
+  },
+  {
+    name: t('nav.wikiGeneration'),
+    href: "/wiki-generation",
+    icon: BookOpen,
+    description: t('nav.wikiGenerationDesc')
   },
   {
     name: t('nav.settings'),

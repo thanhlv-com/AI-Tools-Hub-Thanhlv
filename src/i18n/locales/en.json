@@ -30,6 +30,8 @@
     "capacityAnalysisDesc": "Database capacity analysis",
     "diagram": "Diagram Generator",
     "diagramDesc": "Create professional diagrams with AI",
+    "wikiGeneration": "Wiki Generator",
+    "wikiGenerationDesc": "Generate Confluence wiki documents",
     "settings": "Settings",
     "settingsDesc": "Server and API configuration"
   },
@@ -764,6 +766,90 @@
         "multiCall": "Multiple AI Calls",
         "singleCall": "Single AI Call"
       }
+    }
+  },
+  "wiki": {
+    "title": "Wiki Generator",
+    "description": "Generate comprehensive Confluence wiki documents with structured markdown format for your projects and features.",
+    "projectDescription": "Project/Feature Description",
+    "projectDescriptionPlaceholder": "Example: E-commerce order management system with online payment integration, automated inventory management, and real-time analytics reporting...",
+    "characterCount": "Character count: {{count}}",
+    "formatLabel": "Output Format",
+    "selectFormat": "Select output format", 
+    "formats": {
+      "markdown": {
+        "name": "Markdown",
+        "description": "Standard markdown format for GitHub, GitLab, etc."
+      },
+      "confluence": {
+        "name": "Confluence Wiki",
+        "description": "Confluence wiki markup for Atlassian Confluence"
+      }
+    },
+    "outputLanguageLabel": "Output Language",
+    "selectOutputLanguage": "Select output language",
+    "outputLanguageDescription": "Choose the language for the generated wiki content. All sections and text will be written in the selected language.",
+    "structureLabel": "Document Structure",
+    "selectStructure": "Select document structure",
+    "structureSections": "Included sections",
+    "previewToggle": "Show Structure Preview",
+    "previewTitle": "Document Structure Preview",
+    "previewDescription": "This shows the structure and sections that will be generated for your selected document type",
+    "modelLabel": "Select AI Model",
+    "generateButton": "Generate Confluence Wiki Document",
+    "generatingText": "Generating wiki document...",
+    "resultLabel": "Confluence Wiki Document",
+    "copyButton": "Copy",
+    "resultDescription": "Wiki document generated with complete markdown format. You can copy and paste directly into Confluence.",
+    "previewExample": {
+      "projectName": "📚 AI-Powered E-Commerce Platform",
+      "tableofcontents": "- [General Summary](#general-summary)\n- [Goals & Scope](#goals--scope)\n- [Architecture](#architecture)\n- [Main Components](#main-components)\n- [Deployment Guide](#deployment-guide)\n- [Usage Guide](#usage-guide)\n- [Related Documents](#related-documents)\n- [Authors & Change History](#authors--change-history)",
+      "generalsummary": "This project delivers a comprehensive e-commerce platform with AI-powered recommendations, real-time inventory management, and advanced analytics capabilities. The system integrates payment processing, order management, and customer service automation to provide a seamless shopping experience.",
+      "goalsscope": "**Goals:**\n- Implement scalable e-commerce architecture\n- Integrate AI-powered product recommendations\n- Automate inventory and order management\n\n**Scope:**\n- Web and mobile applications\n- Payment gateway integration\n- Analytics dashboard\n\n**Out of Scope:**\n- Physical logistics management\n- Third-party marketplace integration",
+      "architecture": "The system follows a microservices architecture pattern with:\n- Frontend: React/Next.js application\n- Backend: Node.js microservices\n- Database: PostgreSQL with Redis caching\n- Message Queue: RabbitMQ for async processing\n- AI Services: Python-based recommendation engine",
+      "maincomponents": "**Core Components:**\n1. **User Management Service** - Authentication and user profiles\n2. **Product Catalog Service** - Product information and search\n3. **Order Management Service** - Order processing and fulfillment\n4. **Payment Service** - Payment processing and billing\n5. **AI Recommendation Engine** - Personalized product suggestions\n6. **Analytics Service** - Business intelligence and reporting",
+      "deploymentguide": "**Prerequisites:**\n- Docker and Kubernetes cluster\n- PostgreSQL database\n- Redis cache\n\n**Deployment Steps:**\n1. Clone the repository\n2. Configure environment variables\n3. Deploy using Helm charts\n4. Run database migrations\n5. Configure monitoring and alerting",
+      "usageguide": "**For Developers:**\n```javascript\n// Example API usage\nconst products = await api.getProducts({\n  category: 'electronics',\n  limit: 10\n});\n```\n\n**For End Users:**\n1. Browse products in the catalog\n2. Add items to cart\n3. Proceed to checkout\n4. Complete payment",
+      "relateddocuments": "- [API Documentation](./api-docs.md)\n- [Database Schema](./database-schema.md)\n- [Deployment Runbook](./deployment.md)\n- [User Manual](./user-guide.md)",
+      "authorschangehistory": "**Authors:**\n- John Doe - Lead Developer\n- Jane Smith - Product Manager\n\n**Change History:**\n- v1.0.0 - Initial release (2024-01-15)\n- v1.1.0 - Added AI recommendations (2024-02-01)\n- v1.2.0 - Mobile app support (2024-03-01)",
+      "overview": "This technical specification outlines the architecture and implementation details for an AI-powered e-commerce platform. The system provides scalable, secure, and efficient online shopping capabilities with advanced AI-driven features.",
+      "architecturedesign": "**System Architecture:**\n```\n┌─────────────┐    ┌─────────────┐    ┌─────────────┐\n│   Frontend  │────│   Gateway   │────│  Services   │\n│ React/Next  │    │   (Nginx)   │    │ Microservices│\n└─────────────┘    └─────────────┘    └─────────────┘\n```\n\n**Component Relationships:**\n- API Gateway handles routing and load balancing\n- Microservices communicate via message queues\n- Database per service pattern for data isolation",
+      "technicalrequirements": "**Performance Requirements:**\n- Response time: < 200ms for API calls\n- Throughput: 10,000 concurrent users\n- Availability: 99.9% uptime\n\n**Security Requirements:**\n- OAuth 2.0 authentication\n- End-to-end encryption\n- PCI DSS compliance for payments",
+      "implementationdetails": "**Technology Stack:**\n- Frontend: React 18, TypeScript, TailwindCSS\n- Backend: Node.js, Express, TypeScript\n- Database: PostgreSQL, Redis\n- Infrastructure: Docker, Kubernetes, AWS\n\n**API Design:**\nRESTful APIs with OpenAPI 3.0 specification",
+      "testingstrategy": "**Testing Framework:**\n- Unit Tests: Jest, React Testing Library\n- Integration Tests: Supertest\n- E2E Tests: Cypress\n- Performance Tests: k6\n\n**Coverage Requirements:**\n- Unit tests: >90%\n- Integration tests: Critical paths\n- Security testing: OWASP compliance",
+      "deploymentoperations": "**Infrastructure:**\n- Kubernetes cluster on AWS EKS\n- CI/CD: GitHub Actions\n- Monitoring: Prometheus, Grafana\n- Logging: ELK Stack\n\n**Operational Procedures:**\n- Automated deployments via GitOps\n- Blue-green deployment strategy\n- Database backup and recovery",
+      "introduction": "Welcome to the AI-Powered E-Commerce Platform! This comprehensive solution provides everything you need to build and manage a modern online store with intelligent features that enhance the shopping experience.",
+      "gettingstarted": "**Quick Setup:**\n1. Create your account\n2. Set up your store profile\n3. Add your first products\n4. Configure payment methods\n5. Launch your store!\n\n**What You Need:**\n- Valid business license\n- Bank account for payments\n- Product catalog",
+      "featuresoverview": "**🛍️ Core Features:**\n- Product catalog management\n- Shopping cart and checkout\n- Payment processing\n- Order management\n\n**🤖 AI Features:**\n- Personalized recommendations\n- Smart search\n- Inventory optimization\n- Customer insights",
+      "stepbysteptutorials": "**Tutorial 1: Adding Your First Product**\n1. Navigate to Products → Add New\n2. Fill in product details\n3. Upload product images\n4. Set pricing and inventory\n5. Publish the product\n\n**Tutorial 2: Setting Up Payments**\n1. Go to Settings → Payments\n2. Connect your payment gateway\n3. Configure tax settings\n4. Test the payment flow",
+      "advancedusage": "**Advanced Customization:**\n- Custom themes and branding\n- Advanced analytics and reporting\n- API integrations\n- Custom workflows\n\n**Power User Tips:**\n- Use bulk operations for efficiency\n- Set up automated rules\n- Leverage AI insights for optimization",
+      "troubleshooting": "**Common Issues:**\n\n**Q: Products not showing up?**\nA: Check that products are published and inventory is available.\n\n**Q: Payment failures?**\nA: Verify payment gateway configuration and test credentials.\n\n**Q: Slow performance?**\nA: Check your internet connection and clear browser cache.\n\n**Need Help?**\n- Email: support@example.com\n- Live Chat: Available 24/7\n- Documentation: docs.example.com",
+      "apioverview": "This API provides comprehensive access to our e-commerce platform functionality. Use it to integrate with external systems, build custom applications, or automate business processes.\n\n**Base URL:** `https://api.example.com/v1`\n**Authentication:** Bearer token required\n**Rate Limit:** 1000 requests per hour",
+      "authentication": "**Authentication Methods:**\n- API Key authentication\n- OAuth 2.0 with PKCE\n- JWT tokens\n\n**Example Request:**\n```bash\ncurl -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  https://api.example.com/v1/products\n```",
+      "endpointsreference": "**Core Endpoints:**\n\n`GET /products` - List all products\n`POST /products` - Create new product\n`GET /products/{id}` - Get product details\n`PUT /products/{id}` - Update product\n`DELETE /products/{id}` - Delete product\n\n**Request Format:**\n```json\n{\n  \"name\": \"Product Name\",\n  \"price\": 29.99,\n  \"category\": \"electronics\"\n}\n```",
+      "codeexamples": "**JavaScript Example:**\n```javascript\nconst response = await fetch('/api/products', {\n  method: 'POST',\n  headers: {\n    'Authorization': 'Bearer ' + token,\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify(productData)\n});\n```\n\n**Python Example:**\n```python\nimport requests\n\nresponse = requests.post(\n  'https://api.example.com/v1/products',\n  headers={'Authorization': f'Bearer {token}'},\n  json=product_data\n)\n```",
+      "errorhandling": "**Error Response Format:**\n```json\n{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Product name is required\",\n    \"details\": {\n      \"field\": \"name\",\n      \"constraint\": \"required\"\n    }\n  }\n}\n```\n\n**Common Error Codes:**\n- 400: Bad Request\n- 401: Unauthorized\n- 403: Forbidden\n- 404: Not Found\n- 429: Rate Limited",
+      "changelogversioning": "**API Versions:**\n- v1.0 - Initial release (2024-01-01)\n- v1.1 - Added bulk operations (2024-02-01)\n- v1.2 - Enhanced search capabilities (2024-03-01)\n\n**Breaking Changes:**\n- v1.1: Product creation requires category field\n- v1.2: Search endpoint URL changed\n\n**Migration Guide:**\nUpdate your API calls to include the required category field for product creation.",
+      "executivesummary": "**Project Overview:**\nThe AI-Powered E-Commerce Platform represents a strategic investment in digital transformation, delivering a modern, scalable solution that will drive revenue growth and customer engagement.\n\n**Business Impact:**\n- Projected 30% increase in conversion rates\n- 50% reduction in operational costs\n- Enhanced customer satisfaction\n\n**Investment:** $500K over 6 months\n**Expected ROI:** 200% within first year",
+      "projectscope": "**Key Deliverables:**\n- Fully functional e-commerce platform\n- Mobile applications (iOS/Android)\n- Admin dashboard\n- Analytics and reporting system\n\n**Success Criteria:**\n- Platform supports 10,000 concurrent users\n- 99.9% uptime achievement\n- Sub-200ms response times\n\n**Constraints:**\n- Budget: $500,000\n- Timeline: 6 months\n- Team size: 8 developers",
+      "timelinemilestones": "**Project Timeline:**\n\n**Phase 1 (Months 1-2):** Foundation\n- Infrastructure setup\n- Core backend services\n- Database design\n\n**Phase 2 (Months 3-4):** Development\n- Frontend development\n- API implementation\n- Payment integration\n\n**Phase 3 (Months 5-6):** Launch\n- Testing and QA\n- Performance optimization\n- Production deployment",
+      "resourcesbudget": "**Team Structure:**\n- 1 Project Manager\n- 2 Senior Developers\n- 3 Full-stack Developers\n- 1 UI/UX Designer\n- 1 DevOps Engineer\n\n**Budget Breakdown:**\n- Development: $350K (70%)\n- Infrastructure: $75K (15%)\n- Design & UX: $50K (10%)\n- Contingency: $25K (5%)",
+      "successmetrics": "**Key Performance Indicators:**\n- User adoption: 1000+ registered users in month 1\n- Revenue: $100K+ monthly recurring revenue\n- Performance: <200ms average response time\n- Quality: <1% error rate\n\n**Measurement Methods:**\n- Google Analytics for user metrics\n- Application monitoring tools\n- Customer satisfaction surveys\n- Financial reporting dashboards",
+      "quickstart": "**Get up and running in 5 minutes:**\n\n1. Clone the repository\n2. Install dependencies: `npm install`\n3. Set up environment variables\n4. Run: `npm start`\n\n**First Example:**\n```bash\n# Start the development server\nnpm run dev\n\n# Your app is now running at http://localhost:3000\n```",
+      "keyfeatures": "**⭐ Main Features:**\n- Fast setup and deployment\n- Built-in AI capabilities\n- Scalable architecture\n- Modern UI/UX\n\n**Benefits:**\n- Reduce development time by 60%\n- Built-in best practices\n- Enterprise-ready security\n- Community support",
+      "nextsteps": "**Continue Learning:**\n- [Complete Documentation](./docs/)\n- [Advanced Tutorials](./tutorials/)\n- [API Reference](./api/)\n- [Community Forum](./community/)\n\n**Get Support:**\n- GitHub Issues\n- Discord Community\n- Stack Overflow\n- Professional Support"
+    },
+    "success": {
+      "generated": "Wiki generated successfully!",
+      "generatedDesc": "Created Confluence wiki document for: {{input}}"
+    },
+    "errors": {
+      "missingInfo": "Missing Information",
+      "missingDescription": "Please enter project description to generate wiki document.",
+      "apiKeyWarning": "API Key not configured",
+      "apiKeyWarningDesc": "Please go to Settings to enter ChatGPT API Key.",
+      "generating": "Error generating wiki",
+      "unknownError": "Unknown error"
     }
   }
 }
