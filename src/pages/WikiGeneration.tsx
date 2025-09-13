@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
@@ -18,7 +19,10 @@ import {
   RefreshCw,
   FileText,
   BookOpen,
-  Layout
+  Layout,
+  Eye,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 const PAGE_ID = "wiki-generation";
@@ -33,6 +37,7 @@ export default function WikiGeneration() {
   
   // Temporary state (not persisted)
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const { config, getPageModel, addToWikiHistory } = useConfig();
   const { toast } = useToast();
 
@@ -42,6 +47,18 @@ export default function WikiGeneration() {
       title: t("common.copied") + " 📋",
       description: t("wiki.resultDescription") + " 📝",
     });
+  };
+
+  const generatePreviewExample = (structureId: string) => {
+    const structure = WIKI_STRUCTURES.find(s => s.id === structureId);
+    if (!structure) return "";
+
+    const exampleProject = t("wiki.previewExample.projectName");
+    const sections = structure.sections.map(section => 
+      `## ${section.emoji} ${section.title}\n${t(`wiki.previewExample.${section.title.toLowerCase().replace(/\s+/g, '')}`)} \n`
+    ).join('\n');
+
+    return `# ${exampleProject}\n\n${sections}`;
   };
 
   const generateWiki = async () => {
@@ -169,15 +186,45 @@ export default function WikiGeneration() {
               </SelectContent>
             </Select>
             {selectedStructure && (
-              <div className="mt-2 p-3 bg-muted/30 rounded-lg">
-                <div className="text-xs text-muted-foreground mb-2">{t("wiki.structureSections")}:</div>
-                <div className="flex flex-wrap gap-1">
-                  {WIKI_STRUCTURES.find(s => s.id === selectedStructure)?.sections.map((section, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {section.emoji} {section.title}
-                    </Badge>
-                  ))}
+              <div className="mt-2 space-y-3">
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="text-xs text-muted-foreground mb-2">{t("wiki.structureSections")}:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {WIKI_STRUCTURES.find(s => s.id === selectedStructure)?.sections.map((section, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {section.emoji} {section.title}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
+                
+                <Collapsible open={showPreview} onOpenChange={setShowPreview}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Eye className="w-4 h-4 mr-2" />
+                      {t("wiki.previewToggle")}
+                      {showPreview ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <Card className="bg-muted/20 border-primary/20">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center space-x-2">
+                          <FileText className="w-4 h-4 text-primary" />
+                          <span>{t("wiki.previewTitle")}</span>
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          {t("wiki.previewDescription")}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-[300px] font-mono bg-background/50 p-3 rounded border">
+                          {generatePreviewExample(selectedStructure)}
+                        </pre>
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             )}
           </div>
