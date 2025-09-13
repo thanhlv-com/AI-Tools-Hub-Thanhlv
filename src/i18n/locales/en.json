@@ -30,6 +30,8 @@
     "capacityAnalysisDesc": "Database capacity analysis",
     "diagram": "Diagram Generator",
     "diagramDesc": "Create professional diagrams with AI",
+    "wikiGeneration": "Wiki Generator",
+    "wikiGenerationDesc": "Generate Confluence wiki documents",
     "settings": "Settings",
     "settingsDesc": "Server and API configuration"
   },
@@ -764,6 +766,34 @@
         "multiCall": "Multiple AI Calls",
         "singleCall": "Single AI Call"
       }
+    }
+  },
+  "wiki": {
+    "title": "Wiki Generator",
+    "description": "Generate comprehensive Confluence wiki documents with structured markdown format for your projects and features.",
+    "projectDescription": "Project/Feature Description",
+    "projectDescriptionPlaceholder": "Example: E-commerce order management system with online payment integration, automated inventory management, and real-time analytics reporting...",
+    "characterCount": "Character count: {{count}}",
+    "structureLabel": "Document Structure",
+    "selectStructure": "Select document structure",
+    "structureSections": "Included sections",
+    "modelLabel": "Select AI Model",
+    "generateButton": "Generate Confluence Wiki Document",
+    "generatingText": "Generating wiki document...",
+    "resultLabel": "Confluence Wiki Document",
+    "copyButton": "Copy",
+    "resultDescription": "Wiki document generated with complete markdown format. You can copy and paste directly into Confluence.",
+    "success": {
+      "generated": "Wiki generated successfully!",
+      "generatedDesc": "Created Confluence wiki document for: {{input}}"
+    },
+    "errors": {
+      "missingInfo": "Missing Information",
+      "missingDescription": "Please enter project description to generate wiki document.",
+      "apiKeyWarning": "API Key not configured",
+      "apiKeyWarningDesc": "Please go to Settings to enter ChatGPT API Key.",
+      "generating": "Error generating wiki",
+      "unknownError": "Unknown error"
     }
   }
 }

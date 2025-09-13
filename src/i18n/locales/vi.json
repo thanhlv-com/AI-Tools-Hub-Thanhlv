@@ -30,6 +30,8 @@
     "capacityAnalysisDesc": "Phân tích dung lượng cơ sở dữ liệu",
     "diagram": "Tạo sơ đồ",
     "diagramDesc": "Tạo sơ đồ chuyên nghiệp với AI",
+    "wikiGeneration": "Tạo Wiki",
+    "wikiGenerationDesc": "Tạo tài liệu Confluence wiki",
     "settings": "Cài đặt",
     "settingsDesc": "Cấu hình server và API"
   },
@@ -764,6 +766,34 @@
         "multiCall": "Nhiều lời gọi AI",
         "singleCall": "Một lời gọi AI"
       }
+    }
+  },
+  "wiki": {
+    "title": "Tạo Wiki Document",
+    "description": "Tạo tài liệu Confluence wiki đầy đủ với định dạng markdown có cấu trúc cho dự án và tính năng của bạn.",
+    "projectDescription": "Mô tả dự án/tính năng",
+    "projectDescriptionPlaceholder": "Ví dụ: Hệ thống quản lý đơn hàng e-commerce với tích hợp thanh toán online, quản lý kho hàng tự động, và báo cáo analytics realtime...",
+    "characterCount": "Số ký tự: {{count}}",
+    "structureLabel": "Cấu trúc tài liệu",
+    "selectStructure": "Chọn cấu trúc tài liệu",
+    "structureSections": "Các phần được bao gồm",
+    "modelLabel": "Chọn mô hình AI",
+    "generateButton": "Tạo Confluence Wiki Document",
+    "generatingText": "Đang tạo wiki document...",
+    "resultLabel": "Confluence Wiki Document",
+    "copyButton": "Sao chép",
+    "resultDescription": "Wiki document đã được tạo với format markdown hoàn chỉnh. Bạn có thể copy và paste trực tiếp vào Confluence.",
+    "success": {
+      "generated": "Tạo wiki thành công!",
+      "generatedDesc": "Đã tạo Confluence wiki document cho: {{input}}"
+    },
+    "errors": {
+      "missingInfo": "Thiếu thông tin",
+      "missingDescription": "Vui lòng nhập mô tả dự án để tạo wiki document.",
+      "apiKeyWarning": "Chưa cấu hình API Key",
+      "apiKeyWarningDesc": "Vui lòng vào Settings để nhập ChatGPT API Key.",
+      "generating": "Lỗi khi tạo wiki",
+      "unknownError": "Lỗi không xác định"
     }
   }
 }

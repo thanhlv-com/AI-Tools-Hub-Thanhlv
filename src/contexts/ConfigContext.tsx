@@ -4,6 +4,7 @@ import { DDLAnalysisHistory } from "@/types/history";
 import { TranslationHistory, TranslationPreference, TranslationPreferences } from "@/types/translation";
 import { CapacityAnalysisHistory } from "@/types/capacity";
 import { DiagramHistory } from "@/types/diagram";
+import { WikiHistory } from "@/types/wiki";
 import { ApiKeyManager } from "@/lib/encryption";
 import { useTranslation } from 'react-i18next';
 
@@ -69,6 +70,12 @@ interface ConfigContextType {
   removeFromDiagramHistory: (id: string) => void;
   clearDiagramHistory: () => void;
   getDiagramHistoryById: (id: string) => DiagramHistory | undefined;
+  // Wiki History management
+  wikiHistory: WikiHistory[];
+  addToWikiHistory: (item: Omit<WikiHistory, 'id' | 'timestamp'>) => void;
+  removeFromWikiHistory: (id: string) => void;
+  clearWikiHistory: () => void;
+  getWikiHistoryById: (id: string) => WikiHistory | undefined;
 }
 
 const defaultConfig: ChatGPTConfig = {
@@ -100,6 +107,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [translationPreferences, setTranslationPreferences] = useState<TranslationPreferences>({});
   const [capacityHistory, setCapacityHistory] = useState<CapacityAnalysisHistory[]>([]);
   const [diagramHistory, setDiagramHistory] = useState<DiagramHistory[]>([]);
+  const [wikiHistory, setWikiHistory] = useState<WikiHistory[]>([]);
   const [pageModels, setPageModels] = useState<{ [pageId: string]: string }>({});
 
   const changeLanguage = async (language: string) => {
@@ -608,6 +616,63 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     return diagramHistory.find(item => item.id === id);
   };
 
+  // Wiki History functions
+  const loadWikiHistory = () => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-wiki-history');
+      if (saved) {
+        const parsedHistory: WikiHistory[] = JSON.parse(saved);
+        setWikiHistory(parsedHistory);
+      }
+    } catch (error) {
+      console.error('Error loading wiki history:', error);
+      setWikiHistory([]);
+    }
+  };
+
+  const saveWikiHistory = (historyToSave: WikiHistory[]) => {
+    try {
+      localStorage.setItem('ddl-tool-wiki-history', JSON.stringify(historyToSave));
+    } catch (error) {
+      console.error('Error saving wiki history:', error);
+    }
+  };
+
+  const addToWikiHistory = (item: Omit<WikiHistory, 'id' | 'timestamp'>) => {
+    const newItem: WikiHistory = {
+      ...item,
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      metadata: {
+        contentLength: item.result.length,
+        wordCount: item.result.split(/\s+/).length,
+      }
+    };
+    
+    const updatedHistory = [newItem, ...wikiHistory].slice(0, 100); // Keep max 100 items
+    setWikiHistory(updatedHistory);
+    saveWikiHistory(updatedHistory);
+  };
+
+  const removeFromWikiHistory = (id: string) => {
+    const updatedHistory = wikiHistory.filter(item => item.id !== id);
+    setWikiHistory(updatedHistory);
+    saveWikiHistory(updatedHistory);
+  };
+
+  const clearWikiHistory = () => {
+    setWikiHistory([]);
+    try {
+      localStorage.removeItem('ddl-tool-wiki-history');
+    } catch (error) {
+      console.error('Error clearing wiki history:', error);
+    }
+  };
+
+  const getWikiHistoryById = (id: string): WikiHistory | undefined => {
+    return wikiHistory.find(item => item.id === id);
+  };
+
   // Load config and history on mount
   useEffect(() => {
     const initializeConfig = async () => {
@@ -620,6 +685,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     loadTranslationPreferences();
     loadCapacityHistory();
     loadDiagramHistory();
+    loadWikiHistory();
     loadPageModels();
     
     // Load cached models from localStorage
@@ -675,7 +741,13 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       addToDiagramHistory,
       removeFromDiagramHistory,
       clearDiagramHistory,
-      getDiagramHistoryById
+      getDiagramHistoryById,
+      // Wiki history
+      wikiHistory,
+      addToWikiHistory,
+      removeFromWikiHistory,
+      clearWikiHistory,
+      getWikiHistoryById
     }}>
       {children}
     </ConfigContext.Provider>

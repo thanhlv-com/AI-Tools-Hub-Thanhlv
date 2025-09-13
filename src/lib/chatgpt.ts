@@ -4,6 +4,7 @@ import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/type
 import { DiagramRequest, DiagramResult } from "@/types/diagram";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS, EMOTICON_FREQUENCIES } from "@/data/translation";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
+import { getWikiStructureById, getDefaultWikiStructure } from "@/data/wikiStructures";
 import { addStepIndexing } from "./diagramStepIndexing";
 
 export interface ChatGPTMessage {
@@ -2067,5 +2068,32 @@ Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung b�
       default:
         return `Tuân thủ cú pháp chuẩn của ${formatInfo.name}`;
     }
+  }
+
+  async generateWikiDocument(projectDescription: string, structureId?: string, customModel?: string): Promise<string> {
+    // Get the wiki structure
+    const structure = structureId 
+      ? getWikiStructureById(structureId) || getDefaultWikiStructure()
+      : getDefaultWikiStructure();
+
+    const userPrompt = `Hãy tạo một tài liệu wiki đầy đủ cho dự án/tính năng sau:
+
+"${projectDescription}"
+
+Yêu cầu:
+- Sử dụng cấu trúc ${structure.name}
+- Sử dụng markdown format chuẩn
+- Thêm emoticons để tăng tính thu hút
+- Nội dung chi tiết, thực tế và có giá trị
+- Phù hợp cho môi trường doanh nghiệp
+
+Hãy tạo một tài liệu wiki hoàn chỉnh và chuyên nghiệp.`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: structure.prompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    return await this.callAPI(messages, customModel);
   }
 }
