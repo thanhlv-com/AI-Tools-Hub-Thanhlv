@@ -786,6 +786,9 @@
         "description": "Định dạng Confluence wiki markup cho Atlassian Confluence"
       }
     },
+    "outputLanguageLabel": "Ngôn ngữ đầu ra",
+    "selectOutputLanguage": "Chọn ngôn ngữ đầu ra",
+    "outputLanguageDescription": "Chọn ngôn ngữ cho nội dung wiki được tạo. Tất cả các phần và văn bản sẽ được viết bằng ngôn ngữ đã chọn.",
     "structureLabel": "Cấu trúc tài liệu",
     "selectStructure": "Chọn cấu trúc tài liệu",
     "structureSections": "Các phần được bao gồm",

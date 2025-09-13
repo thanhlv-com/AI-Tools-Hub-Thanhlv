@@ -786,6 +786,9 @@
         "description": "Confluence wiki markup for Atlassian Confluence"
       }
     },
+    "outputLanguageLabel": "Output Language",
+    "selectOutputLanguage": "Select output language",
+    "outputLanguageDescription": "Choose the language for the generated wiki content. All sections and text will be written in the selected language.",
     "structureLabel": "Document Structure",
     "selectStructure": "Select document structure",
     "structureSections": "Included sections",

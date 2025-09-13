@@ -13,6 +13,8 @@ import { useConfig } from "@/contexts/ConfigContext";
 import { ChatGPTService } from "@/lib/chatgpt";
 import { ModelSelector } from "@/components/ModelSelector";
 import { WIKI_STRUCTURES, getDefaultWikiStructure } from "@/data/wikiStructures";
+import { LANGUAGES } from "@/data/translation";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select";
 import { 
   Copy, 
   AlertTriangle,
@@ -22,7 +24,8 @@ import {
   Layout,
   Eye,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Globe
 } from "lucide-react";
 
 const PAGE_ID = "wiki-generation";
@@ -30,11 +33,33 @@ const PAGE_ID = "wiki-generation";
 export default function WikiGeneration() {
   const { t } = useTranslation();
   
+  // Helper function to get localized language name
+  const getLocalizedLanguageName = (langCode: string) => {
+    const translatedName = t(`languages.${langCode}`);
+    const lang = LANGUAGES.find(l => l.code === langCode);
+    return translatedName !== `languages.${langCode}` ? translatedName : lang?.nativeName || langCode;
+  };
+
+  // Create language options for SearchableSelect
+  const outputLanguageOptions: SearchableSelectOption[] = LANGUAGES
+    .filter(lang => lang.code !== "auto") // Remove auto-detect for output
+    .map(lang => ({
+      value: lang.code,
+      label: (
+        <div className="flex items-center space-x-2">
+          <span>{lang.flag}</span>
+          <span>{getLocalizedLanguageName(lang.code)}</span>
+        </div>
+      ),
+      searchText: `${getLocalizedLanguageName(lang.code)} ${lang.nativeName} ${lang.code}`
+    }));
+  
   // Session-persisted state
   const [projectDescription, setProjectDescription] = useFieldSession(PAGE_ID, "projectDescription", "");
   const [wikiResult, setWikiResult] = useFieldSession(PAGE_ID, "wikiResult", "");
   const [selectedStructure, setSelectedStructure] = useFieldSession(PAGE_ID, "selectedStructure", getDefaultWikiStructure().id);
   const [selectedFormat, setSelectedFormat] = useFieldSession(PAGE_ID, "selectedFormat", "markdown");
+  const [outputLanguage, setOutputLanguage] = useFieldSession(PAGE_ID, "outputLanguage", "vi");
   
   // Temporary state (not persisted)
   const [isGenerating, setIsGenerating] = useState(false);
@@ -91,6 +116,7 @@ export default function WikiGeneration() {
         projectDescription,
         selectedStructure,
         selectedFormat,
+        outputLanguage,
         pageModel || undefined
       );
 
@@ -104,7 +130,8 @@ export default function WikiGeneration() {
         result: response,
         model: pageModel || config.model,
         structure: selectedStructure,
-        format: selectedFormat
+        format: selectedFormat,
+        outputLanguage: outputLanguage
       });
       
       toast({
@@ -195,6 +222,25 @@ export default function WikiGeneration() {
                 </SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Output Language Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm text-muted-foreground">
+              <Globe className="w-4 h-4 inline mr-1" />
+              {t("wiki.outputLanguageLabel")} 🌐
+            </Label>
+            <SearchableSelect
+              value={outputLanguage}
+              onValueChange={setOutputLanguage}
+              options={outputLanguageOptions}
+              placeholder={t("wiki.selectOutputLanguage")}
+              searchPlaceholder={t("common.search")}
+              className="h-9"
+            />
+            <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+              {t("wiki.outputLanguageDescription")}
+            </div>
           </div>
 
           {/* Structure Selection */}

@@ -8,6 +8,7 @@ export interface WikiHistory {
   model: string;
   structure?: string;
   format?: string;
+  outputLanguage?: string;
   metadata?: {
     contentLength: number;
     wordCount: number;
