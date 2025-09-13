@@ -7,6 +7,7 @@ export interface WikiHistory {
   timestamp: string;
   model: string;
   structure?: string;
+  format?: string;
   metadata?: {
     contentLength: number;
     wordCount: number;

@@ -774,6 +774,18 @@
     "projectDescription": "Mô tả dự án/tính năng",
     "projectDescriptionPlaceholder": "Ví dụ: Hệ thống quản lý đơn hàng e-commerce với tích hợp thanh toán online, quản lý kho hàng tự động, và báo cáo analytics realtime...",
     "characterCount": "Số ký tự: {{count}}",
+    "formatLabel": "Định dạng đầu ra",
+    "selectFormat": "Chọn định dạng đầu ra",
+    "formats": {
+      "markdown": {
+        "name": "Markdown",
+        "description": "Định dạng markdown chuẩn cho GitHub, GitLab, v.v."
+      },
+      "confluence": {
+        "name": "Confluence Wiki",
+        "description": "Định dạng Confluence wiki markup cho Atlassian Confluence"
+      }
+    },
     "structureLabel": "Cấu trúc tài liệu",
     "selectStructure": "Chọn cấu trúc tài liệu",
     "structureSections": "Các phần được bao gồm",

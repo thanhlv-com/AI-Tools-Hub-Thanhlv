@@ -62,7 +62,7 @@ export const WIKI_STRUCTURES: WikiStructure[] = [
         requirements: ["Author information", "Version history", "Contributors"]
       }
     ],
-    prompt: `Bạn là chuyên gia tạo tài liệu kỹ thuật chuyên nghiệp. Nhiệm vụ của bạn là từ mô tả dự án/tính năng của người dùng, tạo ra một tài liệu Confluence wiki đầy đủ và có cấu trúc theo format markdown.
+    prompt: `Bạn là chuyên gia tạo tài liệu kỹ thuật chuyên nghiệp. Nhiệm vụ của bạn là từ mô tả dự án/tính năng của người dùng, tạo ra một tài liệu wiki đầy đủ và có cấu trúc theo định dạng được yêu cầu.
 
 ## YÊU CẦU CẤU TRÚC WIKI:
 Tài liệu phải bao gồm đầy đủ các phần sau theo đúng thứ tự:
@@ -212,8 +212,8 @@ Tài liệu phải bao gồm đầy đủ các phần sau theo đúng thứ tự
    - Backup, recovery và maintenance procedures
 
 ## FORMAT REQUIREMENTS:
-- Sử dụng markdown với code blocks, diagrams, tables
-- Bao gồm technical diagrams và flowcharts (PlantUML syntax)
+- Sử dụng định dạng được chỉ định trong yêu cầu
+- Bao gồm technical diagrams và flowcharts (syntax phù hợp với format)
 - Đưa ra code examples cụ thể
 - Sử dụng technical terminology chính xác
 - Cung cấp implementation details thực tế`
@@ -386,11 +386,11 @@ Tài liệu phải bao gồm đầy đủ các phần sau theo đúng thứ tự
    - Future roadmap hints
 
 ## FORMAT REQUIREMENTS:
-- Sử dụng OpenAPI/Swagger style formatting
+- Sử dụng định dạng được chỉ định trong yêu cầu
 - Bao gồm JSON/XML example requests và responses
-- Code blocks với syntax highlighting
+- Code blocks với syntax highlighting phù hợp
 - Clear tables cho parameters và status codes
-- Interactive examples khi có thể`
+- Examples phù hợp với format được chọn`
   },
   {
     id: "project-brief",

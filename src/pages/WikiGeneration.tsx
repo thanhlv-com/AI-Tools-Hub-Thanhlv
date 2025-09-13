@@ -34,6 +34,7 @@ export default function WikiGeneration() {
   const [projectDescription, setProjectDescription] = useFieldSession(PAGE_ID, "projectDescription", "");
   const [wikiResult, setWikiResult] = useFieldSession(PAGE_ID, "wikiResult", "");
   const [selectedStructure, setSelectedStructure] = useFieldSession(PAGE_ID, "selectedStructure", getDefaultWikiStructure().id);
+  const [selectedFormat, setSelectedFormat] = useFieldSession(PAGE_ID, "selectedFormat", "markdown");
   
   // Temporary state (not persisted)
   const [isGenerating, setIsGenerating] = useState(false);
@@ -89,6 +90,7 @@ export default function WikiGeneration() {
       const response = await chatGPT.generateWikiDocument(
         projectDescription,
         selectedStructure,
+        selectedFormat,
         pageModel || undefined
       );
 
@@ -101,7 +103,8 @@ export default function WikiGeneration() {
         description: projectDescription,
         result: response,
         model: pageModel || config.model,
-        structure: selectedStructure
+        structure: selectedStructure,
+        format: selectedFormat
       });
       
       toast({
@@ -162,6 +165,36 @@ export default function WikiGeneration() {
             <Badge variant="outline" className="text-xs">
               {t("wiki.characterCount", { count: projectDescription.length })} 📊
             </Badge>
+          </div>
+
+          {/* Format Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm text-muted-foreground">{t("wiki.formatLabel")} 📄</Label>
+            <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("wiki.selectFormat")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="markdown">
+                  <div className="flex items-center space-x-2">
+                    <span>📝</span>
+                    <div>
+                      <div className="font-medium">{t("wiki.formats.markdown.name")}</div>
+                      <div className="text-xs text-muted-foreground">{t("wiki.formats.markdown.description")}</div>
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="confluence">
+                  <div className="flex items-center space-x-2">
+                    <span>🏢</span>
+                    <div>
+                      <div className="font-medium">{t("wiki.formats.confluence.name")}</div>
+                      <div className="text-xs text-muted-foreground">{t("wiki.formats.confluence.description")}</div>
+                    </div>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Structure Selection */}

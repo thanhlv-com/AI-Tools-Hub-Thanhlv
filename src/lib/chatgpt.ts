@@ -2070,11 +2070,16 @@ Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung b�
     }
   }
 
-  async generateWikiDocument(projectDescription: string, structureId?: string, customModel?: string): Promise<string> {
+  async generateWikiDocument(projectDescription: string, structureId?: string, format: string = "markdown", customModel?: string): Promise<string> {
     // Get the wiki structure
     const structure = structureId 
       ? getWikiStructureById(structureId) || getDefaultWikiStructure()
       : getDefaultWikiStructure();
+
+    // Determine format-specific instructions
+    const formatInstructions = format === "confluence" 
+      ? "- Sử dụng Confluence wiki markup syntax (h1., h2., *bold*, _italic_, {code}, {panel}, {info}, etc.)\n- Phù hợp để paste trực tiếp vào Confluence\n- Sử dụng Confluence macro syntax khi cần thiết"
+      : "- Sử dụng markdown format chuẩn (## headings, **bold**, *italic*, ```code blocks```, etc.)\n- Phù hợp cho GitHub, GitLab, và các platform markdown khác";
 
     const userPrompt = `Hãy tạo một tài liệu wiki đầy đủ cho dự án/tính năng sau:
 
@@ -2082,7 +2087,7 @@ Tạo code ${formatInfo.name} hoàn chỉnh và chính xác với nội dung b�
 
 Yêu cầu:
 - Sử dụng cấu trúc ${structure.name}
-- Sử dụng markdown format chuẩn
+${formatInstructions}
 - Thêm emoticons để tăng tính thu hút
 - Nội dung chi tiết, thực tế và có giá trị
 - Phù hợp cho môi trường doanh nghiệp

@@ -774,6 +774,18 @@
     "projectDescription": "Project/Feature Description",
     "projectDescriptionPlaceholder": "Example: E-commerce order management system with online payment integration, automated inventory management, and real-time analytics reporting...",
     "characterCount": "Character count: {{count}}",
+    "formatLabel": "Output Format",
+    "selectFormat": "Select output format", 
+    "formats": {
+      "markdown": {
+        "name": "Markdown",
+        "description": "Standard markdown format for GitHub, GitLab, etc."
+      },
+      "confluence": {
+        "name": "Confluence Wiki",
+        "description": "Confluence wiki markup for Atlassian Confluence"
+      }
+    },
     "structureLabel": "Document Structure",
     "selectStructure": "Select document structure",
     "structureSections": "Included sections",
