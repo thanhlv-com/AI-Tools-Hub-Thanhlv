@@ -262,6 +262,72 @@
     "textRewrittenSuccess": "Text rewritten successfully using",
     "unknownError": "Unknown error"
   },
+  "writingStyles": {
+    "professional": "Professional",
+    "casual": "Casual",
+    "academic": "Academic",
+    "creative": "Creative",
+    "technical": "Technical",
+    "marketing": "Marketing",
+    "journalistic": "Journalistic",
+    "storytelling": "Storytelling"
+  },
+  "writingStyleDescriptions": {
+    "professional": "Clear, formal, and business-appropriate tone",
+    "casual": "Relaxed, conversational, and friendly tone",
+    "academic": "Scholarly, research-oriented, and formal style",
+    "creative": "Imaginative, engaging, and expressive writing",
+    "technical": "Precise, detailed, and specification-focused",
+    "marketing": "Persuasive, compelling, and action-oriented",
+    "journalistic": "Objective, factual, and news-style reporting",
+    "storytelling": "Narrative-driven, engaging, and descriptive"
+  },
+  "writingTones": {
+    "neutral": "Neutral",
+    "friendly": "Friendly",
+    "authoritative": "Authoritative",
+    "enthusiastic": "Enthusiastic",
+    "empathetic": "Empathetic",
+    "humorous": "Humorous",
+    "urgent": "Urgent",
+    "inspirational": "Inspirational"
+  },
+  "writingToneDescriptions": {
+    "neutral": "Balanced and objective tone",
+    "friendly": "Warm, welcoming, and approachable",
+    "authoritative": "Confident, expert, and commanding",
+    "enthusiastic": "Energetic, excited, and passionate",
+    "empathetic": "Understanding, caring, and supportive",
+    "humorous": "Light-hearted, witty, and entertaining",
+    "urgent": "Immediate, pressing, and time-sensitive",
+    "inspirational": "Motivating, uplifting, and encouraging"
+  },
+  "writingLengths": {
+    "much-shorter": "Much Shorter",
+    "shorter": "Shorter",
+    "same": "Same Length",
+    "longer": "Longer",
+    "much-longer": "Much Longer"
+  },
+  "writingLengthDescriptions": {
+    "much-shorter": "Significantly condense the content (50% or less)",
+    "shorter": "Condense the content (about 75% of original)",
+    "same": "Keep approximately the same length",
+    "longer": "Expand the content (about 125% of original)",
+    "much-longer": "Significantly expand the content (150% or more)"
+  },
+  "writingComplexities": {
+    "simple": "Simple",
+    "moderate": "Moderate",
+    "advanced": "Advanced",
+    "expert": "Expert"
+  },
+  "writingComplexityDescriptions": {
+    "simple": "Easy to understand, basic vocabulary",
+    "moderate": "Balanced complexity, accessible to most readers",
+    "advanced": "Sophisticated language, specialized terminology",
+    "expert": "Highly technical, industry-specific language"
+  },
   "settings": {
     "title": "Configuration Settings",
     "description": "Configure ChatGPT API and other settings",

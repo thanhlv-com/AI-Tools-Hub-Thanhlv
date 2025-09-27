@@ -45,10 +45,10 @@ export default function TextRewriting() {
     label: (
       <div className="flex items-center space-x-2">
         <span>{style.icon}</span>
-        <span>{style.name}</span>
+        <span>{t(`writingStyles.${style.id}`)}</span>
       </div>
     ),
-    searchText: `${style.name} ${style.description}`
+    searchText: `${t(`writingStyles.${style.id}`)} ${t(`writingStyleDescriptions.${style.id}`)}`
   }));
 
   const toneOptions: SearchableSelectOption[] = WRITING_TONES.map(tone => ({
@@ -56,10 +56,10 @@ export default function TextRewriting() {
     label: (
       <div className="flex items-center space-x-2">
         <span>{tone.icon}</span>
-        <span>{tone.name}</span>
+        <span>{t(`writingTones.${tone.id}`)}</span>
       </div>
     ),
-    searchText: `${tone.name} ${tone.description}`
+    searchText: `${t(`writingTones.${tone.id}`)} ${t(`writingToneDescriptions.${tone.id}`)}`
   }));
 
   const lengthOptions: SearchableSelectOption[] = WRITING_LENGTHS.map(length => ({
@@ -67,10 +67,10 @@ export default function TextRewriting() {
     label: (
       <div className="flex items-center space-x-2">
         <span>{length.icon}</span>
-        <span>{length.name}</span>
+        <span>{t(`writingLengths.${length.id}`)}</span>
       </div>
     ),
-    searchText: `${length.name} ${length.description}`
+    searchText: `${t(`writingLengths.${length.id}`)} ${t(`writingLengthDescriptions.${length.id}`)}`
   }));
 
   const complexityOptions: SearchableSelectOption[] = WRITING_COMPLEXITIES.map(complexity => ({
@@ -78,13 +78,13 @@ export default function TextRewriting() {
     label: (
       <div className="flex items-center space-x-2">
         <span>{complexity.icon}</span>
-        <span>{complexity.name}</span>
+        <span>{t(`writingComplexities.${complexity.id}`)}</span>
         <Badge variant="outline" className="text-xs ml-1">
           {complexity.level}
         </Badge>
       </div>
     ),
-    searchText: `${complexity.name} ${complexity.description} ${complexity.level}`
+    searchText: `${t(`writingComplexities.${complexity.id}`)} ${t(`writingComplexityDescriptions.${complexity.id}`)} ${complexity.level}`
   }));
 
   const outputLanguageOptions: SearchableSelectOption[] = OUTPUT_LANGUAGES.map(lang => ({
@@ -201,22 +201,38 @@ export default function TextRewriting() {
 
   const getStyleInfo = (id: string) => {
     const style = WRITING_STYLES.find(style => style.id === id) || WRITING_STYLES[0];
-    return style;
+    return {
+      ...style,
+      name: t(`writingStyles.${style.id}`),
+      description: t(`writingStyleDescriptions.${style.id}`)
+    };
   };
 
   const getToneInfo = (id: string) => {
     const tone = WRITING_TONES.find(tone => tone.id === id) || WRITING_TONES[0];
-    return tone;
+    return {
+      ...tone,
+      name: t(`writingTones.${tone.id}`),
+      description: t(`writingToneDescriptions.${tone.id}`)
+    };
   };
 
   const getLengthInfo = (id: string) => {
     const length = WRITING_LENGTHS.find(length => length.id === id) || WRITING_LENGTHS[2]; // default to same
-    return length;
+    return {
+      ...length,
+      name: t(`writingLengths.${length.id}`),
+      description: t(`writingLengthDescriptions.${length.id}`)
+    };
   };
 
   const getComplexityInfo = (id: string) => {
     const complexity = WRITING_COMPLEXITIES.find(complexity => complexity.id === id) || WRITING_COMPLEXITIES[1]; // default to moderate
-    return complexity;
+    return {
+      ...complexity,
+      name: t(`writingComplexities.${complexity.id}`),
+      description: t(`writingComplexityDescriptions.${complexity.id}`)
+    };
   };
 
   const getLanguageInfo = (code: string) => {

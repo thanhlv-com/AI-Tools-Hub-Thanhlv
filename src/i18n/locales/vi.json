@@ -954,5 +954,71 @@
       "generating": "Lỗi khi tạo wiki",
       "unknownError": "Lỗi không xác định"
     }
+  },
+  "writingStyles": {
+    "professional": "Chuyên nghiệp",
+    "casual": "Thân thiện",
+    "academic": "Học thuật",
+    "creative": "Sáng tạo",
+    "technical": "Kỹ thuật",
+    "marketing": "Tiếp thị",
+    "journalistic": "Báo chí",
+    "storytelling": "Kể chuyện"
+  },
+  "writingStyleDescriptions": {
+    "professional": "Rõ ràng, trang trọng và phù hợp với môi trường doanh nghiệp",
+    "casual": "Thoải mái, gần gụi và thân thiện",
+    "academic": "Học thuật, định hướng nghiên cứu và trang trọng",
+    "creative": "Sáng tạo, thu hút và biểu cảm",
+    "technical": "Chính xác, chi tiết và tập trung vào đặc tả kỹ thuật",
+    "marketing": "Thuyết phục, hấp dẫn và hướng tới hành động",
+    "journalistic": "Khách quan, dựa trên sự thật và phong cách báo chí",
+    "storytelling": "Dẫn dắt câu chuyện, thu hút và mô tả sinh động"
+  },
+  "writingTones": {
+    "neutral": "Trung tính",
+    "friendly": "Thân thiện",
+    "authoritative": "Quyền威",
+    "enthusiastic": "Nhiệt tình",
+    "empathetic": "Đồng cảm",
+    "humorous": "Hài hước",
+    "urgent": "Khẩn cấp",
+    "inspirational": "Truyền cảm hứng"
+  },
+  "writingToneDescriptions": {
+    "neutral": "Cân bằng và khách quan",
+    "friendly": "Ấm áp, chào đón và dễ tiếp cận",
+    "authoritative": "Tự tin, chuyên gia và có uy quyền",
+    "enthusiastic": "Tràn đầy năng lượng, hứng thú và đam mê",
+    "empathetic": "Hiểu biết, quan tâm và hỗ trợ",
+    "humorous": "Vui vẻ, dí dỏm và giải trí",
+    "urgent": "Ngay lập tức, cấp bách và nhạy cảm về thời gian",
+    "inspirational": "Tạo động lực, nâng cao tinh thần và khuyến khích"
+  },
+  "writingLengths": {
+    "much-shorter": "Ngắn hơn nhiều",
+    "shorter": "Ngắn hơn",
+    "same": "Cùng độ dài",
+    "longer": "Dài hơn",
+    "much-longer": "Dài hơn nhiều"
+  },
+  "writingLengthDescriptions": {
+    "much-shorter": "Rút gọn đáng kể nội dung (50% hoặc ít hơn)",
+    "shorter": "Rút gọn nội dung (khoảng 75% so với bản gốc)",
+    "same": "Giữ nguyên độ dài như bản gốc",
+    "longer": "Mở rộng nội dung (khoảng 125% so với bản gốc)",
+    "much-longer": "Mở rộng đáng kể nội dung (150% hoặc nhiều hơn)"
+  },
+  "writingComplexities": {
+    "simple": "Đơn giản",
+    "moderate": "Trung bình",
+    "advanced": "Nâng cao",
+    "expert": "Chuyên gia"
+  },
+  "writingComplexityDescriptions": {
+    "simple": "Dễ hiểu, từ vựng cơ bản",
+    "moderate": "Độ phức tạp cân bằng, dễ tiếp cận với hầu hết độc giả",
+    "advanced": "Ngôn ngữ tinh tế, thuật ngữ chuyên môn",
+    "expert": "Rất kỹ thuật, ngôn ngữ chuyên ngành cụ thể"
   }
 }
