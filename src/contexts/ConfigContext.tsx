@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { ModelInfo, ChatGPTService } from "@/lib/chatgpt";
 import { DDLAnalysisHistory } from "@/types/history";
 import { TranslationHistory, TranslationPreference, TranslationPreferences } from "@/types/translation";
+import { RewritingHistory } from "@/types/rewriting";
 import { CapacityAnalysisHistory } from "@/types/capacity";
 import { DiagramHistory } from "@/types/diagram";
 import { WikiHistory } from "@/types/wiki";
@@ -58,6 +59,12 @@ interface ConfigContextType {
   removeTranslationPreference: (id: string) => void;
   clearTranslationPreferences: () => void;
   getTranslationPreferenceById: (id: string) => TranslationPreference | undefined;
+  // Rewriting History management
+  rewritingHistory: RewritingHistory[];
+  addToRewritingHistory: (item: Omit<RewritingHistory, 'id' | 'timestamp'>) => void;
+  removeFromRewritingHistory: (id: string) => void;
+  clearRewritingHistory: () => void;
+  getRewritingHistoryById: (id: string) => RewritingHistory | undefined;
   // Capacity Analysis History management
   capacityHistory: CapacityAnalysisHistory[];
   addToCapacityHistory: (item: Omit<CapacityAnalysisHistory, 'id' | 'timestamp'>) => void;
@@ -105,6 +112,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   const [history, setHistory] = useState<DDLAnalysisHistory[]>([]);
   const [translationHistory, setTranslationHistory] = useState<TranslationHistory[]>([]);
   const [translationPreferences, setTranslationPreferences] = useState<TranslationPreferences>({});
+  const [rewritingHistory, setRewritingHistory] = useState<RewritingHistory[]>([]);
   const [capacityHistory, setCapacityHistory] = useState<CapacityAnalysisHistory[]>([]);
   const [diagramHistory, setDiagramHistory] = useState<DiagramHistory[]>([]);
   const [wikiHistory, setWikiHistory] = useState<WikiHistory[]>([]);
@@ -390,6 +398,26 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     }
   };
 
+  const loadRewritingHistory = () => {
+    try {
+      const saved = localStorage.getItem('ddl-tool-rewriting-history');
+      if (saved) {
+        const parsedHistory = JSON.parse(saved);
+        setRewritingHistory(parsedHistory);
+      }
+    } catch (error) {
+      console.error('Error loading rewriting history:', error);
+    }
+  };
+
+  const saveRewritingHistory = (historyData: RewritingHistory[]) => {
+    try {
+      localStorage.setItem('ddl-tool-rewriting-history', JSON.stringify(historyData));
+    } catch (error) {
+      console.error('Error saving rewriting history:', error);
+    }
+  };
+
   const addToTranslationHistory = (item: Omit<TranslationHistory, 'id' | 'timestamp'>) => {
     const newItem: TranslationHistory = {
       ...item,
@@ -425,6 +453,42 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
 
   const getTranslationHistoryById = (id: string): TranslationHistory | undefined => {
     return translationHistory.find(item => item.id === id);
+  };
+
+  // Rewriting history management functions
+  const addToRewritingHistory = (item: Omit<RewritingHistory, 'id' | 'timestamp'>) => {
+    const newItem: RewritingHistory = {
+      ...item,
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      metadata: {
+        originalLength: item.originalText.length,
+        rewrittenLength: item.rewrittenText.length,
+      }
+    };
+
+    const updatedHistory = [newItem, ...rewritingHistory].slice(0, 100); // Keep max 100 items
+    setRewritingHistory(updatedHistory);
+    saveRewritingHistory(updatedHistory);
+  };
+
+  const removeFromRewritingHistory = (id: string) => {
+    const updatedHistory = rewritingHistory.filter(item => item.id !== id);
+    setRewritingHistory(updatedHistory);
+    saveRewritingHistory(updatedHistory);
+  };
+
+  const clearRewritingHistory = () => {
+    setRewritingHistory([]);
+    try {
+      localStorage.removeItem('ddl-tool-rewriting-history');
+    } catch (error) {
+      console.error('Error clearing rewriting history:', error);
+    }
+  };
+
+  const getRewritingHistoryById = (id: string): RewritingHistory | undefined => {
+    return rewritingHistory.find(item => item.id === id);
   };
 
   // Translation preferences management functions
@@ -682,6 +746,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     initializeConfig();
     loadHistory();
     loadTranslationHistory();
+    loadRewritingHistory();
     loadTranslationPreferences();
     loadCapacityHistory();
     loadDiagramHistory();
@@ -731,6 +796,11 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       removeTranslationPreference,
       clearTranslationPreferences,
       getTranslationPreferenceById,
+      rewritingHistory,
+      addToRewritingHistory,
+      removeFromRewritingHistory,
+      clearRewritingHistory,
+      getRewritingHistoryById,
       capacityHistory,
       addToCapacityHistory,
       removeFromCapacityHistory,
