@@ -270,7 +270,12 @@
     "technical": "Technical",
     "marketing": "Marketing",
     "journalistic": "Journalistic",
-    "storytelling": "Storytelling"
+    "storytelling": "Storytelling",
+    "romantic": "Romantic",
+    "poetic": "Poetic",
+    "dramatic": "Dramatic",
+    "philosophical": "Philosophical",
+    "conversational": "Conversational"
   },
   "writingStyleDescriptions": {
     "professional": "Clear, formal, and business-appropriate tone",
@@ -280,7 +285,12 @@
     "technical": "Precise, detailed, and specification-focused",
     "marketing": "Persuasive, compelling, and action-oriented",
     "journalistic": "Objective, factual, and news-style reporting",
-    "storytelling": "Narrative-driven, engaging, and descriptive"
+    "storytelling": "Narrative-driven, engaging, and descriptive",
+    "romantic": "Emotionally rich, intimate, and relationship-focused",
+    "poetic": "Lyrical, metaphorical, and beautifully expressive",
+    "dramatic": "Intense, emotional, and theatrically engaging",
+    "philosophical": "Thoughtful, introspective, and intellectually deep",
+    "conversational": "Natural dialogue-focused and relationship-oriented"
   },
   "writingTones": {
     "neutral": "Neutral",
@@ -290,7 +300,11 @@
     "empathetic": "Empathetic",
     "humorous": "Humorous",
     "urgent": "Urgent",
-    "inspirational": "Inspirational"
+    "inspirational": "Inspirational",
+    "passionate": "Passionate",
+    "tender": "Tender",
+    "melancholic": "Melancholic",
+    "intimate": "Intimate"
   },
   "writingToneDescriptions": {
     "neutral": "Balanced and objective tone",
@@ -300,7 +314,11 @@
     "empathetic": "Understanding, caring, and supportive",
     "humorous": "Light-hearted, witty, and entertaining",
     "urgent": "Immediate, pressing, and time-sensitive",
-    "inspirational": "Motivating, uplifting, and encouraging"
+    "inspirational": "Motivating, uplifting, and encouraging",
+    "passionate": "Intense, fervent, and emotionally charged",
+    "tender": "Gentle, loving, and emotionally sensitive",
+    "melancholic": "Wistful, reflective, and bittersweet",
+    "intimate": "Close, personal, and emotionally connected"
   },
   "writingLengths": {
     "much-shorter": "Much Shorter",

@@ -963,7 +963,12 @@
     "technical": "Kỹ thuật",
     "marketing": "Tiếp thị",
     "journalistic": "Báo chí",
-    "storytelling": "Kể chuyện"
+    "storytelling": "Kể chuyện",
+    "romantic": "Lãng mạn",
+    "poetic": "Thơ ca",
+    "dramatic": "Kịch tính",
+    "philosophical": "Triết học",
+    "conversational": "Đối thoại"
   },
   "writingStyleDescriptions": {
     "professional": "Rõ ràng, trang trọng và phù hợp với môi trường doanh nghiệp",
@@ -973,7 +978,12 @@
     "technical": "Chính xác, chi tiết và tập trung vào đặc tả kỹ thuật",
     "marketing": "Thuyết phục, hấp dẫn và hướng tới hành động",
     "journalistic": "Khách quan, dựa trên sự thật và phong cách báo chí",
-    "storytelling": "Dẫn dắt câu chuyện, thu hút và mô tả sinh động"
+    "storytelling": "Dẫn dắt câu chuyện, thu hút và mô tả sinh động",
+    "romantic": "Giàu cảm xúc, thân mật và tập trung vào mối quan hệ",
+    "poetic": "Trữ tình, ẩn dụ và biểu đạt tuyệt đẹp",
+    "dramatic": "Mãnh liệt, đầy cảm xúc và thu hút như sân khấu",
+    "philosophical": "Suy tư, nội tâm và sâu sắc về trí tuệ",
+    "conversational": "Tự nhiên tập trung vào đối thoại và mối quan hệ"
   },
   "writingTones": {
     "neutral": "Trung tính",
@@ -983,7 +993,11 @@
     "empathetic": "Đồng cảm",
     "humorous": "Hài hước",
     "urgent": "Khẩn cấp",
-    "inspirational": "Truyền cảm hứng"
+    "inspirational": "Truyền cảm hứng",
+    "passionate": "Đam mê",
+    "tender": "Dịu dàng",
+    "melancholic": "Buồn bã",
+    "intimate": "Thân mật"
   },
   "writingToneDescriptions": {
     "neutral": "Cân bằng và khách quan",
@@ -993,7 +1007,11 @@
     "empathetic": "Hiểu biết, quan tâm và hỗ trợ",
     "humorous": "Vui vẻ, dí dỏm và giải trí",
     "urgent": "Ngay lập tức, cấp bách và nhạy cảm về thời gian",
-    "inspirational": "Tạo động lực, nâng cao tinh thần và khuyến khích"
+    "inspirational": "Tạo động lực, nâng cao tinh thần và khuyến khích",
+    "passionate": "Mãnh liệt, nhiệt thành và đầy cảm xúc",
+    "tender": "Nhẹ nhàng, yêu thương và nhạy cảm với cảm xúc",
+    "melancholic": "Hoài niệm, suy tư và ngọt ngào buồn",
+    "intimate": "Gần gũi, cá nhân và kết nối cảm xúc"
   },
   "writingLengths": {
     "much-shorter": "Ngắn hơn nhiều",

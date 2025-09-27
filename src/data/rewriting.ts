@@ -57,6 +57,41 @@ export const WRITING_STYLES: WritingStyle[] = [
     description: "Narrative-driven, engaging, and descriptive",
     icon: "📚",
     prompt: "Rewrite in a storytelling style with narrative flow, engaging descriptions, and compelling structure."
+  },
+  {
+    id: "romantic",
+    name: "Romantic",
+    description: "Emotionally rich, intimate, and relationship-focused",
+    icon: "💕",
+    prompt: "Rewrite in a romantic style with emotional depth, intimate expressions, and focus on relationships and connections between people."
+  },
+  {
+    id: "poetic",
+    name: "Poetic",
+    description: "Lyrical, metaphorical, and beautifully expressive",
+    icon: "🌸",
+    prompt: "Rewrite in a poetic style with lyrical language, metaphors, beautiful imagery, and emotional resonance."
+  },
+  {
+    id: "dramatic",
+    name: "Dramatic",
+    description: "Intense, emotional, and theatrically engaging",
+    icon: "🎭",
+    prompt: "Rewrite in a dramatic style with intense emotions, theatrical elements, and powerful emotional impact."
+  },
+  {
+    id: "philosophical",
+    name: "Philosophical",
+    description: "Thoughtful, introspective, and intellectually deep",
+    icon: "🤔",
+    prompt: "Rewrite in a philosophical style with deep thinking, introspective analysis, and exploration of life's deeper meanings."
+  },
+  {
+    id: "conversational",
+    name: "Conversational",
+    description: "Natural dialogue-focused and relationship-oriented",
+    icon: "💬",
+    prompt: "Rewrite in a conversational style that focuses on natural dialogue, interpersonal dynamics, and realistic human interactions."
   }
 ];
 
@@ -116,6 +151,34 @@ export const WRITING_TONES: WritingTone[] = [
     description: "Motivating, uplifting, and encouraging",
     icon: "🌟",
     prompt: "Use an inspirational tone that motivates, uplifts, and encourages action."
+  },
+  {
+    id: "passionate",
+    name: "Passionate",
+    description: "Intense, fervent, and emotionally charged",
+    icon: "🔥",
+    prompt: "Use a passionate tone that conveys intense emotions, fervor, and deep emotional connection."
+  },
+  {
+    id: "tender",
+    name: "Tender",
+    description: "Gentle, loving, and emotionally sensitive",
+    icon: "🤗",
+    prompt: "Use a tender tone that is gentle, loving, caring, and emotionally sensitive to relationships and feelings."
+  },
+  {
+    id: "melancholic",
+    name: "Melancholic",
+    description: "Wistful, reflective, and bittersweet",
+    icon: "🌙",
+    prompt: "Use a melancholic tone that conveys wistfulness, deep reflection, and bittersweet emotions."
+  },
+  {
+    id: "intimate",
+    name: "Intimate",
+    description: "Close, personal, and emotionally connected",
+    icon: "💝",
+    prompt: "Use an intimate tone that feels close, personal, and creates emotional connection between people."
   }
 ];
 
