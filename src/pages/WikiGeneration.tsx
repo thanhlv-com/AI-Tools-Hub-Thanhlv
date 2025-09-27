@@ -256,8 +256,16 @@ export default function WikiGeneration() {
                     <div className="flex items-center space-x-2">
                       <span>{structure.icon}</span>
                       <div>
-                        <div className="font-medium">{structure.name}</div>
-                        <div className="text-xs text-muted-foreground">{structure.description}</div>
+                        <div className="font-medium">
+                          {t(`wiki.structures.${structure.id}.name`) !== `wiki.structures.${structure.id}.name`
+                            ? t(`wiki.structures.${structure.id}.name`)
+                            : structure.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {t(`wiki.structures.${structure.id}.description`) !== `wiki.structures.${structure.id}.description`
+                            ? t(`wiki.structures.${structure.id}.description`)
+                            : structure.description}
+                        </div>
                       </div>
                     </div>
                   </SelectItem>
