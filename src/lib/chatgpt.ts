@@ -2,8 +2,10 @@ import { ChatGPTConfig, QueueConfig } from "@/contexts/ConfigContext";
 import { TranslationRequest, MultiTranslationRequest, MultiTranslationResult } from "@/types/translation";
 import { DDLCapacityRequest, CapacityResult, DDLStructureAnalysis } from "@/types/capacity";
 import { DiagramRequest, DiagramResult } from "@/types/diagram";
+import { RewritingRequest, RewritingResult } from "@/types/rewriting";
 import { LANGUAGES, TRANSLATION_STYLES, TRANSLATION_PROFICIENCIES, EMOTICON_OPTIONS, EMOTICON_FREQUENCIES } from "@/data/translation";
 import { DIAGRAM_TYPES, DIAGRAM_STYLES, DIAGRAM_COMPLEXITIES, DIAGRAM_FORMATS, DIAGRAM_OUTPUT_LANGUAGES } from "@/data/diagram";
+import { WRITING_STYLES, WRITING_TONES, WRITING_LENGTHS, WRITING_COMPLEXITIES, OUTPUT_LANGUAGES } from "@/data/rewriting";
 import { getWikiStructureById, getDefaultWikiStructure } from "@/data/wikiStructures";
 import { addStepIndexing } from "./diagramStepIndexing";
 
@@ -2134,5 +2136,117 @@ Hãy tạo một tài liệu wiki hoàn chỉnh và chuyên nghiệp.`;
     ];
 
     return await this.callAPI(messages, customModel);
+  }
+
+  async rewriteText(request: RewritingRequest): Promise<RewritingResult> {
+    const { text, style, tone, length, complexity, outputLanguage, customInstructions, model } = request;
+
+    const writingStyle = WRITING_STYLES.find(s => s.id === style);
+    const writingTone = WRITING_TONES.find(t => t.id === tone);
+    const writingLength = WRITING_LENGTHS.find(l => l.id === length);
+    const writingComplexity = WRITING_COMPLEXITIES.find(c => c.id === complexity);
+    const outputLang = OUTPUT_LANGUAGES.find(l => l.code === outputLanguage);
+
+    if (!writingStyle || !writingTone || !writingLength || !writingComplexity || !outputLang) {
+      throw new Error("Invalid rewriting parameters selected");
+    }
+
+    // Language instruction logic
+    const getLanguageInstruction = (langCode: string) => {
+      if (langCode === "original") {
+        return "IMPORTANT: Write the rewritten text in the exact same language as the original text. Do not translate or change the language of the text.";
+      }
+
+      const languageMap: { [key: string]: string } = {
+        'vi': 'Write the rewritten text in Vietnamese (Tiếng Việt)',
+        'en': 'Write the rewritten text in English',
+        'zh': 'Write the rewritten text in Chinese (中文)',
+        'ja': 'Write the rewritten text in Japanese (日本語)',
+        'ko': 'Write the rewritten text in Korean (한국어)',
+        'fr': 'Write the rewritten text in French (Français)',
+        'de': 'Write the rewritten text in German (Deutsch)',
+        'es': 'Write the rewritten text in Spanish (Español)',
+        'pt': 'Write the rewritten text in Portuguese (Português)',
+        'ru': 'Write the rewritten text in Russian (Русский)',
+        'it': 'Write the rewritten text in Italian (Italiano)',
+        'th': 'Write the rewritten text in Thai (ไทย)',
+        'id': 'Write the rewritten text in Indonesian (Bahasa Indonesia)',
+        'ms': 'Write the rewritten text in Malay (Bahasa Melayu)',
+        'ar': 'Write the rewritten text in Arabic (العربية)',
+        'hi': 'Write the rewritten text in Hindi (हिन्दी)',
+        'nl': 'Write the rewritten text in Dutch (Nederlands)',
+        'sv': 'Write the rewritten text in Swedish (Svenska)',
+        'no': 'Write the rewritten text in Norwegian (Norsk)',
+        'da': 'Write the rewritten text in Danish (Dansk)',
+        'fi': 'Write the rewritten text in Finnish (Suomi)',
+        'pl': 'Write the rewritten text in Polish (Polski)',
+        'tr': 'Write the rewritten text in Turkish (Türkçe)',
+        'he': 'Write the rewritten text in Hebrew (עברית)'
+      };
+      return languageMap[langCode] || 'IMPORTANT: Write the rewritten text in the exact same language as the original text. Do not translate or change the language of the text.';
+    };
+
+    const languageInstruction = getLanguageInstruction(outputLanguage);
+
+    const systemPrompt = `You are an expert text rewriter. Your task is to rewrite the given text according to specific parameters while maintaining the core meaning and message.
+
+LANGUAGE REQUIREMENT:
+${languageInstruction}
+
+REWRITING PARAMETERS:
+- Style: ${writingStyle.name} - ${writingStyle.description}
+- Tone: ${writingTone.name} - ${writingTone.description}
+- Length: ${writingLength.name} - ${writingLength.description}
+- Complexity: ${writingComplexity.name} - ${writingComplexity.description}
+- Output Language: ${outputLang.name}
+
+INSTRUCTIONS:
+${writingStyle.prompt}
+${writingTone.prompt}
+${writingLength.prompt}
+${writingComplexity.prompt}
+
+${customInstructions ? `ADDITIONAL CUSTOM INSTRUCTIONS: ${customInstructions}` : ''}
+
+IMPORTANT:
+- Maintain the core meaning and key information from the original text
+- Apply the specified style, tone, length, and complexity requirements
+- ${languageInstruction}
+- Ensure the rewritten text flows naturally and is coherent
+- Do not add false information or change factual content
+- Return only the rewritten text without explanations or comments`;
+
+    const userPrompt = `Please rewrite the following text according to the specified parameters:
+
+Original text:
+"${text}"
+
+Please provide the rewritten version:`;
+
+    const messages: ChatGPTMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const startTime = Date.now();
+    const rewrittenText = await this.callAPI(messages, model);
+    const processingTime = Date.now() - startTime;
+
+    return {
+      originalText: text,
+      rewrittenText: rewrittenText.trim(),
+      style,
+      tone,
+      length,
+      complexity,
+      outputLanguage,
+      customInstructions,
+      metadata: {
+        originalLength: text.length,
+        rewrittenLength: rewrittenText.trim().length,
+        processingTime,
+        model: model || this.config.model
+      }
+    };
   }
 }

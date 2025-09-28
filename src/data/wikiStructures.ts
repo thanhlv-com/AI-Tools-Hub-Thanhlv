@@ -717,6 +717,410 @@ Tài liệu phải bao gồm đầy đủ các phần sau theo đúng thứ tự
 - Include emergency contacts và procedures trong tables
 - Risk mitigation strategies được document trong table format
 - **TABLES PHẢI CHIẾM ÍT NHẤT 70% NỘI DUNG CỦA TÀI LIỆU**`
+  },
+  {
+    id: "wiki-development-framework",
+    name: "Wiki Development Framework",
+    description: "Comprehensive framework for planning and structuring wiki development projects",
+    icon: "🏗️",
+    sections: [
+      {
+        title: "Wiki Architecture Overview",
+        emoji: "🏛️",
+        description: "System architecture and technical foundation",
+        requirements: ["Information architecture", "Content taxonomy", "Navigation structure", "Technology stack"]
+      },
+      {
+        title: "Content Strategy & Governance",
+        emoji: "📊",
+        description: "Content planning and management guidelines",
+        requirements: ["Content types taxonomy", "Editorial guidelines", "Review processes", "Maintenance schedules"]
+      },
+      {
+        title: "User Experience Design",
+        emoji: "🎨",
+        description: "UX/UI considerations for wiki users",
+        requirements: ["User personas", "Information findability", "Navigation patterns", "Mobile responsiveness"]
+      },
+      {
+        title: "Content Creation Workflows",
+        emoji: "⚡",
+        description: "Processes for creating and maintaining content",
+        requirements: ["Content creation templates", "Review workflows", "Version control", "Publishing pipelines"]
+      },
+      {
+        title: "Integration Strategies",
+        emoji: "🔗",
+        description: "Integration with development tools and systems",
+        requirements: ["API integrations", "Tool connections", "Data synchronization", "Automation workflows"]
+      },
+      {
+        title: "Quality Assurance Framework",
+        emoji: "✅",
+        description: "Quality control and consistency measures",
+        requirements: ["Content standards", "Review checklists", "Testing procedures", "Performance metrics"]
+      },
+      {
+        title: "Scalability & Maintenance",
+        emoji: "📈",
+        description: "Long-term sustainability and growth planning",
+        requirements: ["Growth strategies", "Maintenance procedures", "Performance optimization", "Migration planning"]
+      }
+    ],
+    prompt: `You are a Wiki Development Specialist with expertise in information architecture, content strategy, and developer documentation systems. Create a comprehensive Wiki Development Framework that serves as a blueprint for software teams building and maintaining wiki systems.
+
+## FRAMEWORK STRUCTURE REQUIREMENTS:
+
+1. **Wiki Architecture Overview** 🏛️
+   - Information Architecture design principles
+   - Content taxonomy and categorization strategies
+   - Navigation structure and hierarchy planning
+   - Technology stack recommendations (platforms, tools, integrations)
+   - Performance and scalability considerations
+
+2. **Content Strategy & Governance** 📊
+   - Content types taxonomy (documentation, tutorials, API refs, troubleshooting)
+   - Editorial guidelines and style guides
+   - Content review and approval processes
+   - Maintenance schedules and lifecycle management
+   - Ownership and responsibility matrices
+
+3. **User Experience Design** 🎨
+   - User personas and journey mapping for different developer roles
+   - Information findability and search optimization
+   - Navigation patterns and interface design principles
+   - Mobile and responsive design considerations
+   - Accessibility standards and inclusive design
+
+4. **Content Creation Workflows** ⚡
+   - Standardized content creation templates
+   - Review and collaboration workflows
+   - Version control and change management
+   - Publishing pipelines and automation
+   - Content migration and import strategies
+
+5. **Integration Strategies** 🔗
+   - API documentation generation and synchronization
+   - Integration with development tools (IDEs, version control, CI/CD)
+   - Real-time data synchronization strategies
+   - Automation workflows and bot integrations
+   - Cross-platform content distribution
+
+6. **Quality Assurance Framework** ✅
+   - Content quality standards and guidelines
+   - Review checklists and validation procedures
+   - Automated testing for documentation accuracy
+   - Performance metrics and analytics
+   - User feedback collection and incorporation
+
+7. **Scalability & Maintenance** 📈
+   - Growth planning and capacity management
+   - Regular maintenance procedures and schedules
+   - Performance optimization strategies
+   - Migration planning for platform changes
+   - Community contribution and crowdsourcing strategies
+
+## TECHNICAL IMPLEMENTATION FOCUS:
+- Include specific tool recommendations and comparisons
+- Provide code examples for automation scripts
+- Detail API integration patterns
+- Include performance benchmarking guidelines
+- Specify security and access control considerations
+
+## DELIVERABLE FORMAT:
+- Actionable frameworks with implementation steps
+- Decision matrices for tool selection
+- Template libraries and boilerplates
+- Automation script examples
+- Best practices checklists`
+  },
+  {
+    id: "developer-knowledge-base",
+    name: "Developer Knowledge Base",
+    description: "Structured knowledge management system for development teams",
+    icon: "🧠",
+    sections: [
+      {
+        title: "Knowledge Architecture",
+        emoji: "🗂️",
+        description: "Information organization and structure",
+        requirements: ["Knowledge taxonomy", "Content hierarchies", "Cross-referencing systems", "Tagging strategies"]
+      },
+      {
+        title: "Developer Onboarding",
+        emoji: "🚀",
+        description: "New team member integration resources",
+        requirements: ["Onboarding paths", "Learning progressions", "Skill assessments", "Mentorship programs"]
+      },
+      {
+        title: "Technical Documentation",
+        emoji: "📚",
+        description: "Comprehensive technical knowledge repository",
+        requirements: ["Code documentation", "Architecture guides", "Best practices", "Decision records"]
+      },
+      {
+        title: "Troubleshooting Database",
+        emoji: "🔧",
+        description: "Problem-solving knowledge and solutions",
+        requirements: ["Issue taxonomies", "Solution databases", "Diagnostic procedures", "Escalation paths"]
+      },
+      {
+        title: "Learning & Development",
+        emoji: "🎓",
+        description: "Continuous learning and skill development",
+        requirements: ["Learning paths", "Skill matrices", "Training resources", "Certification tracking"]
+      },
+      {
+        title: "Collaboration Tools",
+        emoji: "🤝",
+        description: "Knowledge sharing and collaboration systems",
+        requirements: ["Discussion forums", "Expert networks", "Collaboration workflows", "Knowledge sharing incentives"]
+      }
+    ],
+    prompt: `You are a Knowledge Management Architect specializing in developer-focused information systems. Create a comprehensive Developer Knowledge Base framework that enables software teams to capture, organize, and share technical knowledge effectively.
+
+## KNOWLEDGE BASE FRAMEWORK:
+
+1. **Knowledge Architecture** 🗂️
+   - Multi-dimensional knowledge taxonomy for technical content
+   - Content hierarchies and relationship mapping
+   - Cross-referencing and linking strategies
+   - Tagging and metadata frameworks
+   - Search and discovery optimization
+
+2. **Developer Onboarding** 🚀
+   - Role-based onboarding learning paths
+   - Progressive skill development tracks
+   - Interactive tutorials and hands-on exercises
+   - Skill assessment and gap analysis tools
+   - Mentorship program integration
+
+3. **Technical Documentation** 📚
+   - Living code documentation strategies
+   - Architecture decision records (ADRs)
+   - Best practices libraries and coding standards
+   - Design pattern catalogs
+   - Legacy system knowledge preservation
+
+4. **Troubleshooting Database** 🔧
+   - Systematic issue categorization and taxonomy
+   - Solution databases with search capabilities
+   - Diagnostic flowcharts and decision trees
+   - Escalation procedures and expert networks
+   - Post-incident knowledge capture processes
+
+5. **Learning & Development** 🎓
+   - Competency-based learning paths
+   - Technology-specific skill matrices
+   - Curated training resources and certifications
+   - Progress tracking and achievement systems
+   - Knowledge sharing recognition programs
+
+6. **Collaboration Tools** 🤝
+   - Expert identification and networking systems
+   - Discussion forums and Q&A platforms
+   - Collaborative editing and review workflows
+   - Knowledge contribution gamification
+   - Cross-team knowledge sharing initiatives
+
+## IMPLEMENTATION GUIDELINES:
+- Focus on developer-centric user experiences
+- Include automation for knowledge capture
+- Provide metrics for knowledge base effectiveness
+- Detail integration with development workflows
+- Specify content lifecycle management processes`
+  },
+  {
+    id: "agile-wiki-methodology",
+    name: "Agile Wiki Methodology",
+    description: "Agile-aligned wiki development and maintenance processes",
+    icon: "🔄",
+    sections: [
+      {
+        title: "Agile Documentation Principles",
+        emoji: "📋",
+        description: "Core principles for agile documentation",
+        requirements: ["Just-enough documentation", "Living documents", "Iterative improvement", "Value-driven content"]
+      },
+      {
+        title: "Sprint-Based Wiki Development",
+        emoji: "🏃",
+        description: "Sprint planning and execution for wiki projects",
+        requirements: ["Sprint planning", "User stories for documentation", "Definition of done", "Sprint retrospectives"]
+      },
+      {
+        title: "Continuous Integration",
+        emoji: "🔄",
+        description: "CI/CD for documentation and wiki content",
+        requirements: ["Automated testing", "Content validation", "Deployment pipelines", "Version control"]
+      },
+      {
+        title: "Stakeholder Collaboration",
+        emoji: "👥",
+        description: "Collaborative processes with stakeholders",
+        requirements: ["Stakeholder mapping", "Feedback loops", "Review processes", "Communication protocols"]
+      },
+      {
+        title: "Metrics & Analytics",
+        emoji: "📊",
+        description: "Measuring wiki effectiveness and ROI",
+        requirements: ["Usage analytics", "Content performance", "User satisfaction", "Business impact metrics"]
+      },
+      {
+        title: "Adaptive Planning",
+        emoji: "🎯",
+        description: "Flexible planning and adaptation strategies",
+        requirements: ["Backlog management", "Priority frameworks", "Change management", "Risk mitigation"]
+      }
+    ],
+    prompt: `You are an Agile Coach with expertise in documentation strategy and knowledge management systems. Create an Agile Wiki Methodology that aligns wiki development with agile software development practices.
+
+## AGILE WIKI METHODOLOGY:
+
+1. **Agile Documentation Principles** 📋
+   - Just-enough documentation philosophy
+   - Living documents that evolve with code
+   - Iterative improvement and feedback incorporation
+   - Value-driven content creation and maintenance
+   - Documentation as code practices
+
+2. **Sprint-Based Wiki Development** 🏃
+   - Documentation sprint planning and estimation
+   - User stories for wiki features and content
+   - Definition of done for documentation tasks
+   - Sprint retrospectives focused on documentation effectiveness
+   - Cross-functional team collaboration on wiki development
+
+3. **Continuous Integration** 🔄
+   - Automated testing for documentation accuracy
+   - Content validation and quality gates
+   - Deployment pipelines for wiki updates
+   - Version control integration with development workflows
+   - Automated content generation from code
+
+4. **Stakeholder Collaboration** 👥
+   - Stakeholder mapping and engagement strategies
+   - Regular feedback loops and review cycles
+   - Collaborative review and approval processes
+   - Communication protocols for documentation changes
+   - Cross-team coordination and alignment
+
+5. **Metrics & Analytics** 📊
+   - Usage analytics and content performance tracking
+   - User satisfaction and feedback metrics
+   - Business impact measurement and ROI analysis
+   - Content lifecycle and maintenance metrics
+   - Team productivity and efficiency indicators
+
+6. **Adaptive Planning** 🎯
+   - Documentation backlog management
+   - Priority frameworks for content development
+   - Change management for evolving requirements
+   - Risk identification and mitigation strategies
+   - Scaling strategies for growing teams
+
+## AGILE IMPLEMENTATION FOCUS:
+- Emphasize collaboration over process
+- Provide lightweight, flexible frameworks
+- Include ceremony adaptations for documentation teams
+- Detail integration with existing agile practices
+- Focus on delivering value to end users`
+  },
+  {
+    id: "enterprise-wiki-architecture",
+    name: "Enterprise Wiki Architecture",
+    description: "Large-scale wiki systems for enterprise environments",
+    icon: "🏢",
+    sections: [
+      {
+        title: "Enterprise Requirements Analysis",
+        emoji: "📋",
+        description: "Business and technical requirements gathering",
+        requirements: ["Stakeholder analysis", "Business requirements", "Technical constraints", "Compliance needs"]
+      },
+      {
+        title: "System Architecture Design",
+        emoji: "🏗️",
+        description: "Scalable and secure architecture planning",
+        requirements: ["Infrastructure design", "Security architecture", "Integration patterns", "Performance specifications"]
+      },
+      {
+        title: "Governance Framework",
+        emoji: "⚖️",
+        description: "Policies and procedures for enterprise use",
+        requirements: ["Content governance", "Access control", "Compliance procedures", "Audit requirements"]
+      },
+      {
+        title: "Integration Strategy",
+        emoji: "🔗",
+        description: "Enterprise system integrations",
+        requirements: ["SSO integration", "Directory services", "Business system connections", "Data synchronization"]
+      },
+      {
+        title: "Security & Compliance",
+        emoji: "🔒",
+        description: "Security measures and regulatory compliance",
+        requirements: ["Security policies", "Access controls", "Data protection", "Regulatory compliance"]
+      },
+      {
+        title: "Migration & Change Management",
+        emoji: "🔄",
+        description: "Enterprise-scale migration and change processes",
+        requirements: ["Migration strategies", "Change management", "Training programs", "Adoption metrics"]
+      }
+    ],
+    prompt: `You are an Enterprise Architect with deep expertise in large-scale information systems and corporate wiki deployments. Create a comprehensive Enterprise Wiki Architecture framework for organizations implementing wiki systems at scale.
+
+## ENTERPRISE WIKI ARCHITECTURE:
+
+1. **Enterprise Requirements Analysis** 📋
+   - Multi-stakeholder requirements gathering processes
+   - Business case development and ROI analysis
+   - Technical constraint identification and assessment
+   - Regulatory and compliance requirement mapping
+   - Cross-departmental needs analysis
+
+2. **System Architecture Design** 🏗️
+   - Scalable infrastructure architecture patterns
+   - High availability and disaster recovery planning
+   - Security architecture and threat modeling
+   - Integration architecture and API design
+   - Performance and capacity planning specifications
+
+3. **Governance Framework** ⚖️
+   - Enterprise content governance policies
+   - Role-based access control and permissions
+   - Content lifecycle and retention policies
+   - Compliance monitoring and audit procedures
+   - Risk management and mitigation strategies
+
+4. **Integration Strategy** 🔗
+   - Single Sign-On (SSO) and identity management
+   - Active Directory and LDAP integration
+   - Enterprise system connectivity (ERP, CRM, etc.)
+   - Real-time data synchronization strategies
+   - API management and service mesh architecture
+
+5. **Security & Compliance** 🔒
+   - Enterprise security policy implementation
+   - Multi-layered access control systems
+   - Data classification and protection schemes
+   - Regulatory compliance frameworks (GDPR, HIPAA, SOX)
+   - Security monitoring and incident response
+
+6. **Migration & Change Management** 🔄
+   - Large-scale content migration strategies
+   - Organizational change management programs
+   - Training and adoption enablement
+   - Success metrics and KPI frameworks
+   - Continuous improvement processes
+
+## ENTERPRISE FOCUS AREAS:
+- Emphasize scalability and reliability
+- Include detailed security and compliance considerations
+- Provide governance and policy templates
+- Detail integration with enterprise systems
+- Focus on change management at organizational scale`
   }
 ];
 

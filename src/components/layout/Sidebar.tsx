@@ -4,13 +4,14 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { 
-  Database, 
-  Settings, 
-  Menu, 
+import {
+  Database,
+  Settings,
+  Menu,
   X,
   GitCompare,
   Languages,
+  PenTool,
   Wand2,
   Calculator,
   Shapes,
@@ -30,6 +31,12 @@ const getNavigation = (t: (key: string) => string) => [
     href: "/translation",
     icon: Languages,
     description: t('nav.translationDesc')
+  },
+  {
+    name: t('nav.textRewriting'),
+    href: "/text-rewriting",
+    icon: PenTool,
+    description: t('nav.textRewritingDesc')
   },
   {
     name: t('nav.promptGenerator'),

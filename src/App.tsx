@@ -8,6 +8,7 @@ import { ConfigProvider } from "@/contexts/ConfigContext";
 import "./i18n";
 import DDLCompare from "./pages/DDLCompare";
 import Translation from "./pages/Translation";
+import TextRewriting from "./pages/TextRewriting";
 import PromptGeneration from "./pages/PromptGeneration";
 import CapacityAnalysis from "./pages/CapacityAnalysis";
 import Diagram from "./pages/Diagram";
@@ -28,6 +29,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<DDLCompare />} />
               <Route path="/translation" element={<Translation />} />
+              <Route path="/text-rewriting" element={<TextRewriting />} />
               <Route path="/prompt-generation" element={<PromptGeneration />} />
               <Route path="/capacity-analysis" element={<CapacityAnalysis />} />
               <Route path="/diagram" element={<Diagram />} />
